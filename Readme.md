@@ -1,0 +1,1 @@
+Automatic plots with formulas
