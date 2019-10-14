@@ -1,0 +1,23 @@
+useDynLib(fplot, .registration = TRUE)
+
+
+export(plot_distr, plot_lines, plot_bar, plot_box)
+
+
+
+# IMPORTS
+
+import(data.table)
+import(Rcpp)
+
+importFrom("graphics", "abline", "axis", "barplot", "box", "grid",
+             "legend", "lines", "par", "plot", "points", "polygon",
+             "rect", "segments", "strheight", "strwidth", "text",
+             "title")
+importFrom("stats", "lm", "median", "quantile", "sd", "formula")
+importFrom("utils", "head", "tail")
+importFrom("Formula", "Formula")
+
+
+
+

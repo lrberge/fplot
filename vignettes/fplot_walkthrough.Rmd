@@ -1,0 +1,123 @@
+---
+title: "fplot walkthrough"
+author: "Laurent Berge"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+vignette: >
+  %\VignetteIndexEntry{fplot introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+fplot provides automatic plotting of common graphs (distributions, lines, bar plots and boxplots). The syntax uses formulas, allowing aggregate/conditional/weighted graphs with minimum efforts. The many arguments are automatically adjusted to the data in order to provide the nicest and most meaningful graphs.
+
+# Distributions
+
+The function `plot_distr` plots distributions. The syntax of the function \code{plot_distr} is as follows:
+
+\code{plot_distr(variable ~ moderator | weight, data)}
+
+Throughout this vignette, we will use data on publications extracted from the Microsoft Academic Graph.
+
+```{r, echo = TRUE}
+library(fplot)
+data(us_pub_biology)
+```
+
+This data corresponds to publications from U.S. institution in the field of biology in the period 1985-1990. Here is a sample of the data:
+
+```{r, echo=FALSE, results='asis'}
+tab = head(us_pub_biology)
+knitr::kable(us_pub_biology)
+```
+
+
+What's the distribution of publications per institutions?
+
+```{r, fig.width=7}
+# When there is only the variable, you can use a vector
+plot_distr(us_pub_biology$institution)
+
+```
+
+What can we remark? First only the first 15 most important institutions are plotted. Indeed, since the institution variable is a categorical data, plotting all the 591 different would have just cluttered the graph and nothing could have been visible. We can increase the number of bars plotted with argument \code{maxBins}.
+
+Although only the first are plotted, we still have information on the institutions left with the last (broken) bar reporting the number of publications that are left. We can avoid displaying this column with the argument \code{addOther = FALSE}.
+
+We can also notice that not only the graph of the distribution is shown, but the number of observations is reported on the top of each bar to have a quick insight of the total numbers. Further, the size of the numbers always fit the width of the bars. The argument \code{onTop} manages the information displayed on the top of the bars: it can be numbers (\code{onTop = "nb"}), fractions (\code{onTop = "frac"}), or nothing (\code{onTop = "none"}). The default depends on the type of data. 
+
+Finally, the labels in the x-axis: i) all appear and ii) are truncated meaningfully. Since the institution variable is categorical, there is no way to deduce to which institution each bar represent if it is not displayed explicitely. The algorithm therefore strives to place the labels at different levels such that they don't clutter each other. They are further truncated at 20 characters (argument \code{trunc}) and the truncation method tries to keep the most information from the labels (\code{trunc.method = "auto"}). But there are other truncation methods, like trimming the right (resp. the middle) of the label with \code{trunc.method = "trimRight"} (resp. \code{trunc.method = "trimMid"}). If the labels still don't fit, they can be tilted with the argument \code{labels.tilted = TRUE}. By default, the labels are tilted if the first algorithm does not manage to make them fit. 
+
+Now let's weight the production of the institutions by the quality of the journals:
+
+```{r, fig.width=7}
+plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology)
+
+```
+
+We used a formula to add the weight. Note that since there is no moderator, we replaced it by \code{1}.
+
+Now we illustrate the conditional graphs by asking the question of what are the journals in which the top institutions (Harvard, Johns Hopkins and Stanford) publish.
+
+```{r, fig.width=7}
+# We can get the data from the previous graph
+graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, plot = FALSE)
+top_instit = graph_data$x[1:3]
+plot_distr(journal ~ institution, us_pub_biology[institution %in% top_instit])
+
+```
+
+What happened? In the x-axis, the journals are displayed since they are the "variable", and since we added the institution as a moderator, the data is broken down across each institution. The 7 most important journals are displayed for each instituion and the scale corresponds to the share of the journal within the institution. Instead of displaying the within share, the total share could have been displayed with the option \code{mode.method = "splitTotal"}.
+
+Here the numbers on the top of the bars come handy to provide comparisons across institutions (otherwise we could think Stanford had more publications than Harvard). Importantly, because the journal names are long, it would have been impossible to display them in a standard way. As we can see, they are first truncated (meaningfully) and then tilted. in the end, the graph is fully informative.
+
+By default, when the data is split the bar containing the "other" information is not displayed to save space. But of course, we can add it with the appropriate option:
+
+```{r, fig.width=7}
+# We can get the data from the previous graph
+graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, plot = FALSE)
+top_instit = graph_data$x[1:3]
+plot_distr(journal ~ institution, us_pub_biology[institution %in% top_instit], addOther = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

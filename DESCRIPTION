@@ -1,0 +1,16 @@
+Package: fplot
+Type: Package
+Title: Aggregate/conditional graphs and automatic layout using formulas
+Version: 0.1.0
+Authors@R: person("Laurent", "Berge", email = "laurent.berge@uni.lu", role = c("aut", "cre"))
+Imports: stats, graphics, utils, Formula, Rcpp
+Suggests: knitr, rmarkdown, fixest
+LinkingTo: Rcpp
+Depends: R(>= 3.5.0), data.table
+Description: Easy way to plot common types of graphics with moderators by using formulas. The plots are automatic, meaning that the many options are adapted to the data at hand in order to provide the nicest and most meaningful graphs possible.
+License: GPL-3
+SystemRequirements: C++11
+VignetteBuilder: knitr
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
