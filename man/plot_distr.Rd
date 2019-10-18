@@ -6,10 +6,9 @@
 \usage{
 plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
   legend_options = list(), onTop, yaxisShow = TRUE, col,
-  outCol = "black", mod.method = "splitWithin", labels.tilted,
-  addOther, plot = TRUE, sep, centered = TRUE, weight.fun,
-  dict = getFplot_dict(), mod.title, labels.angle, cex.axis,
-  trunc = 20, trunc.method = "auto", ...)
+  outCol = "black", mod.method, labels.tilted, addOther, plot = TRUE,
+  sep, centered = TRUE, weight.fun, dict = getFplot_dict(), mod.title,
+  labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...)
 }
 \arguments{
 \item{fml}{A formula or a vector. If a formula, it must be of the type: \code{var ~ moderator | weight}. If there are no moderator nor weights, you can use directly a vector, or use \code{fml = var ~ 1}. To use weights and no moderator, use \code{fml = var ~ 1 | weight}. See examples.}
@@ -38,7 +37,7 @@ plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
 
 \item{outCol}{Outer color of the bars. Defaults is \code{"black"}.}
 
-\item{mod.method}{A character scalar: either \dQuote{splitWithin}, the default, \dQuote{splitTotal}, \dQuote{within}, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case.}
+\item{mod.method}{A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{within}, the default for data in logarithmic form, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case. Note that the split option is available only for categorical data.}
 
 \item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
 
@@ -71,6 +70,37 @@ This function plots distributions of items (a bit like an histogram) which can b
 }
 \examples{
 
+# Data on publications from U.S. institutions
+data(us_pub_biology)
+
+# 1) Let's plot the distribution of publications by institutions:
+plot_distr(institution~1, us_pub_biology)
+
+# When there is only the variable, you can use a vector instead:
+plot_distr(us_pub_biology$institution)
+
+# 2) Now the production of institution weighted by journal quality
+plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology)
+
+# 3) Let's plot the journal distribution for the top 3 institutions
+
+# We can get the data from the previous graph
+graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, plot = FALSE)
+# And then select the top universities
+top3_instit = graph_data$x[1:3]
+top5_instit = graph_data$x[1:5] # we'll use it later
+
+# Now the distribution of journals
+plot_distr(journal ~ institution, us_pub_biology[institution \%in\% top3_instit])
+
+# 3') Same graph as before with "other" column, 5 institutions
+plot_distr(journal ~ institution, us_pub_biology[institution \%in\% top5_instit],
+           addOther = TRUE)
+
+#
+# Example with continuous data
+#
+
 # generating data
 y = rnorm(200, mean=10)
 x = round(y)
@@ -85,25 +115,9 @@ plot_distr(base$y)
 # Frequency of x => different layout because made of integers
 plot_distr(base$x)
 
-#
-# Now splitting wrt id
-
-# default behavior depends on the data. Here not sorted:
+# Splitting the distributions is not implemented for continuous data
+# while it is for discrete data
 plot_distr(x~id, base)
-
-# now sorted
-plot_distr(x~id, base, maxFirst = TRUE)
-
-# In log
-plot_distr(x~id, base, toLog = TRUE)
-
-#
-# Using iris data
-plot_distr(iris$Species)
-
-plot_distr(Species~1|Sepal.Width, iris, onTop="none")
-
-plot_distr(Sepal.Width~1, iris)
 
 
 

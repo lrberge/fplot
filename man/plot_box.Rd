@@ -79,6 +79,4 @@ m$period = sample(1:4, 150, TRUE)
 
 plot_box(Petal.Length ~ period|Species, m)
 
-plot_box(m$Petal.Length, case=m$period, moderator=m$Species)
-
 }

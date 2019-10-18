@@ -4,9 +4,9 @@
 \alias{plot_lines}
 \title{Display means conditionnally on some other values}
 \usage{
-plot_lines(fml, base, time, moderator, smoothing_window = 0,
-  fun = mean, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4,
-  3, 1), legend_options = list(), pt.cex = 2, lwd = 2,
+plot_lines(fml, base, time, moderator, smoothing_window = 0, fun,
+  col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),
+  legend_options = list(), pt.cex = 2, lwd = 2,
   dict = getFplot_dict(), mod.title, ...)
 }
 \arguments{
@@ -28,7 +28,7 @@ plot_lines(fml, base, time, moderator, smoothing_window = 0,
 
 \item{pch}{The form types of the points, in the case there are more than one moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.}
 
-\item{legend_options}{A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator.}
+\item{legend_options}{A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Not that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.}
 
 \item{pt.cex}{Default to 2. The \code{cex} of the points.}
 
@@ -45,12 +45,12 @@ The typical use of this function is to represents trends of average along some c
 }
 \examples{
 
-m = iris
-m$period = sample(1:4, 150, TRUE)
+df = iris
+df$period = sample(1:4, 150, TRUE)
 
-plot_lines(Petal.Length ~ period|Species, m)
+plot_lines(Petal.Length ~ period|Species, df)
 
-plot_lines(Petal.Length ~ Species, m)
+plot_lines(Petal.Length ~ Species, df)
 
 
 }

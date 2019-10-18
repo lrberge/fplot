@@ -4,7 +4,7 @@
 \alias{plot_bar}
 \title{Barplot with aggregate and moderator possibilities}
 \usage{
-plot_bar(fml, base, fun = mean, dict = getFplot_dict(),
+plot_bar(fml, base, agg, fun = mean, dict = getFplot_dict(),
   order = FALSE, maxBins = 50, show0 = TRUE, cex.text = 0.7,
   isDistribution = FALSE, yaxisShow = TRUE, labels.tilted,
   trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE,
@@ -12,15 +12,17 @@ plot_bar(fml, base, fun = mean, dict = getFplot_dict(),
   outCol = "white", xlab, ylab, ...)
 }
 \arguments{
-\item{fml}{A formula of the form: \code{var ~ x_agg | mod} with \code{var} the variable, \code{x_agg} the variable over which to aggregate, and \code{mod} the optional moderator.}
+\item{fml}{A formula of the form: \code{var ~ agg} with \code{var} the variable, \code{agg} the variable over which to aggregate that will appear in the x-axis.}
 
 \item{base}{A data.frame containing all the variables in the formula argument.}
+
+\item{agg}{In the case \code{fml} is a vector, \code{agg} can be a vector of values over which to aggregate the main variable.}
 
 \item{fun}{A function for the aggregation. Default is \code{mean}.}
 
 \item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
-\item{order}{Defaults to \code{FALSE}. Should the data be ordered wrt frequency?}
+\item{order}{Defaults to \code{FALSE}. Should the data be ordered w.r.t. frequency?}
 
 \item{maxBins}{Defaults to 50. All other information that does not fit is put into the bin \dQuote{other}.}
 
@@ -28,7 +30,7 @@ plot_bar(fml, base, fun = mean, dict = getFplot_dict(),
 
 \item{cex.text}{The size of the text appearing on the top of the bins. Defaults to 0.7.}
 
-\item{isDistribution}{Defaults to \code{TRUE}. It impacts the y-axis display. If it's a distribution, then percentages are shown on the y-axis.}
+\item{isDistribution}{Defaults to \code{FALSE}. It impacts the y-axis display. If it's a distribution, then percentages are shown on the y-axis.}
 
 \item{yaxisShow}{Defaults to \code{FALSE}. Should the y-axis labels be displayed?}
 
