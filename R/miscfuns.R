@@ -197,7 +197,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
 }
 
 
-xaxis_labels = function(at, labels, minLine = -1, maxLine = 0, minCex = 0.7, add_ticks = FALSE, trunc = 20, trunc.method = "auto", onlyParams = FALSE, ...){
+xaxis_labels = function(at, labels, minLine = -1, maxLine = 1, minCex = 0.8, add_ticks = FALSE, trunc = 20, trunc.method = "auto", onlyParams = FALSE, ...){
     # This function automates the placement of labels into the axis 1
     # It first put the cex to the appropritate level to insert the 1st
     # label into the frame, then
@@ -251,6 +251,7 @@ xaxis_labels = function(at, labels, minLine = -1, maxLine = 0, minCex = 0.7, add
 
     # all_lines = -1:maxLine
     ok = FALSE
+    failed = FALSE
     while(!ok){
         ok = TRUE # if !ok there's a problem, we need to reduce cex
 
@@ -288,9 +289,10 @@ xaxis_labels = function(at, labels, minLine = -1, maxLine = 0, minCex = 0.7, add
 
                 if(line_index == max(all_lines)) {
                     # Means it does not fit => we need to reduce cex
-                    if(myCex == minCex){
+                    if(myCex <= minCex){
                         # already at the minimum, we keep going then
                         myLine = c(myLine, line_index)
+                        failed = TRUE
                     } else {
                         # we get out totally and reduce the cex
                         ok = FALSE
@@ -307,7 +309,7 @@ xaxis_labels = function(at, labels, minLine = -1, maxLine = 0, minCex = 0.7, add
     }
 
     if(onlyParams){
-        res = list(cex = myCex, line = myLine)
+        res = list(cex = myCex, line = myLine, failed = failed)
         return(res)
     }
 
@@ -420,7 +422,7 @@ xaxis_biased = function(at, labels, angle, cex, max_line = 1, yadj = 0.5, trunc 
 }
 
 
-legendFit = function(where = "top", legend, minCex = 0.6, trunc, plot = TRUE, title = NULL, title_out = FALSE, ...){
+legendFit = function(where = "top", legend, minCex = 0.6, trunc, trunc.method = "auto", plot = TRUE, title = NULL, title_out = FALSE, ...){
     # units in inch to avoid the need of having a graph already plotted
     # (you cannot use par("usr) when there is no graph plotted)
 
@@ -446,7 +448,7 @@ legendFit = function(where = "top", legend, minCex = 0.6, trunc, plot = TRUE, ti
     AUTO_TRUNC = TRUE
     if(!missing(trunc)){
         AUTO_TRUNC = FALSE
-        myLabels = truncate_string(legend, trunc, "trimright")
+        myLabels = truncate_string(legend, trunc, trunc.method)
     } else {
         myLabels = legend
         trunc = 100
@@ -491,11 +493,11 @@ legendFit = function(where = "top", legend, minCex = 0.6, trunc, plot = TRUE, ti
 
         minTrunc = 5
         trunc = max(minTrunc, min(25, max(nchar(legend))) - 3)
-        myLabels = truncate_string(legend, trunc, "trimRight")
+        myLabels = truncate_string(legend, trunc, trunc.method)
         unit_size = fsize(myLabels, myCex)
         while(n_relevant * unit_size > largeur_totale && trunc > minTrunc){
             trunc = max(minTrunc, trunc - 3)
-            myLabels = truncate_string(myLabels, trunc, "trimRight")
+            myLabels = truncate_string(myLabels, trunc, trunc.method)
             unit_size = fsize(myLabels, myCex)
         }
     }
@@ -982,7 +984,7 @@ drawRectangle = function(xbl, ybl, xtr, ytr, prop=1, coul=1:100, sep=0.02, ...){
     prop_bis = prop*(xtr-xbl-2*sep)
 
     X = xbl + cumsum(c(sep,prop_bis))
-    # browser()
+
     n = length(X)
     start = X[-n]
     end = X[-1]
@@ -1201,7 +1203,7 @@ myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog
             do.call(funLabels, axis1Opts)
         }
     }
-    # browser()
+
     # The stuff to be displayed on top of the bars
     if(onTop == "nb"){
         text(info, x_share, label = addCommas(x), pos = 3, cex = cex.text)
@@ -1216,7 +1218,7 @@ myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog
 
 }
 
-plot_line = function(x, y, addFit = FALSE, add = FALSE, smoothing_window = 0,  ...){
+plot_line = function(x, y, addFit = FALSE, add = FALSE, smoothing_window = 0, ...){
 
     if(missing(y)){
         y_miss = TRUE
@@ -1243,7 +1245,7 @@ plot_line = function(x, y, addFit = FALSE, add = FALSE, smoothing_window = 0,  .
             dots$ylab = y_name
         }
     }
-    # browser()
+
 
     # If y-axis is missing
     if(y_miss){
@@ -1733,7 +1735,7 @@ rbindDS <- function(x, y){
     }
 
     if(length(y) == 0) return(x)
-browser()
+
     if(!"data.frame" %in% class(y) && !(checkVector(y) & !is.null(names(y)))){
         stop("If argument 'y' is a vector, it must be named!")
     }
