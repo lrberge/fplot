@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-fplot provides automatic plotting of common graphs (distributions, lines, bar plots and boxplots). The syntax uses formulas, allowing aggregate/conditional/weighted graphs with minimum efforts. The many arguments are automatically adjusted to the data in order to provide the nicest and most meaningful graphs.
+`fplot` provides automatic plotting of common graphs (distributions, lines, bar plots and boxplots). The syntax uses formulas, allowing aggregate/conditional/weighted graphs with minimum efforts. The many arguments are automatically adjusted to the data in order to provide the nicest and most meaningful graphs depending on the data at hand.
 
 # Distributions
 
@@ -31,7 +31,11 @@ The function `plot_distr` plots distributions. The syntax of the function \code{
 
 \code{plot_distr(variable ~ moderator | weight, data)}
 
-Throughout this vignette, we will use data on publications extracted from the Microsoft Academic Graph.
+This function is extremely versatile: its default behavior totally depends on the data it deals with. 
+
+## Categorical data
+
+We will use data on publications extracted from the Microsoft Academic Graph.
 
 ```{r, echo = TRUE}
 library(fplot)
@@ -42,7 +46,7 @@ This data corresponds to publications from U.S. institution in the field of biol
 
 ```{r, echo=FALSE, results='asis'}
 tab = head(us_pub_biology)
-knitr::kable(us_pub_biology)
+knitr::kable(tab)
 ```
 
 
@@ -76,8 +80,10 @@ Now we illustrate the conditional graphs by asking the question of what are the 
 ```{r, fig.width=7}
 # We can get the data from the previous graph
 graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, plot = FALSE)
-top_instit = graph_data$x[1:3]
-plot_distr(journal ~ institution, us_pub_biology[institution %in% top_instit])
+# And then select the top universities
+top3_instit = graph_data$x[1:3]
+top5_instit = graph_data$x[1:5]
+plot_distr(journal ~ institution, us_pub_biology[institution %in% top3_instit])
 
 ```
 
@@ -88,23 +94,125 @@ Here the numbers on the top of the bars come handy to provide comparisons across
 By default, when the data is split the bar containing the "other" information is not displayed to save space. But of course, we can add it with the appropriate option:
 
 ```{r, fig.width=7}
-# We can get the data from the previous graph
-graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, plot = FALSE)
-top_instit = graph_data$x[1:3]
-plot_distr(journal ~ institution, us_pub_biology[institution %in% top_instit], addOther = TRUE)
+# Previous graph + "other" column
+plot_distr(journal ~ institution, us_pub_biology[institution %in% top3_instit], addOther = TRUE)
 
 ```
 
+## Numeric data
+
+Now let's illustrate the behavior of the function in presence of numerical data. We first import trade data:
+
+```{r, echo = TRUE}
+library(fixest)
+data(trade)
+```
+
+```{r, echo=FALSE, results='asis'}
+tab = head(trade)
+knitr::kable(tab)
+```
+
+This data consists of importations between pairs of European countries for different products across time. Let's look at the distribution of trade volume:
+
+```{r, fig.width=7}
+plot_distr(trade$Euros)
+```
+
+Three main things can be remarked. First, the data has been automatically set to logarithmic form beforehand in order to offer a better display. This behavior can be changed with the argument `toLog`. Second, the first column contains all the leftovers that are lower than 1,097 -- this allows to focus on the part of the graph where there is the most variation. This is why the graph does not start from 0 but rather is focused on the mode of the distribution. Thanks to this first column, there is no loss of information while ensuring greater readability. Finally, the numeric scale is formatted for an easy reading.
+
+Now let's look at the distribution of French and German exports:
+
+```{r}
+plot_distr(Euros~Origin, trade[trade$Origin %in% c("DE", "FR"),])
+```
+
+For each logarithmic "bin", the two moderators are compared.
+
+Now let's look at small scale numeric data using the `iris` dataset. 
+
+```{r}
+plot_distr(iris$Petal.Length)
+```
+
+For "well distributed" continuous data, it looks very much like a regular histogram, but a bit nicer.
+
+
+# Trends
+
+You can also show the evolution of the aggregate of some variable using the function `plot_lines`. By default, the function applied by `plot_lines` is the average, but can be modified at will. Let's look at the evolution of the fraction of publications published in top 5% journals:
+
+```{r, fig.width=7}
+plot_lines(jnl_top_5p ~ year, us_pub_biology)
+```
+
+The data is first aggregated at the year level, i.e. `mean(us_pub_biology[year == YEAR, jnl_top_5p])` is applied for each year, then a simple scatter plot is drawn.
+
+As before, it is very easy to make the graph conditional. Let's look at the evolution for the three top institutions:
+
+```{r, fig.width=7}
+plot_lines(jnl_top_5p ~ year | institution, us_pub_biology[institution %in% top3_instit])
+```
+
+If we want to display the conditional evolution of the frequencies per year, we can use 1 as a variable, which will set the default function to `sum` in order to get the frequencies:
+
+```{r, fig.width=7}
+plot_lines(1 ~ year | institution, us_pub_biology[institution %in% top5_instit])
+```
+
+What can we remark from the previous graph? When the legend would not fit in one line, the alggorithm automatically adds one line to display all the relevant information while using all the width of the graph for readability.
+
+We can add some simple smoothing with the option `smoothing_window`:
+
+```{r, fig.width=7}
+plot_lines(1 ~ year | institution, us_pub_biology[institution %in% top5_instit], smoothing_window = 1)
+```
+
+The smoothing uses the n$^{th}$ future and past years to smooth the data, missing years due to the smoothing remain on the graph.
 
 
 
+# Conditional boxplot
+
+The function `plot_box` is made for conditional boxplots: one variable conditionally to one or two moderators. Let's have an example with the publications data. First we create the number of publications in top 5% journals per year and per institution, then we display a yearly boxplot:
+
+```{r}
+base_pub = us_pub_biology[, .(nb_pub_top_5 = sum(jnl_top_5p)), by = .(year, institution)]
+plot_box(nb_pub_top_5 ~ year, base_pub)
+```
+
+By default the outliers are not shown when the boxplots would disapear because of the scale of the outliers. The means however are by default always represented, here by a red diamond. We can see that while the 3rd quartile almost doubled in the period, the mean almost trebbled which means that the outliers gained weight over time.
+
+Now let's redo the same analysis but by distinguishing the top 5 institutions from the rest:
+
+```{r}
+base_pub[, isTop5 := institution %in% top5_instit]
+plot_box(nb_pub_top_5 ~ year | isTop5, base_pub)
+```
+
+Now the outliers are reported, to avoid this behavior, we can use the argument `outlier = FALSE`:
+
+```{r}
+# we also drop the mean
+plot_box(nb_pub_top_5 ~ year | isTop5, base_pub, outlier = FALSE, addMean = FALSE)
+```
 
 
+# Utilities
 
+## Relabeling
 
+The package `fplot` offers a tool to rename the variables permanently to have more meaningful graphic labels costlessly. Let's use the example on U.S. publications where we relabel the variable `institution` and `jnl_top_5p` with the function `setFplot_dict`:
 
+```{r}
+setFplot_dict(c(institution = "U.S. institution", jnl_top_5p = "Publications in Top 5% Journals"))
+```
 
+Now, for any `fplot` graph using any of these two variables, when these variable names should appear, their new label would appear instead:
 
+```{r}
+plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, maxBins = 10)
+```
 
 
 
