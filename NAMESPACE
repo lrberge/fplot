@@ -2,6 +2,7 @@ useDynLib(fplot, .registration = TRUE)
 
 
 export(plot_distr, plot_lines, plot_bar, plot_box)
+export(setFplot_dict, getFplot_dict)
 
 
 
