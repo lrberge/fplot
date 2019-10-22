@@ -306,7 +306,9 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         }
     }
 
+    IS_MAXBIN_USER = TRUE
     if(missnull(maxBins)){
+        IS_MAXBIN_USER = FALSE
         bin_fit_all = c(20, 11, 8, 6, 5)
         bin_max_all = c(15, 9, 7, 5, 4)
 
@@ -337,6 +339,12 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
                 if(!maxFirst){
                     numAxis = TRUE
                 }
+
+                if(IS_MAXBIN_USER == FALSE){
+                    # we reset the number of bins: specific to the numeric case
+                    maxBins = bin_max_all[1]
+                }
+
                 # we try to find a "good" bin size
                 x_min = min(x)
                 x_max = max(x)
@@ -350,7 +358,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
                         # Would it be better looking in logarithmic form?
                         x_ln = pmax(floor(log(x + 1e-6)), -1)
                         tx_ln = ttable(x_ln)
-                        if(sum(tx_ln/sum(tx_ln) > 0.01) >= 5){
+                        if(sum(tx_ln/sum(tx_ln) > 0.05) >= 5){
                             # nber of signif bins greater than 5
                             toLog = TRUE
                             x = x_ln
@@ -439,13 +447,10 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     numLabel = FALSE
     if(moderator_cases >= 2 && numAxis){
 
-        stop("At the moment conditional distributions are implemented only for discrete data (e.g. integers or character strings).")
+        if(DO_SPLIT){
+            numLabel = TRUE
+        }
 
-        # if(grepl("split", mod.method)) stop("At the moment conditional distributions are implemented only for discrete data (e.g. integers or character strings).")
-
-        # numAxis = FALSE
-        # numLabel = TRUE
-        numAxis = TRUE
         sep = 0
     }
 
@@ -534,6 +539,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             data_freq[, nb_new := x_nb - which.max(value)]
             data_freq[, nb_new := nb_new + max(min(ceiling(maxBins/2), abs(min(nb_new)) + 1), maxBins - max(nb_new))]
             data_freq[, x_nb := nb_new]
+            data_freq[, nb_new := NULL]
 
             if(addOther && maxFirst == FALSE && any(data_freq$x_nb <= 0)){
                 if(!any(data_freq$x_nb < 0)){
@@ -694,14 +700,36 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         x_add = 0
         for(i in seq_along(moderator_unik)){
             # we apply plot_distr to subsets
+
             qui = moderator == moderator_unik[i]
-            data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE)
+            if(USE_WEIGHT){
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin)
+            } else {
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin)
+            }
 
             # updating the information
-            x_add_next = x_add + max(data_freq$xright)
-            data_freq[, xleft := xleft + x_add]
-            data_freq[, xright := xright + x_add]
-            x_add = x_add_next + 0.7
+
+            if(numAxis){
+                # We add the value of a bin, BUT start when the last stops
+
+                # we save the "real" values
+                data_freq[, xleft_real := xleft]
+                data_freq[, xright_real := xright]
+
+                # Now we update xleft/xright
+                min_left = min(data_freq$xleft)
+                x_add_next = x_add + max(data_freq$xright) - min_left
+                data_freq[, xleft := xleft - min_left + x_add]
+                data_freq[, xright := xright - min_left + x_add]
+
+                x_add = x_add_next + bin
+            } else {
+                x_add_next = x_add + max(data_freq$xright)
+                data_freq[, xleft := xleft + x_add]
+                data_freq[, xright := xright + x_add]
+                x_add = x_add_next + 0.7
+            }
 
             data_freq[, moderator_nb := i]
 
@@ -1037,37 +1065,57 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     } else if(numLabel){
         # moderator > 1 AND numeric axis
 
-        # we display the label like for the log
-        x_unik = at_info[x_nb %in% 1:maxBins, x]
-        x_cases = length(x_unik)
+        # # we display the label like for the log
+        # x_unik = at_info[x_nb %in% 1:maxBins, x]
+        # x_cases = length(x_unik)
+        #
+        # moreLine = (ADD_OTHER || ADD_OTHER_LEFT) * .25
+        #
+        # tck_location = par("usr")[3] - (2.8 + 1*(moreLine>0))/100 * diff(get_y_lim())
+        # for(i in 1:x_cases){
+        #     value_format = formatAxisValue(x_unik[i])
+        #
+        #     # tick location
+        #     loc = (i-1)*(moderator_cases+sep) - sep/2
+        #     axis(1, at = loc, labels = value_format, line = moreLine)
+        #
+        #     if(bin < 10){
+        #         axis(2, at = tck_location, pos = loc, labels = NA, tcl = 0.15, xpd = TRUE)
+        #     }
+        #
+        # }
+        #
+        # # Last tick
+        # val = tail(x_unik, 1) + bin
+        # value_format = formatAxisValue(val)
+        # axis(1, at = x_cases*(moderator_cases+sep) - sep/2, labels = value_format, line = moreLine)
+        #
+        # if(ADD_OTHER){
+        #     axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.5, labels = otherText, lwd = 0)
+        # }
+        #
+        # if(ADD_OTHER_LEFT){
+        #     axis(1, at = at_info[x_nb == 0, mid_point], line = -0.5, labels = otherTextLeft, lwd = 0)
+        # }
 
-        moreLine = (ADD_OTHER || ADD_OTHER_LEFT) * .25
+        # browser()
 
-        tck_location = par("usr")[3] - (2.8 + 1*(moreLine>0))/100 * diff(get_y_lim())
-        for(i in 1:x_cases){
-            value_format = formatAxisValue(x_unik[i])
+        # we display the axes
+        myBox(1)
 
-            # tick location
-            loc = (i-1)*(moderator_cases+sep) - sep/2
-            axis(1, at = loc, labels = value_format, line = moreLine)
+        current_lim = get_x_lim()
 
-            if(bin < 10){
-                axis(2, at = tck_location, pos = loc, labels = NA, tcl = 0.15, xpd = TRUE)
-            }
-
+        for(i in 1:moderator_cases){
+            x_sub = data_freq[moderator == moderator_unik[i]]
+            x_show = pretty(c(min(x_sub$xleft_real), max(x_sub$xright_real)), 3)
+            current_range = c(min(x_sub$xleft), max(x_sub$xright))
+            x_show_current = to01(x_show) * diff(current_range) + min(current_range)
+            axis(1, x_show_current, x_show)
         }
 
-        # Last tick
-        val = tail(x_unik, 1) + bin
-        value_format = formatAxisValue(val)
-        axis(1, at = x_cases*(moderator_cases+sep) - sep/2, labels = value_format, line = moreLine)
-
-        if(ADD_OTHER){
-            axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.5, labels = otherText, lwd = 0)
-        }
-
-        if(ADD_OTHER_LEFT){
-            axis(1, at = at_info[x_nb == 0, mid_point], line = -0.5, labels = otherTextLeft, lwd = 0)
+        # We add the bin information
+        if(noSub){
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = bin)), cex.sub = 0.9)
         }
 
 
@@ -1098,7 +1146,10 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # ticks at the right place
         if(moderator_cases > 1){
-            axis(1, at = data_freq[moderator_nb == 1, xleft], labels = NA, lwd = 0, lwd.ticks = 1, tcl = -0.45)
+            # we add the rectangles to replicate a histogram
+            # axis(1, at = data_freq[moderator_nb == 1, xleft], labels = NA, lwd = 0, lwd.ticks = 1, tcl = -0.45)
+            rect_info = data_freq[, .(xleft = min(xleft), xright = max(xright), ytop = max(ytop)), by = x_nb]
+            rect(xleft = rect_info$xleft, ybottom = 0, xright = rect_info$xright, ytop = rect_info$ytop, density = 0, lty = 2)
         }
 
     } else if(DO_SPLIT){
