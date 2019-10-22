@@ -226,7 +226,12 @@ xaxis_labels = function(at, labels, minLine = -1, maxLine = 1, minCex = 0.8, add
     # # we replace the trucated element with dots to show that there is more
     # qui = nchar(myLabels) == trunc & nchar(labels[myOrder]) > trunc
     # myLabels[qui] = gsub("..$", "\\.\\.", myLabels[qui])
-    myLabels = truncate_string(myLabels, trunc, method = trunc.method)
+    if(!"call" %in% class(myLabels)){
+        myLabels = truncate_string(myLabels, trunc, method = trunc.method)
+    } else {
+        myLabels = gsub(" *phantom\\([\\)]*\\) *", "", deparse(myLabels))
+    }
+
 
     # We compute the space that is left to display the label
     # 1st into the plot
@@ -369,7 +374,13 @@ xaxis_biased = function(at, labels, angle, cex, max_line = 1, yadj = 0.5, trunc 
 
     dots = list(...)
     dots$x = at
-    labels_trunc = truncate_string(labels, trunc = trunc, method = trunc.method)
+
+    if(!"call" %in% class(labels)){
+        labels_trunc = truncate_string(labels, trunc = trunc, method = trunc.method)
+    } else {
+        labels_trunc = gsub(" *phantom\\([\\)]*\\) *", "", deparse(labels))
+    }
+
     dots$labels = labels_trunc
 
     # setting automatically the cex and angle
