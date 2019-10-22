@@ -1101,15 +1101,18 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         # browser()
 
         # we display the axes
-        myBox(1)
+        # myBox(1)
 
         current_lim = get_x_lim()
 
         for(i in 1:moderator_cases){
             x_sub = data_freq[moderator == moderator_unik[i]]
-            x_show = pretty(c(min(x_sub$xleft_real), max(x_sub$xright_real)), 3)
+
+            real_range = c(min(x_sub$xleft_real), max(x_sub$xright_real))
+            x_show = pretty(real_range, 3)
+            x_show = x_show[x_show >= real_range[1] & x_show <= real_range[2]]
             current_range = c(min(x_sub$xleft), max(x_sub$xright))
-            x_show_current = to01(x_show) * diff(current_range) + min(current_range)
+            x_show_current = to01(x_show, real_range) * diff(current_range) + min(current_range)
             axis(1, x_show_current, x_show)
         }
 
@@ -1183,11 +1186,73 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         }
 
 
+    } else if(isNum){
+        # we can have the "other" column both left and right
+
+        # browser()
+
+        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        myLabels = x_unik
+        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+
+        info_axis = NULL
+        if(labels.tilted == FALSE && mean(diff(x_unik)) == 1){
+            # This is a "normal" axis
+            # everything number follows, this is fine
+
+            axis(1, myAt, labels = myLabels)
+        } else {
+            if(checkForTilting){
+                # If normal axis does not fit => tilt
+                axis_info = xaxis_labels(at = myAt, labels = myLabels, onlyParams = TRUE)
+                if(axis_info$failed){
+                    labels.tilted = TRUE
+                } else {
+                    labels.tilted = FALSE
+                    # we add the label only if the user didn't provide it before
+                    if(noXlab) title(xlab = x_name)
+                }
+            }
+
+            if(labels.tilted){
+                info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+            } else {
+                info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+            }
+        }
+
+
+        if(ADD_OTHER){
+            # the "other" text
+
+            if(is.null(info_axis)){
+                axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + strwidth("> "), line = -0.85, labels = otherText, lwd = 0, cex.axis = 1)
+            } else if(labels.tilted){
+                xaxis_biased(at = at_info[x_nb == maxBins + 1, mid_point], labels = otherText, angle = info_axis$angle, cex = info_axis$cex, trunc = trunc, trunc.method = trunc.method)
+            } else {
+                all_lines = sort(unique(info_axis$line))
+                my_line = min(info_axis$line[info_axis$line != tail(info_axis$line, 1)])
+                axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + strwidth("> ", cex = info_axis$cex), line = my_line, labels = otherText, lwd = 0, cex.axis = info_axis$cex)
+            }
+        }
+
+        if(ADD_OTHER_LEFT){
+            # the "other" text on the left
+
+            if(is.null(info_axis)){
+                axis(1, at = at_info[x_nb == 0, mid_point] - strwidth("< "), line = -0.85, labels = otherTextLeft, lwd = 0)
+            } else if(labels.tilted){
+                xaxis_biased(at = at_info[x_nb == 0, mid_point], labels = otherTextLeft, angle = info_axis$angle, cex = info_axis$cex, trunc = trunc, trunc.method = trunc.method)
+            } else {
+                my_line = min(info_axis$line[info_axis$line != info_axis$line[1]])
+                axis(1, at = at_info[x_nb == 0, mid_point] - strwidth("< ", cex = info_axis$cex), line = my_line, labels = otherTextLeft, lwd = 0, cex.axis = info_axis$cex)
+            }
+        }
+
     } else {
 
-        if(!isNum && anyNA(at_info$x)){
+        if(anyNA(at_info$x)){
             # in case we don't have numeric data: the other is made as a regular text to plot in the axis
-            ADD_OTHER = FALSE
             at_info$x[is.na(at_info$x)] = otherText
             maxBins = maxBins + 1
         }
@@ -1214,20 +1279,6 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
         }
 
-        if(ADD_OTHER){
-            # the "other" text
-            if(labels.tilted){
-                xaxis_biased(at = at_info[x_nb == maxBins + 1, mid_point], labels = otherText, angle = info_axis$angle, cex = info_axis$cex, trunc = trunc, trunc.method = trunc.method)
-            } else {
-                axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = info_axis$line[1], labels = otherText, lwd = 0, cex.axis = info_axis$cex)
-            }
-        }
-
-        if(ADD_OTHER_LEFT){
-            # the "other" text on the left
-            axis(1, at = at_info[x_nb == 0, mid_point], line = -1, labels = otherTextLeft, lwd = 0)
-        }
-
     }
 
 
@@ -1237,8 +1288,17 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # We don't go above 100%
         y_points = y_points[y_points <= 100]
+        y_labels = paste0(y_points, "%")
 
-        axis(2, at=y_points, labels = paste0(y_points, "%"), las = 2)
+        # We find the right cex
+        minCex = 0.7
+        myCex = 1
+        y_labels_max = y_labels[which.max(strwidth(y_labels))]
+        while(strwidth(y_labels_max, cex = myCex) > strwidth("75%") && myCex >= minCex){
+            myCex = 0.95 * myCex
+        }
+
+        axis(2, at=y_points, labels = y_labels, las = 2, cex.axis = myCex)
     }
 
     # Legend if needed
