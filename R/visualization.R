@@ -23,8 +23,9 @@
 #' @param maxBins Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.
 #' @param bin Only used for numeric values. If provided, it creates bins of observations of size \code{bin}. It creates bins by default for numeric non-integer data.
 #' @param legend_options A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.
-#' @param yaxisShow Whether the y-axis should be displayed, default is \code{TRUE}.
-#' @param mod.method A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{within}, the default for data in logarithmic form, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case. Note that the split option is available only for categorical data.
+#' @param yaxis.show Whether the y-axis should be displayed, default is \code{TRUE}.
+#' @param yaxis.num Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "total"} or \code{mod.method = "splitTotal"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).
+#' @param mod.method A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{within}, the default for data in logarithmic form, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case.
 #' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).
 #' @param labels.angle Only if the labels of the x-axis are tilted. The angle of the tilt.
 #' @param addOther Logical. Should there be a last column counting for the observations not displayed? Default is \code{TRUE} except when the data is split.
@@ -35,6 +36,7 @@
 #' @param dict A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.
 #' @param mod.title Character scalar. The title of the legend, in case there is a moderator. By default it is the moderator name modified by dict if the moderator is numeric (otherwise default is empty). To display no title, set it to \code{NULL}.
 #' @param cex.axis Cex value to be passed to biased labels. By defaults, it finds automatically the right value.
+#' @param int.categorical Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).
 #' @param trunc If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.
 #' @param trunc.method If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "trimRight" or "trimRight".
 #' @param onTop What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot.
@@ -94,7 +96,7 @@
 #'
 #'
 #'
-plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin, legend_options=list(), onTop, yaxisShow=TRUE, col, outCol = "black", mod.method, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # save full formula
@@ -123,6 +125,9 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(dict, "nullCharacterVectorNoNA")
     check_arg(mod.title, "nullSingleCharacter")
     check_arg(labels.angle, "singleNumeric")
+    check_arg(yaxis.show, "singleLogical")
+    check_arg(yaxis.num, "singleLogical")
+    check_arg(int.categorical, "singleLogical")
 
 
     #
@@ -335,7 +340,18 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
                 isInteger = all(x %% 1 == 0)
             }
 
-            if(!isInteger || diff(range(x)) > 1000){
+            goNum = TRUE
+            if(!missing(int.categorical)){
+                # we force integers as categorical
+                if(int.categorical == TRUE) goNum = FALSE
+                # if int.categorical == FALSE, then we force it as numeric
+            } else if(isInteger && diff(range(x)) < 1000){
+                # for integers with small range, we don't consider them
+                # as numeric
+                goNum = FALSE
+            }
+
+            if(goNum){
                 if(!maxFirst){
                     numAxis = TRUE
                 }
@@ -408,6 +424,17 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         if(missnull(addOther)){
             addOther = FALSE
         }
+    }
+
+    # yaxis.num
+    if(missnull(yaxis.num)){
+        if(USE_WEIGHT == FALSE || missing(weight.fun) || (moderator_cases > 1 && grepl("ithin", mod.method))){
+            yaxis.num = FALSE
+        } else {
+            yaxis.num = TRUE
+        }
+    } else if(yaxis.num == FALSE && moderator_cases > 1 && grepl("ithin", mod.method)){
+        stop("Argument yaxis.num: You cannot have a numeric y-axis when it should be reported the within distribution among moderators (because the data is rescaled as frequencies first). Use mod.method = 'total' or mod.method = 'splitTotal' to display a numeric y-axis.")
     }
 
     checkForTilting = FALSE
@@ -698,14 +725,15 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         # We apply a split to the data
         info = list()
         x_add = 0
+
         for(i in seq_along(moderator_unik)){
             # we apply plot_distr to subsets
 
             qui = moderator == moderator_unik[i]
             if(USE_WEIGHT){
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = numAxis)
             } else {
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = numAxis)
             }
 
             # updating the information
@@ -762,6 +790,11 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         }
 
         data_freq = info_all
+
+        if(X_FACTOR){
+            # we reintroduce the values of x
+            data_freq[, x := x_fact_names[x]]
+        }
 
         # Some information
         xlim = range_plus(c(data_freq$xleft, data_freq$xright), 5)
@@ -1282,19 +1315,36 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     }
 
 
-    if(yaxisShow){
+    if(yaxis.show){
         # we get the "nice" points display
         y_points = axis(2, lwd=0, col.axis = 0)
 
         # We don't go above 100%
         y_points = y_points[y_points <= 100]
-        y_labels = paste0(y_points, "%")
+
+        if(yaxis.num){
+            x1 = data_freq[x_nb == 1]
+            y_labels = formatAxisValue(y_points / x1$ytop * x1$value)
+        } else {
+            y_labels = paste0(y_points, "%")
+        }
+
+        # we find the proper width
+        if("ylab" %in% names(dots)){
+            ylab = dots$ylab
+        }
+
+        if(nchar(ylab) == 0){
+            myWidth = strwidth("7775%")
+        } else {
+            myWidth = strwidth("75%")
+        }
 
         # We find the right cex
         minCex = 0.7
         myCex = 1
         y_labels_max = y_labels[which.max(strwidth(y_labels))]
-        while(strwidth(y_labels_max, cex = myCex) > strwidth("75%") && myCex >= minCex){
+        while(strwidth(y_labels_max, cex = myCex) > myWidth && myCex >= minCex){
             myCex = 0.95 * myCex
         }
 
@@ -1338,7 +1388,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 #' @param show0 Default to \code{FALSE}. Should the 0 be kept? By default, all the 0s are dropped.
 #' @param cex.text The size of the text appearing on the top of the bins. Defaults to 0.7.
 #' @param isDistribution Defaults to \code{FALSE}. It impacts the y-axis display. If it's a distribution, then percentages are shown on the y-axis.
-#' @param yaxisShow Defaults to \code{FALSE}. Should the y-axis labels be displayed?
+#' @param yaxis.show Defaults to \code{FALSE}. Should the y-axis labels be displayed?
 #' @param hgrid Default \code{TRUE}. Should the horizontal grid be displayed?
 #' @param max_line Integer, default is 1. By defaults the labels of the x-axis can be displayed on several lines (from -1 to 1). This arguments says how far can the algorithm for the placement of the labels go downwards in the x-axis region.
 #' @param showOther Default is \code{TRUE}. In the case the number of bins is lower than the number of cases, should the remaining obervations be displayed by a bar?
@@ -1360,7 +1410,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 #'
 #'
 #'
-plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FALSE, maxBins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxisShow = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", xlab, ylab, ...){
+plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FALSE, maxBins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", xlab, ylab, ...){
     # this function formats a bit the data and sends it to myBarplot
 
     # Old params
@@ -1515,7 +1565,7 @@ plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FA
         ylab = x_name
     }
 
-    myBarplot(x = res, order=order, maxBins=maxBins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxisShow = yaxisShow, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, max_line=max_line, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = outCol, xlab = xlab, ylab = ylab, ...)
+    myBarplot(x = res, order=order, maxBins=maxBins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, max_line=max_line, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = outCol, xlab = xlab, ylab = ylab, ...)
 
     invisible(base_agg)
 }
