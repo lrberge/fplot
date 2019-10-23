@@ -645,7 +645,7 @@ formatAxisValue = function(x, d = 2, r = 0, type = "abbrev"){
             } else if(x_abs < 1e12){
                 res = paste0(mysignif(x_abs / 1e9, d, r), "B")
             } else if(x_abs < 1e15){
-                res = paste0(mysignif(x_abs / 1e9, d, r), "T")
+                res = paste0(mysignif(x_abs / 1e12, d, r), "T")
             } else {
                 res = x_abs
             }
@@ -1096,7 +1096,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
 }
 
 
-myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxisShow = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", max_line, ...){
+myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", max_line, ...){
     # This function draws a nice barplot
 
     # We get whether the labels from x are numeric
@@ -1168,7 +1168,7 @@ myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog
     }
     info = do.call("barplot", dots_1st)
 
-    if(yaxisShow){
+    if(yaxis.show){
         # we get the "nice" points display
         y_points = axis(2, lwd=0, col.axis = 0)
         if(isDistribution){
