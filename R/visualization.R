@@ -329,9 +329,11 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     }
 
     numAxis = FALSE
+    binned_data = FALSE
     if(isNum && !toLog){
         if(!missnull(bin)){
             x = (x %/% bin) * bin
+            binned_data = TRUE
             if(!maxFirst){
                 numAxis = TRUE
             }
@@ -352,6 +354,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             }
 
             if(goNum){
+
                 if(!maxFirst){
                     numAxis = TRUE
                 }
@@ -360,6 +363,8 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
                     # we reset the number of bins: specific to the numeric case
                     maxBins = bin_max_all[1]
                 }
+
+                binned_data = TRUE
 
                 # we try to find a "good" bin size
                 x_min = min(x)
@@ -379,6 +384,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
                             toLog = TRUE
                             x = x_ln
                             numAxis = FALSE
+                            binned_data = FALSE
                         }
 
                     }
@@ -409,7 +415,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             mod.method = "splitWithin"
         }
     } else if(toLog && grepl("split", mod.method)){
-        stop("Argument mod.method cannot be equal to ", mod.method, ", the splitting is not yet implemented for logarithmic data.")
+        # stop("Argument mod.method cannot be equal to ", mod.method, ", the splitting is not yet implemented for logarithmic data.")
     }
 
     DO_SPLIT = FALSE
@@ -560,6 +566,10 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             data_freq[, x_nb := quickUnclassFactor(x)]
         }
 
+        # the "other" column
+        data_freq[, isOther := FALSE]
+        data_freq[, otherValue := ""]
+
         # if we center on the mode
         if(centered && any(data_freq$x_nb > maxBins) && isNum){
             # we center the distribution
@@ -597,25 +607,32 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
                     data_freq$share_top[qui_NA] = data_freq$share[qui_NA]
 
                     # Other text => depends on the type of values
+                    data_freq[x_nb == 0, "isOther" := TRUE]
                     if(toLog){
                         x_first = ceiling(exp(data_freq[x_nb == 1, x][1]))
                         otherTextLeft = substitute(phantom()<x_val, list(x_val = formatAxisValue(x_first)))
-
+                        data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_first))]
                     } else {
                         if(missnull(bin)){
                             x_other = data_freq[x_nb == 1, x][1]
                             # otherTextLeft = paste0("<", x_other)
-                            otherTextLeft = substitute(phantom()<x_val, list(x_val = x_other))
+                            otherTextLeft = substitute(phantom()<x_val, list(x_val = formatAxisValue(x_other)))
+                            data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_other))]
                         } else {
                             # we update the value
                             x_other = data_freq[x_nb == 1, x][1]
                             data_freq[x_nb == 0, x := x_other - bin]
-                            otherTextLeft = substitute(phantom()<x_other, list(x_other = x_other))
+                            otherTextLeft = substitute(phantom()<x_other, list(x_other = formatAxisValue(x_other)))
+                            data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_other))]
                         }
 
                     }
                 }
+            } else {
+                # We clean negative numbers
+                data_freq = data_freq[x_nb > 0]
             }
+
         }
 
         # The "other" column
@@ -647,21 +664,26 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             data_freq$share_top[qui_NA] = data_freq$share[qui_NA]
 
             # Other text => depends on the type of values
+            data_freq[x_nb == maxBins + 1, "isOther" := TRUE]
             if(!isNum || maxFirst){
                 otherText = "Other"
+                data_freq[x_nb == maxBins + 1, "otherValue" := "Other"]
             } else {
                 if(toLog){
                     x_last = round(exp(data_freq[x_nb == maxBins, x] + 1))
                     otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_last)))
-
+                    data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_last))]
                 } else {
                     if(missnull(bin)){
+                        x_value = data_freq[x_nb == maxBins, x]
                         # otherText = paste0(">", data_freq[x_nb == maxBins, x])
-                        otherText = substitute(phantom()>x_val, list(x_val = data_freq[x_nb == maxBins, x]))
+                        otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_value)))
+                        data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_value))]
                     } else {
                         x_other = data_freq[x_nb == maxBins, x][1] + bin
                         data_freq[x_nb == maxBins + 1, x := x_other]
-                        otherText = substitute(phantom()>=x_other, list(x_other = x_other))
+                        otherText = substitute(phantom()>=x_other, list(x_other = formatAxisValue(x_other)))
+                        data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_other))]
                     }
 
                 }
@@ -731,9 +753,9 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
             qui = moderator == moderator_unik[i]
             if(USE_WEIGHT){
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = !numAxis)
             } else {
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = !numAxis)
             }
 
             # updating the information
@@ -753,9 +775,11 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
                 x_add = x_add_next + bin
             } else {
-                x_add_next = x_add + max(data_freq$xright)
-                data_freq[, xleft := xleft + x_add]
-                data_freq[, xright := xright + x_add]
+                min_left = min(data_freq$xleft)
+                x_add_next = x_add + max(data_freq$xright) - min_left
+                data_freq[, xleft := xleft - min_left + x_add]
+                data_freq[, xright := xright - min_left + x_add]
+
                 x_add = x_add_next + 0.7
             }
 
@@ -773,8 +797,13 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             info_all[, ytop := share]
         }
 
+        if(binned_data && addOther){
+            # we format the data properly
+            info_all$x = formatAxisValue(info_all$x)
+        }
+
         # managing "other"
-        info_all[, isOther := is.na(x)]
+        # info_all[, isOther := is.na(x)]
         if(any(info_all$isOther)){
             # bounding bar size
             share_max = max(info_all[isOther == FALSE, share])
@@ -810,7 +839,11 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     # default for onTop
     if(missnull(onTop)){
         if(numAxis){
-            onTop = "none"
+            if(any(data_freq$isOther)){
+                onTop = "frac"
+            } else {
+                onTop = "none"
+            }
         } else {
             # if coef of variation of x is low => better information is the number
             values = data_freq[share_top <= share, ytop]
@@ -972,169 +1005,201 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
     if(toLog){
 
-        #
-        # formatting of the values
-        #
+        if(DO_SPLIT){
 
-        x_unik = at_info[x_nb %in% 1:maxBins, x]
-        x_cases = length(x_unik)
-        myat = at_info[x_nb %in% 1:maxBins, mid_point]
-        exp_value = ceiling(exp(x_unik))
-        exp_value[x_unik == -1] = 0
+            browser()
 
-        if(is.unsorted(x_unik) || x_cases == 1 || any(diff(x_unik) != 1)){
-            exp_value_right = round(exp(x_unik + 1))
+            data_freq_valid = data_freq[isOther == FALSE, ]
+            data_freq_valid[, x_num := as.numeric(x)]
+            x_all = data_freq_valid$x_num
+            exp_value = ceiling(exp(x_all))
+            exp_value[x_all == -1] = 0
 
-            # Formatting
-            exp_value_format = substr(exp_value, 1, 7)
-            exp_value_right_format = substr(exp_value_right, 1, 7)
+            if(maxFirst){
 
-            # finding the location
-            location = xaxis_labels(at = myat, labels = paste0("[", exp_value_format, "; ", exp_value_right_format, "["), onlyParams = TRUE)
+                myat = data_freq_valid[, (xleft+xright)/2]
 
-            # drawing
-            for(i in 1:length(x_unik)){
+                exp_value_right = ceiling(exp(x_all + 1))
 
-                value = substitute(group("[",list(x1, x2),")"), list(x1 = formatAxisValue(exp_value[i]), x2 = formatAxisValue(exp_value_right[i])))
+                # Formatting
+                exp_value_format = formatAxisValue(exp_value)
+                exp_value_right_format = formatAxisValue(exp_value_right)
+                label_displayed = paste0("[", exp_value_format, "; ", exp_value_right_format, ")")
 
-                axis(1, at = myat[i], lwd = 0, labels = value, cex = location$cex, line = 1 + location$line[i])
+                # finding the location
+                if(labels.tilted){
+                    xaxis_biased(at = myat, max_line = max_line, labels = label_displayed)
+                } else {
+                    xaxis_labels(at = myat, labels = label_displayed)
+                }
+
+            } else {
+                # we draw the axes with nice display
+
+                moreLine = any(data_freq$isOther) * .25
+
+                # Displaying the ticks "all at once" (including the last one)
+                mysep = (data_freq$xleft[2] - data_freq$xright[1]) / 2
+
+                # on the right
+                myat = data_freq_valid$xright + mysep
+
+                # We add the first tick on the left
+                data_first = data_freq_valid[x_nb == 1]
+                myat = c(data_first$xleft - mysep, myat)
+                exp_value = c(ceiling(exp(data_first$x_num - 1)), exp_value)
+
+                exp_value_format = formatAxisValue(exp_value)
+
+                # tick location
+                axis(1, at = myat, labels = exp_value_format, line = moreLine, lwd.ticks = 1, lwd = 0)
+
+                # for extra ticking when info is ambiguous
+                tck_location = par("usr")[3] - strheight("W")*81/100
+                qui = which(exp_value < 10)
+                if(length(qui) > 0){
+                    # tick location
+                    axis(2, at = tck_location - moreLine, pos = myat[qui], labels = NA, tcl = 0.15, xpd = TRUE)
+                }
+
             }
 
+            # Now the "other" ticks
+            if(any(data_freq$isOther)){
+                data_freq_other = data_freq[isOther == TRUE]
+
+                # we reconstruct the number -- A bit complicated... I know...
+                my_sign = gsub(" .+", "", data_freq_other$otherValue)
+                nber2show_raw = gsub(".+ ", "", data_freq_other$otherValue)
+
+                nber2show = formatAxisValue(ceiling(exp(as.numeric(nber2show_raw))))
+
+                qui_lower = my_sign == "<"
+                if(any(qui_lower)){
+                    nber2show[qui_lower] = formatAxisValue(ceiling(exp(as.numeric(nber2show_raw) - 1)))
+                }
+
+                text2show = paste0(my_sign, " ", nber2show)
+
+                # we get the right cex
+                w = data_freq_other[1, xright - xleft]
+                max_lab = text2show[which.max(strwidth(text2show))]
+
+                minCex = 0.7
+                myCex = 1
+                while(myCex > minCex && strwidth(max_lab, cex = myCex) > w){
+                    myCex = myCex * 0.95
+                }
+
+                axis(1, at = data_freq_other[, (xleft + xright)/2], labels = text2show, lwd = 0, line = -0.8, cex.axis = myCex)
+            }
 
         } else {
-            # we draw the axes with nice display
-
-            moreLine = (ADD_OTHER || ADD_OTHER_LEFT) * .25
-
-            tck_location = par("usr")[3] - strheight("W")*81/100
-
-            # Displaying the ticks "all at once" (including the last one)
-            val = c(exp_value, ceiling(exp(tail(x_unik, 1) + 1)))
-            exp_value_format = formatAxisValue(val)
-
-
-            # # We change the cex until it fits
-            # # minCex will be an argument
-            # minCex = 1
-            # myCex = 1
-            # while(myCex > minCex && strwidth(paste(val, collapse = " "), units = "in", cex = myCex) > par("pin")){
-            #     myCex = myCex * 0.95
-            # }
-            # myCex = max(minCex, myCex) # we ensure not lower than minCex
-
-
-            # tick location
-            loc = (1:length(val)-1)*(moderator_cases+sep) - sep/2
-            axis(1, at = loc, labels = exp_value_format, line = moreLine, lwd.ticks = 1, lwd = 0)
-
-            for(i in 1:x_cases){
-                # Main ticks
-                # val = exp_value[i]
-                # exp_value_format = formatAxisValue(val)
-                #
-                # # tick location
-                loc = (i-1)*(moderator_cases+sep) - sep/2
-                # axis(1, at = loc, labels = exp_value_format, line = moreLine)
-                # Ticks showing "strictly" inferior
-                if(x_unik[1] < 2){
-                    axis(2, at = tck_location, pos = loc, labels = NA, tcl = 0.15, xpd = TRUE)
-                }
-
-            }
-
-            # # Last tick
-            # val = ceiling(exp(tail(x_unik, 1) + 1))
-            # exp_value_format = formatAxisValue(val)
             #
-            # axis(1, at = x_cases*(moderator_cases+sep) - sep/2, labels = exp_value_format, line = moreLine)
+            # formatting of the values
+            #
 
-        }
+            x_unik = at_info[x_nb %in% 1:maxBins, x]
+            x_cases = length(x_unik)
+            myat = at_info[x_nb %in% 1:maxBins, mid_point]
+            exp_value = ceiling(exp(x_unik))
+            exp_value[x_unik == -1] = 0
 
-        # We find the right cex to fit the "other" group
-        unitary_width = par("pin")[1] / usr_width(xlim)
-        too_large = function(text, the_cex, the_shift) strwidth(text, units = "in", cex = the_cex)/2 - the_shift*unitary_width > unitary_width*(1/2+sep/2*1.5)
+            if(is.unsorted(x_unik) || x_cases == 1 || any(diff(x_unik) != 1)){
+                exp_value_right = ceiling(exp(x_unik + 1))
 
-        if(ADD_OTHER){
+                # Formatting
+                exp_value_format = substr(exp_value, 1, 7)
+                exp_value_right_format = substr(exp_value_right, 1, 7)
 
-            minCex = 0.75
-            myCex = 1
-            myShift = 0
-            maxShift = 1
-            while(myCex > minCex && too_large(otherText, myCex, myShift)){
-                myCex = myCex * 0.95
-                while(myShift < maxShift && too_large(otherText, myCex, myShift)){
-                    myShift = myShift + 0.1
+                # finding the location
+                location = xaxis_labels(at = myat, labels = paste0("[", exp_value_format, "; ", exp_value_right_format, "["), onlyParams = TRUE)
+
+                # drawing
+                for(i in 1:length(x_unik)){
+
+                    value = substitute(group("[",list(x1, x2),")"), list(x1 = formatAxisValue(exp_value[i]), x2 = formatAxisValue(exp_value_right[i])))
+
+                    axis(1, at = myat[i], lwd = 0, labels = value, cex = location$cex, line = 1 + location$line[i])
                 }
-                if(too_large(otherText, myCex, myShift)) break
-                myShift = 0
+
+
+            } else {
+                # we draw the axes with nice display
+
+                moreLine = (ADD_OTHER || ADD_OTHER_LEFT) * .25
+
+                tck_location = par("usr")[3] - strheight("W")*81/100
+
+                # Displaying the ticks "all at once" (including the last one)
+                val = c(exp_value, ceiling(exp(tail(x_unik, 1) + 1)))
+                exp_value_format = formatAxisValue(val)
+
+
+                # tick location
+                loc = (1:length(val)-1)*(moderator_cases+sep) - sep/2
+                axis(1, at = loc, labels = exp_value_format, line = moreLine, lwd.ticks = 1, lwd = 0)
+
+                for(i in 1:x_cases){
+                    # tick location
+                    loc = (i-1)*(moderator_cases+sep) - sep/2
+                    # Ticks showing "strictly" inferior
+                    if(x_unik[1] < 2){
+                        axis(2, at = tck_location - moreLine, pos = loc, labels = NA, tcl = 0.15, xpd = TRUE)
+                    }
+
+                }
 
             }
 
+            # We find the right cex to fit the "other" group
+            unitary_width = par("pin")[1] / usr_width(xlim)
+            too_large = function(text, the_cex, the_shift) strwidth(text, units = "in", cex = the_cex)/2 - the_shift*unitary_width > unitary_width*(1/2+sep/2*1.5)
 
-            axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + maxShift, line = -1, labels = otherText, lwd = 0, cex.axis = myCex)
-            # axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.5, labels = otherText, lwd = 0, cex.axis = myCex)
-        }
+            if(ADD_OTHER){
 
-        if(ADD_OTHER_LEFT){
-
-            minCex = 0.75
-            myCex = 1
-            myShift = 0
-            maxShift = 1
-            while(myCex > minCex && too_large(otherTextLeft, myCex, myShift)){
-                myCex = myCex * 0.95
-                while(myShift < maxShift && too_large(otherTextLeft, myCex, myShift)){
-                    myShift = myShift + 0.1
-                }
-                if(!too_large(otherTextLeft, myCex, myShift)) break
+                minCex = 0.75
+                myCex = 1
                 myShift = 0
+                maxShift = 1
+                while(myCex > minCex && too_large(otherText, myCex, myShift)){
+                    myCex = myCex * 0.95
+                    while(myShift < maxShift && too_large(otherText, myCex, myShift)){
+                        myShift = myShift + 0.1
+                    }
+                    if(too_large(otherText, myCex, myShift)) break
+                    myShift = 0
 
+                }
+
+
+                axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + maxShift, line = -1, labels = otherText, lwd = 0, cex.axis = myCex)
+                # axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.5, labels = otherText, lwd = 0, cex.axis = myCex)
             }
 
-            axis(1, at = at_info[x_nb == 0, mid_point] - myShift, line = -1, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
-            # axis(1, at = at_info[x_nb == 0, mid_point], line = -0.5, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
+            if(ADD_OTHER_LEFT){
+
+                minCex = 0.75
+                myCex = 1
+                myShift = 0
+                maxShift = 1
+                while(myCex > minCex && too_large(otherTextLeft, myCex, myShift)){
+                    myCex = myCex * 0.95
+                    while(myShift < maxShift && too_large(otherTextLeft, myCex, myShift)){
+                        myShift = myShift + 0.1
+                    }
+                    if(!too_large(otherTextLeft, myCex, myShift)) break
+                    myShift = 0
+
+                }
+
+                axis(1, at = at_info[x_nb == 0, mid_point] - myShift, line = -1, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
+                # axis(1, at = at_info[x_nb == 0, mid_point], line = -0.5, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
+            }
         }
 
     } else if(numLabel){
-        # moderator > 1 AND numeric axis
-
-        # # we display the label like for the log
-        # x_unik = at_info[x_nb %in% 1:maxBins, x]
-        # x_cases = length(x_unik)
-        #
-        # moreLine = (ADD_OTHER || ADD_OTHER_LEFT) * .25
-        #
-        # tck_location = par("usr")[3] - (2.8 + 1*(moreLine>0))/100 * diff(get_y_lim())
-        # for(i in 1:x_cases){
-        #     value_format = formatAxisValue(x_unik[i])
-        #
-        #     # tick location
-        #     loc = (i-1)*(moderator_cases+sep) - sep/2
-        #     axis(1, at = loc, labels = value_format, line = moreLine)
-        #
-        #     if(bin < 10){
-        #         axis(2, at = tck_location, pos = loc, labels = NA, tcl = 0.15, xpd = TRUE)
-        #     }
-        #
-        # }
-        #
-        # # Last tick
-        # val = tail(x_unik, 1) + bin
-        # value_format = formatAxisValue(val)
-        # axis(1, at = x_cases*(moderator_cases+sep) - sep/2, labels = value_format, line = moreLine)
-        #
-        # if(ADD_OTHER){
-        #     axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.5, labels = otherText, lwd = 0)
-        # }
-        #
-        # if(ADD_OTHER_LEFT){
-        #     axis(1, at = at_info[x_nb == 0, mid_point], line = -0.5, labels = otherTextLeft, lwd = 0)
-        # }
-
-        # browser()
-
-        # we display the axes
-        # myBox(1)
+        # moderator > 1 + split + numeric axis
 
         current_lim = get_x_lim()
 
@@ -1146,12 +1211,29 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
             x_show = x_show[x_show >= real_range[1] & x_show <= real_range[2]]
             current_range = c(min(x_sub$xleft), max(x_sub$xright))
             x_show_current = to01(x_show, real_range) * diff(current_range) + min(current_range)
-            axis(1, x_show_current, x_show)
+            axis(1, x_show_current, formatAxisValue(x_show))
         }
 
         # We add the bin information
         if(noSub){
-            title(sub = substitute(paste("Bin size", phantom()==b), list(b = bin)), cex.sub = 0.9)
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin))), cex.sub = 0.9)
+        }
+
+        # now the Other
+        if(any(data_freq$isOther)){
+            data_freq_other = data_freq[isOther == TRUE]
+
+            # we get the right cex
+            w = data_freq_other[1, xright - xleft]
+            max_lab = data_freq_other$otherValue[which.max(strwidth(data_freq_other$otherValue))]
+
+            minCex = 0.7
+            myCex = 1
+            while(myCex > minCex && strwidth(max_lab, cex = myCex) > w){
+                myCex = myCex * 0.95
+            }
+
+            axis(1, at = data_freq_other[, (xleft + xright)/2], labels = data_freq_other$otherValue, lwd = 0, line = -0.8, cex.axis = myCex)
         }
 
 
@@ -1159,7 +1241,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # We add the bin information
         if(noSub){
-            title(sub = substitute(paste("Bin size", phantom()==b), list(b = bin)), cex.sub = 0.9)
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin))), cex.sub = 0.9)
         }
 
         myBox(1)
@@ -1191,10 +1273,15 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     } else if(DO_SPLIT){
         # we need to display all xs
 
-        data_freq[, mid_point := (xleft + xright) / 2]
+        # We add the bin information => specific case: max first + numeric data
+        if(binned_data && noSub){
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin))), cex.sub = 0.9)
+        }
 
+        data_freq[, mid_point := (xleft + xright) / 2]
+        myLabels = data_freq$x
         myAt = data_freq$mid_point
-        myLabels = as.character(data_freq$x)
+
 
         if(checkNotTilted){
             # If very short labels => we don't tilt them // allows to reintroduce xlab
