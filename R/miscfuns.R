@@ -625,13 +625,15 @@ formatAxisValue = function(x, d = 2, r = 0, type = "abbrev"){
     # This function formats values to be displayed in the x-axis
     # It transforms them into easily readable format
 
-    control_variable(x, "numericVector")
     control_variable(d, "singleIntegerGE1")
     control_variable(r, "singleIntegerGE0")
     type = control_variable(type, "singleCharacterMatch.arg", charVec = c("abbrev", "plain", "signif", "equation"))
 
 
     formatAxisValue_single = function(x, d, r, type){
+
+        if(is.na(x)) return(NA)
+
         s = sign(x)
         x_abs = abs(x)
 
