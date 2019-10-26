@@ -215,7 +215,11 @@ plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, maxBins = 10)
 ```
 
 
+# References
 
+On the Microsoft Academic Graph data:
+
+Arnab Sinha, Zhihong Shen, Yang Song, Hao Ma, Darrin Eide, Bo-June (Paul) Hsu, and Kuansan Wang. 2015. An Overview of Microsoft Academic Service (MAS) and Applications. In Proceedings of the 24th International Conference on World Wide Web (WWW 15 Companion). ACM, New York, NY, USA, 243-246. DOI=<http://dx.doi.org/10.1145/2740908.2742839>
 
 
 
