@@ -54,3 +54,6 @@ plot_lines(Petal.Length ~ Species, df)
 
 
 }
+\author{
+Laurent Berge
+}

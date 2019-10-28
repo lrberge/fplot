@@ -5,10 +5,11 @@
 \title{Plot distributions, possibly conditional}
 \usage{
 plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
-  legend_options = list(), onTop, yaxisShow = TRUE, col,
-  outCol = "black", mod.method, labels.tilted, addOther, plot = TRUE,
-  sep, centered = TRUE, weight.fun, dict = getFplot_dict(), mod.title,
-  labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...)
+  legend_options = list(), onTop, yaxis.show = TRUE, yaxis.num, col,
+  outCol = "black", mod.method, mod.select, labels.tilted, addOther,
+  plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical,
+  dict = getFplot_dict(), mod.title, labels.angle, cex.axis,
+  trunc = 20, trunc.method = "auto", ...)
 }
 \arguments{
 \item{fml}{A formula or a vector. If a formula, it must be of the type: \code{var ~ moderator | weight}. If there are no moderator nor weights, you can use directly a vector, or use \code{fml = var ~ 1}. To use weights and no moderator, use \code{fml = var ~ 1 | weight}. See examples.}
@@ -31,13 +32,17 @@ plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
 
 \item{onTop}{What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot.}
 
-\item{yaxisShow}{Whether the y-axis should be displayed, default is \code{TRUE}.}
+\item{yaxis.show}{Whether the y-axis should be displayed, default is \code{TRUE}.}
+
+\item{yaxis.num}{Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "total"} or \code{mod.method = "splitTotal"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).}
 
 \item{col}{A vector of colors, default is close to paired. You can also use \dQuote{set1} or \dQuote{paired}.}
 
 \item{outCol}{Outer color of the bars. Defaults is \code{"black"}.}
 
-\item{mod.method}{A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{within}, the default for data in logarithmic form, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case. Note that the split option is available only for categorical data.}
+\item{mod.method}{A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{within}, the default for data in logarithmic form, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case.}
+
+\item{mod.select}{Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values that cannot be greater than 5. Alternatively, you can put an integer between 1 and 5.}
 
 \item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
 
@@ -50,6 +55,8 @@ plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
 \item{centered}{Logical, default is \code{TRUE}. For numeric data only and when \code{maxFirst=FALSE}, whether the histogram should be centered on the mode.}
 
 \item{weight.fun}{A function, by default it is \code{sum}. Aggregate function to be applied to the weight with respect to variable and the moderator. See examples.}
+
+\item{int.categorical}{Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).}
 
 \item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
@@ -92,33 +99,29 @@ top5_instit = graph_data$x[1:5] # we'll use it later
 
 # Now the distribution of journals
 plot_distr(journal ~ institution, us_pub_biology[institution \%in\% top3_instit])
+# Alternatively, you can use the argument mod.select:
+plot_distr(journal ~ institution, us_pub_biology, mod.select = top3_instit)
 
 # 3') Same graph as before with "other" column, 5 institutions
-plot_distr(journal ~ institution, us_pub_biology[institution \%in\% top5_instit],
-           addOther = TRUE)
+plot_distr(journal ~ institution, us_pub_biology,
+           mod.select = top5_instit, addOther = TRUE)
 
 #
 # Example with continuous data
 #
 
-# generating data
-y = rnorm(200, mean=10)
-x = round(y)
-id = sample(c("XX", "XY"), 200, TRUE)
+# regular histogram
+plot_distr(iris$Sepal.Length)
 
-base = data.frame(y, x, id)
-base$x[base$id == "XY"] = base$x[base$id == "XY"] + 2
+# now splitting by species:
+plot_distr(Sepal.Length ~ Species, iris)
 
-# Frequency of y => classic histogram
-plot_distr(base$y)
-
-# Frequency of x => different layout because made of integers
-plot_distr(base$x)
-
-# Splitting the distributions is not implemented for continuous data
-# while it is for discrete data
-plot_distr(x~id, base)
+# idem but the three in the same axis:
+plot_distr(Sepal.Length ~ Species, iris, mod.method = "within")
 
 
 
+}
+\author{
+Laurent Berge
 }

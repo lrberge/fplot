@@ -6,7 +6,7 @@
 \usage{
 plot_bar(fml, base, agg, fun = mean, dict = getFplot_dict(),
   order = FALSE, maxBins = 50, show0 = TRUE, cex.text = 0.7,
-  isDistribution = FALSE, yaxisShow = TRUE, labels.tilted,
+  isDistribution = FALSE, yaxis.show = TRUE, labels.tilted,
   trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE,
   onTop = "nb", showOther = TRUE, inCol = "#386CB0",
   outCol = "white", xlab, ylab, ...)
@@ -32,7 +32,7 @@ plot_bar(fml, base, agg, fun = mean, dict = getFplot_dict(),
 
 \item{isDistribution}{Defaults to \code{FALSE}. It impacts the y-axis display. If it's a distribution, then percentages are shown on the y-axis.}
 
-\item{yaxisShow}{Defaults to \code{FALSE}. Should the y-axis labels be displayed?}
+\item{yaxis.show}{Defaults to \code{FALSE}. Should the y-axis labels be displayed?}
 
 \item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
 
@@ -72,4 +72,7 @@ plot_bar(Sepal.Length~Species, iris, fun = var, labels.tilted = TRUE)
 
 
 
+}
+\author{
+Laurent Berge
 }

@@ -80,3 +80,6 @@ m$period = sample(1:4, 150, TRUE)
 plot_box(Petal.Length ~ period|Species, m)
 
 }
+\author{
+Laurent Berge
+}
