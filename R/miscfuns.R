@@ -60,7 +60,7 @@ setFplot_dict = function(dict){
     if(any(td > 1)){
         qui = which(dict_names %in% names(td)[td > 1])
         name_dup = unique(names(dict)[qui])
-        stop("Argument 'dict' contains duplicated names: ", enumerate_words(name_dup, endVerb = "no"))
+        stop("Argument 'dict' contains duplicated names: ", enumerate_items(name_dup, verb = FALSE))
     }
 
     options("fplot_dict" = dict)
@@ -136,7 +136,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
         #
         #     # stopwords
         #     res_long_split = res_long_split[!x %in% c("the", "of", "and")]
-        #     total = res_long_split[, .(n_char = sum(n_char) + .N - 1), by = id]
+        #     total = res_long_split[, list(n_char = sum(n_char) + .N - 1), by = id]
         #
         #     qui_ok = total$n_char <= trunc
         #     if(any(qui_ok)){
@@ -149,7 +149,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
         #     # non name words
         #     res_long_split[, isEnglish := check_english(tolower(x), addNames = FALSE)]
         #     res_long_split[n_char > 5 & isEnglish == TRUE, x := paste0(substr(x, 1, 4), ".")]
-        #     total = res_long_split[, .(n_char = sum(nchar(gsub(".", "", x, fixed = TRUE))) + .N - 1), by = id]
+        #     total = res_long_split[, list(n_char = sum(nchar(gsub(".", "", x, fixed = TRUE))) + .N - 1), by = id]
         #
         #     qui_ok = total$n_char <= trunc
         #     if(any(qui_ok)){
@@ -162,7 +162,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
         #     # name words
         #     res_long_split[, isEnglishName := check_english(tolower(x)) & !isEnglish]
         #     res_long_split[n_char > 5 & isEnglishName == TRUE, x := paste0(substr(x, 1, 4), ".")]
-        #     total = res_long_split[, .(n_char = sum(nchar(gsub(".", "", x, fixed = TRUE))) + .N - 1), by = id]
+        #     total = res_long_split[, list(n_char = sum(nchar(gsub(".", "", x, fixed = TRUE))) + .N - 1), by = id]
         #
         #     qui_ok = total$n_char <= trunc
         #     if(any(qui_ok)){
@@ -174,7 +174,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
         #
         #     # other words
         #     res_long_split[n_char > 5 & isEnglishName == FALSE & isEnglish == FALSE, x := paste0(substr(x, 1, 5), ".")]
-        #     total = res_long_split[, .(n_char = sum(nchar(gsub(".", "", x, fixed = TRUE))) + .N - 1), by = id]
+        #     total = res_long_split[, list(n_char = sum(nchar(gsub(".", "", x, fixed = TRUE))) + .N - 1), by = id]
         #
         #     qui_ok = total$n_char <= trunc
         #     if(any(qui_ok)){
@@ -197,7 +197,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
 }
 
 
-xaxis_labels = function(at, labels, minLine = -1, maxLine = 1, minCex = 0.8, add_ticks = FALSE, trunc = 20, trunc.method = "auto", onlyParams = FALSE, ...){
+xaxis_labels = function(at, labels, minLine = -1, max_line = 1, minCex = 0.8, add_ticks = FALSE, trunc = 20, trunc.method = "auto", onlyParams = FALSE, ...){
     # This function automates the placement of labels into the axis 1
     # It first put the cex to the appropritate level to insert the 1st
     # label into the frame, then
@@ -254,7 +254,7 @@ xaxis_labels = function(at, labels, minLine = -1, maxLine = 1, minCex = 0.8, add
     # 1) smaller characters can be more stacked vertically
     # 2) a line height is almost equivalent to character height
 
-    # all_lines = -1:maxLine
+    # all_lines = -1:max_line
     ok = FALSE
     failed = FALSE
     while(!ok){
@@ -264,7 +264,7 @@ xaxis_labels = function(at, labels, minLine = -1, maxLine = 1, minCex = 0.8, add
 
         # there can be more lines than expected depending on cex
         line_step = max(strheight(myLabels, units = "in", cex = myCex)) / max(strheight(myLabels, units = "in"))
-        all_lines = seq(minLine, maxLine, by = line_step)
+        all_lines = seq(minLine, max_line, by = line_step)
 
         myLine = current_Line = minLine
         for(i in 2:n){
@@ -1603,7 +1603,7 @@ ttable = function(x, sorted = TRUE){
     # Faster than table thx to data.table
     info = data.table(id = x)
 
-    grouped = info[, .(n = .N), by = id]
+    grouped = info[, list(n = .N), by = id]
 
     if(sorted){
         grouped = grouped[order(id)]
@@ -1615,34 +1615,6 @@ ttable = function(x, sorted = TRUE){
     res
 }
 
-enumerate_words = function(x, endVerb = c("is", "no", "contain"), addS = FALSE){
-    # This function writes:
-    # "var1, var2 and var 3 are"
-    # or "var1 is"
-
-    endVerb = match.arg(endVerb)
-
-    n = length(x)
-
-    endWord = switch(endVerb,
-                     is = ifelse(n == 1, " is", " are"),
-                     no = "",
-                     contain = ifelse(n == 1, " contains", " contain"))
-
-    if(addS){
-        startWord = ifelse(n == 1, " ", "s ")
-    } else {
-        startWord = ""
-    }
-
-    if(n == 1){
-        res = paste0(startWord, x, endWord)
-    } else {
-        res = paste0(startWord, paste0(x[-n], collapse = ", "), " and ", x[n], endWord)
-    }
-
-    res
-}
 
 extract_pipe = function(fml){
     # We extract the elements after the pipe
