@@ -537,6 +537,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     DO_SPLIT = FALSE
     checkNotTilted = FALSE
+    delayLabelsTilted = missnull(labels.tilted)
     if(moderator_cases > 1 && grepl("split", mod.method)){
         DO_SPLIT = TRUE
         if(missnull(labels.tilted)){
@@ -544,9 +545,15 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             checkNotTilted = TRUE
         }
 
-        if(missnull(addOther)){
+        # We don't add the other column only when the data is split
+        # and it is not a numeric axis or log axis
+        if(missnull(addOther) && !toLog && !numAxis){
             addOther = FALSE
         }
+    }
+
+    if(missnull(addOther)){
+        addOther = TRUE
     }
 
     # yaxis.num
@@ -568,10 +575,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         # NOTE that we later update the value of checkForTilting
         # because we don't want to do it all the time (but we first need more information)
         # just search the next occurrent of checkForTilting
-    }
-
-    if(missnull(addOther)){
-        addOther = TRUE
     }
 
     # The color
@@ -1151,6 +1154,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             if(maxFirst){
 
+                if(delayLabelsTilted){
+                    # better display
+                    labels.tilted = TRUE
+                }
+
                 myat = data_freq_valid[, (xleft+xright)/2]
 
                 exp_value_right = ceiling(exp(x_all + 1))
@@ -1162,7 +1170,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
                 # finding the location
                 if(labels.tilted){
-                    xaxis_biased(at = myat, max_line = max_line, labels = label_displayed)
+                    info_tilt = xaxis_biased(at = myat, max_line = max_line, labels = label_displayed)
                 } else {
                     xaxis_labels(at = myat, labels = label_displayed)
                 }
@@ -1191,7 +1199,27 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 exp_value_format = formatAxisValue(exp_value)
 
                 # tick location
-                axis(1, at = myat, labels = exp_value_format, line = moreLine, lwd.ticks = 1, lwd = 0)
+
+                # 1) the ticks
+                axis(1, at = myat, labels = NA, lwd.ticks = 1, lwd = 0, line = moreLine)
+
+                # 2) The labels
+                # Tilted labels not implemented for this axis
+                if(delayLabelsTilted){
+                    if(strwidth(paste0(exp_value_format, collapse = "  ")) / diff(get_x_lim()) > 0.9){
+                        labels.tilted = TRUE
+                    } else {
+                        labels.tilted = FALSE
+                    }
+
+                }
+
+                if(labels.tilted){
+                    xaxis_biased(at = myat, labels = exp_value_format, yadj = 2, angle = 25)
+                } else {
+                    axis(1, at = myat, labels = exp_value_format, line = moreLine, lwd = 0)
+                }
+
 
                 # for extra ticking when info is ambiguous
                 tck_location = par("usr")[3] - strheight("W")*81/100
@@ -1232,10 +1260,24 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 #
                 # axis(1, at = data_freq_other[, (xleft + xright)/2], labels = text2show, lwd = 0, line = -0.8, cex.axis = myCex)
 
-                text2show = rep(">", nrow(data_freq_other))
-                text2show[grepl("<", data_freq_other$otherValue)] = "<"
+                if(maxFirst){
+                    text2show = rep("Other", nrow(data_freq_other))
+                    my_font = 1
+                } else {
+                    text2show = rep(">", nrow(data_freq_other))
+                    text2show[grepl("<", data_freq_other$otherValue)] = "<"
+                    my_font = 2
+                }
 
-                axis(1, at = data_freq_other[, (xleft + xright)/2], labels = text2show, lwd = 0, line = -0.8, font = 2)
+                myat = data_freq_other[, (xleft + xright)/2]
+
+                if(maxFirst && labels.tilted){
+                    xaxis_biased(at = myat, max_line = max_line, labels = text2show, angle = info_tilt$angle, cex = info_tilt$cex)
+                } else {
+                    axis(1, at = myat, labels = text2show, lwd = 0, line = -0.8, font = my_font)
+                }
+
+
             }
 
         } else {
