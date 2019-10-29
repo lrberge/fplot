@@ -35,7 +35,7 @@
 #' @param centered Logical, default is \code{TRUE}. For numeric data only and when \code{maxFirst=FALSE}, whether the histogram should be centered on the mode.
 #' @param weight.fun A function, by default it is \code{sum}. Aggregate function to be applied to the weight with respect to variable and the moderator. See examples.
 #' @param dict A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.
-#' @param mod.title Character scalar. The title of the legend, in case there is a moderator. By default it is the moderator name modified by dict if the moderator is numeric (otherwise default is empty). To display no title, set it to \code{NULL}.
+#' @param mod.title Character scalar. The title of the legend in case there is a moderator. By default it is equal to the moderator name (possibly modified by the argument dict) if the moderator is numeric, and empty if the moderator is *not* numeric. You can set it to \code{TRUE} to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.
 #' @param cex.axis Cex value to be passed to biased labels. By defaults, it finds automatically the right value.
 #' @param int.categorical Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).
 #' @param trunc If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.
@@ -122,7 +122,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(moderator, "nullVector")
     check_arg(weight, "nullNumericVector")
     check_arg(dict, "nullCharacterVectorNoNA")
-    check_arg(mod.title, "nullSingleCharacter")
+    control_variable(mod.title, "single(Character|logical)")
     check_arg(labels.angle, "singleNumeric")
     check_arg(yaxis.show, "singleLogical")
     check_arg(yaxis.num, "singleLogical")
@@ -359,13 +359,21 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     #     isLegend = TRUE
     # }
 
-    if(missing(mod.title) && isLegend){
-        if(is.numeric(moderator) || is.logical(moderator)){
+    # mod.title
+    if(isLegend){
+        if(missing(mod.title)){
+            if(is.numeric(moderator) || is.logical(moderator)){
+                mod.title = moderator_name
+            } else {
+                mod.title = NULL
+            }
+        } else if(isTRUE(mod.title)){
             mod.title = moderator_name
-        } else {
+        } else if(isFALSE(mod.title)){
             mod.title = NULL
         }
     }
+
 
     # separation of the x cases:
     if(missnull(sep)){
@@ -2027,12 +2035,23 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
     if(isLegend){
         ymax = ylim[2]
 
+        # if(missing(mod.title)){
+        #     if(is.numeric(moderator) || is.logical(moderator)){
+        #         mod.title = moderator_name
+        #     } else {
+        #         mod.title = NULL
+        #     }
+        # }
         if(missing(mod.title)){
             if(is.numeric(moderator) || is.logical(moderator)){
                 mod.title = moderator_name
             } else {
                 mod.title = NULL
             }
+        } else if(isTRUE(mod.title)){
+            mod.title = moderator_name
+        } else if(isFALSE(mod.title)){
+            mod.title = NULL
         }
 
         info_legend = legendFit(legend = moderator_unik, title = mod.title, plot = FALSE)
@@ -2438,10 +2457,17 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         isLegend = TRUE
     }
 
-    if(missing(mod.title) && isLegend){
-        if(mod_num_logical){
+    # mod.title
+    if(isLegend){
+        if(missing(mod.title)){
+            if(mod_num_logical){
+                mod.title = moderator_name
+            } else {
+                mod.title = NULL
+            }
+        } else if(isTRUE(mod.title)){
             mod.title = moderator_name
-        } else {
+        } else if(isFALSE(mod.title)){
             mod.title = NULL
         }
     }
