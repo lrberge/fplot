@@ -320,8 +320,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             info_mod = info_mod[order(-value)]
             mod.select = info_mod[1:n_select, moderator]
 
-            # browser()
-
             do_recreate = TRUE
 
             if(n_select == 1){
@@ -715,8 +713,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                     other_col[, x_nb := 0]
                     # we limit the size of this last column
                     share_max = max(data_freq[x_nb %in% 1:maxBins, share])
-                    r = 1 + rank(other_col$value, ties.method = "max") / moderator_cases / 10
-                    other_col[, share := pmin(share_top, r * share_max)]
+                    # r = 1 + rank(other_col$value, ties.method = "max") / moderator_cases / 10
+                    # other_col[, share := pmin(share_top, r * share_max)]
+                    other_col[, share := pmin(share_top, 1.1 * share_max)]
 
                     if(any(other_col$share < other_col$share_top)){
                         CUT_BAR = TRUE
@@ -928,7 +927,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             info[[i]] = data_freq
         }
 
-        info_all = rbindlist(info)
+        info_all = rbindlist(info, use.names=TRUE)
 
         if(mod.method == "splitTotal"){
             total = sum(weight)
@@ -940,6 +939,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         if(binned_data && addOther){
             # we format the data properly
             info_all$x = formatAxisValue(info_all$x)
+        }
+
+        if(X_FACTOR){
+            # we reintroduce the values of x
+            info_all[, x := x_fact_names[x]]
         }
 
         # managing "other"
@@ -960,11 +964,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         }
 
         data_freq = info_all
-
-        if(X_FACTOR){
-            # we reintroduce the values of x
-            data_freq[, x := x_fact_names[x]]
-        }
 
         # Some information
         xlim = range_plus(c(data_freq$xleft, data_freq$xright), 5)
@@ -1046,7 +1045,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             top.cex = 1
             minCex = 0.5
-            while(top.cex > minCex && max(strwidth(top.value2display, units = "in", cex = top.cex)) > unitary_width_top){
+            while(top.cex > minCex && max(strwidth(top.value2display, units = "in", cex = top.cex)) > unitary_width_top*0.9){
                 top.cex = top.cex * 0.95
             }
 
@@ -1506,8 +1505,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     } else if(isNum){
         # we can have the "other" column both left and right
 
-        # browser()
-
         x_unik = at_info[x_nb %in% 1:maxBins, x]
         myLabels = x_unik
         myAt = at_info[x_nb %in% 1:maxBins, mid_point]
@@ -1648,7 +1645,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # legendFit("top", moderator_unik, bg="white", bty="o", box.col="white", fill=col[1:moderator_cases])
 
-        # browser()
         legendFit("top", moderator_unik, fill=col[1:moderator_cases], title = mod.title, title_out = TRUE, trunc = info_legend$trunc)
     }
 
