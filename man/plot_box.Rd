@@ -4,17 +4,17 @@
 \alias{plot_box}
 \title{Boxplots with possibly moderators}
 \usage{
-plot_box(fml, base, case, moderator, inCol, outCol = "black",
+plot_box(fml, data, case, moderator, inCol, outCol = "black",
   density = -1, lty = 1, pch = 18, addLegend = TRUE,
   legend_options = list(), lwd = 2, outlier, dict_case, dict_moderator,
-  order_case, order_moderator, addMean = TRUE, mean.col = "darkred",
-  mean.pch = 18, mean.cex = 2, labels.tilted, trunc = 20,
+  order_case, order_moderator, addMean, mean.col = "darkred",
+  mean.pch = 18, mean.cex = 2, mod.title, labels.tilted, trunc = 20,
   trunc.method = "auto", max_line, dict = getFplot_dict(), ...)
 }
 \arguments{
-\item{fml}{A formula of the type: \code{var ~ case|moderator}. Note that if a formula is provided then the argument \sQuote{base} must be provided.}
+\item{fml}{A formula of the type: \code{var ~ case | moderator}. Note that if a formula is provided then the argument \sQuote{data} must be provided.}
 
-\item{base}{A data.frame/data.table containing the relevant information.}
+\item{data}{A data.frame/data.table containing the relevant information.}
 
 \item{case}{When argument fml is a vector, this argument can receive a vector of cases.}
 
@@ -53,6 +53,8 @@ plot_box(fml, base, case, moderator, inCol, outCol = "black",
 \item{mean.pch}{The patch of the mean, default is 18.}
 
 \item{mean.cex}{The cex of the mean, default is 2.}
+
+\item{mod.title}{Character scalar. The title of the legend, in case there is a moderator. By default it is the moderator name modified by dict if the moderator is numeric (otherwise default is empty). To display no title, set it to \code{NULL}.}
 
 \item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
 

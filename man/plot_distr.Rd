@@ -4,7 +4,7 @@
 \alias{plot_distr}
 \title{Plot distributions, possibly conditional}
 \usage{
-plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
+plot_distr(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin,
   legend_options = list(), onTop, yaxis.show = TRUE, yaxis.num, col,
   outCol = "black", mod.method, mod.select, labels.tilted, addOther,
   plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical,
@@ -14,7 +14,7 @@ plot_distr(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin,
 \arguments{
 \item{fml}{A formula or a vector. If a formula, it must be of the type: \code{var ~ moderator | weight}. If there are no moderator nor weights, you can use directly a vector, or use \code{fml = var ~ 1}. To use weights and no moderator, use \code{fml = var ~ 1 | weight}. See examples.}
 
-\item{base}{A data.frame: data base containing the variables in the formula.}
+\item{data}{A data.frame: data set containing the variables in the formula.}
 
 \item{moderator}{Optional, only if argument \code{fml} is a vector. A vector of moderators.}
 

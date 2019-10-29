@@ -4,15 +4,15 @@
 \alias{plot_lines}
 \title{Display means conditionnally on some other values}
 \usage{
-plot_lines(fml, base, time, moderator, smoothing_window = 0, fun,
+plot_lines(fml, data, time, moderator, smoothing_window = 0, fun,
   col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),
   legend_options = list(), pt.cex = 2, lwd = 2,
   dict = getFplot_dict(), mod.title, ...)
 }
 \arguments{
-\item{fml}{A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{base}.}
+\item{fml}{A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{data}.}
 
-\item{base}{Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.}
+\item{data}{Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.}
 
 \item{time}{Only if argument \sQuote{fml} is a vector. It should be the vector of \sQuote{time} identifiers to average over.}
 

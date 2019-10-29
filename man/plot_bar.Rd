@@ -4,7 +4,7 @@
 \alias{plot_bar}
 \title{Barplot with aggregate and moderator possibilities}
 \usage{
-plot_bar(fml, base, agg, fun = mean, dict = getFplot_dict(),
+plot_bar(fml, data, agg, fun = mean, dict = getFplot_dict(),
   order = FALSE, maxBins = 50, show0 = TRUE, cex.text = 0.7,
   isDistribution = FALSE, yaxis.show = TRUE, labels.tilted,
   trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE,
@@ -14,7 +14,7 @@ plot_bar(fml, base, agg, fun = mean, dict = getFplot_dict(),
 \arguments{
 \item{fml}{A formula of the form: \code{var ~ agg} with \code{var} the variable, \code{agg} the variable over which to aggregate that will appear in the x-axis.}
 
-\item{base}{A data.frame containing all the variables in the formula argument.}
+\item{data}{A data.frame containing all the variables in the formula argument.}
 
 \item{agg}{In the case \code{fml} is a vector, \code{agg} can be a vector of values over which to aggregate the main variable.}
 
