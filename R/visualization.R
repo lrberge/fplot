@@ -13,7 +13,7 @@
 #' This function plots distributions of items (a bit like an histogram) which can be easily conditioned over.
 #'
 #' @param fml A formula or a vector. If a formula, it must be of the type: \code{var ~ moderator | weight}. If there are no moderator nor weights, you can use directly a vector, or use \code{fml = var ~ 1}. To use weights and no moderator, use \code{fml = var ~ 1 | weight}. See examples.
-#' @param base A data.frame: data base containing the variables in the formula.
+#' @param data A data.frame: data set containing the variables in the formula.
 #' @param moderator Optional, only if argument \code{fml} is a vector. A vector of moderators.
 #' @param weight Optional, only if argument \code{fml} is a vector. A vector of (positive) weights.
 #' @param maxFirst Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.
@@ -92,8 +92,11 @@
 #'
 #'
 #'
-plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bin, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
+
+    # DT VARS
+    total_moderator = x_nb = isOther = otherValue = nb_new = share = share_top = moderator_nb = xleft = xright = ybottom = xleft_real = xright_real = x_num = mid_point = NULL
 
     # save full formula
     fml_in = fml
@@ -125,6 +128,8 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(yaxis.num, "singleLogical")
     check_arg(int.categorical, "singleLogical")
 
+    mc = match.call()
+
 
     #
     # Extracting x and the moderator:
@@ -133,13 +138,15 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     USE_WEIGHT = FALSE
     x_name = ylab = weight_name = moderator_name = ""
     if("formula" %in% class(fml_in)){
-        if(missing(base) || !is.data.frame(base)){
-            stop("If you provide a formula, a data.frame must be given in argument 'base'.")
+        if(missing(data) || !is.data.frame(data)){
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+
+            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
-        if(any(!vars %in% names(base))){
-            stop("The variable", enumerate_items(setdiff(vars, names(base)), addS = TRUE)," not in 'base'.")
+        if(any(!vars %in% names(data))){
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -151,16 +158,16 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
         fml = extract_pipe(fml_in)$fml
         pipe = extract_pipe(fml_in)$pipe
 
-        x = eval(fml[[2]], base)
-        moderator = eval(fml[[3]], base)
-        weight = eval(pipe, base)
+        x = eval(fml[[2]], data)
+        moderator = eval(fml[[3]], data)
+        weight = eval(pipe, data)
 
         if(is.null(weight)){
             weight = rep(1, length(x))
         } else {
             USE_WEIGHT = TRUE
             weight_name = gsub("^.*\\| *", "", deparse(fml_in[[3]]))
-            control_variable(weight, "numericVectorGE0")
+            check_arg(weight, "numericVectorGE0", "The 'weight' must be a numeric vector. REASON")
         }
 
         if(length(moderator) == 1){
@@ -353,7 +360,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
     # }
 
     if(missing(mod.title) && isLegend){
-        if(is.numeric(moderator)){
+        if(is.numeric(moderator) || is.logical(moderator)){
             mod.title = moderator_name
         } else {
             mod.title = NULL
@@ -1573,7 +1580,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 
     if(onTop != "none"){
 
-        qui = strwidth(top.value2display, units = "in", cex = top.cex) <= unitary_width_top | nchar(top.value2display) <= 3
+        qui = strwidth(top.value2display, units = "in", cex = top.cex) <= unitary_width_top*1.5 | nchar(top.value2display) <= 3
 
         if(any(qui)){
             text(data_freq[, (xleft+xright)/2][qui], data_freq$share[qui], label = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
@@ -1592,7 +1599,7 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 #' @inheritParams plot_distr
 #'
 #' @param fml A formula of the form: \code{var ~ agg} with \code{var} the variable, \code{agg} the variable over which to aggregate that will appear in the x-axis.
-#' @param base A data.frame containing all the variables in the formula argument.
+#' @param data A data.frame containing all the variables in the formula argument.
 #' @param agg In the case \code{fml} is a vector, \code{agg} can be a vector of values over which to aggregate the main variable.
 #' @param maxBins Defaults to 50. All other information that does not fit is put into the bin \dQuote{other}.
 #' @param order Defaults to \code{FALSE}. Should the data be ordered w.r.t. frequency?
@@ -1623,15 +1630,24 @@ plot_distr = function(fml, base, moderator, weight, maxFirst, toLog, maxBins, bi
 #'
 #'
 #'
-plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FALSE, maxBins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", xlab, ylab, ...){
+plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, maxBins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", xlab, ylab, ...){
     # this function formats a bit the data and sends it to myBarplot
 
     # Old params
     isLog = FALSE
 
-    # hidden argument:
-    # agg
     fml_in = fml
+
+    # Controls
+    check_arg(order, "singleLogical")
+    check_arg(show0, "singleLogical")
+    check_arg(isDistribution, "singleLogical")
+    check_arg(labels.tilted, "singleLogical")
+    check_arg(hgrid, "singleLogical")
+    check_arg(showOther, "singleLogical")
+    check_arg(maxBins, "singleIntegerGE1")
+    check_arg(trunc, "singleIntegerGE1")
+    check_arg(trunc.method, "singleCharacter")
 
     #
     # Extracting the information
@@ -1648,13 +1664,15 @@ plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FA
     if("formula" %in% class(fml_in)){
         # Control of the formula
 
-        if(missing(base) || !is.data.frame(base)){
-            stop("If you provide a formula, a data.frame must be given in argument 'base'.")
+        if(missing(data) || !is.data.frame(data)){
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+
+            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
-        if(any(!vars %in% names(base))){
-            stop("The variable", enumerate_items(setdiff(vars, names(base)), addS = TRUE)," not in 'base'.")
+        if(any(!vars %in% names(data))){
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -1665,8 +1683,8 @@ plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FA
         fml = extract_pipe(fml_in)$fml
         pipe = extract_pipe(fml_in)$pipe
 
-        x = eval(fml[[2]], base)
-        agg = eval(fml[[3]], base)
+        x = eval(fml[[2]], data)
+        agg = eval(fml[[3]], data)
 
         if(length(agg) == 1){
             # No agg!
@@ -1795,8 +1813,8 @@ plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FA
 #'
 #' @inheritParams plot_distr
 #'
-#' @param fml A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{base}.
-#' @param base Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.
+#' @param fml A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{data}.
+#' @param data Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.
 #' @param time Only if argument \sQuote{fml} is a vector. It should be the vector of \sQuote{time} identifiers to average over.
 #' @param moderator Only if argument \sQuote{fml} is a vector. It should be a vector of conditional values to average over. This is an optional parameter.
 #' @param fun Function to apply when aggregating the values on the time variable. Default is \code{mean}.
@@ -1822,14 +1840,19 @@ plot_bar = function(fml, base, agg, fun = mean, dict = getFplot_dict(), order=FA
 #' plot_lines(Petal.Length ~ Species, df)
 #'
 #'
-plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = getFplot_dict(), mod.title, ...){
+plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = getFplot_dict(), mod.title, ...){
     # This functions plots the means of x wrt the id
     # we can also add a moderator
+
+    # DT VARS
+    moderator_cases = xleft = xright = ybottom = ytop = NULL
 
     # old params
     style = "line"
     outCol = "black"
     # style = match.arg(style)
+
+    mc = match.call()
 
     fml_in = fml
 
@@ -1852,13 +1875,15 @@ plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col
     if("formula" %in% class(fml_in)){
         # Control of the formula
 
-        if(missing(base) || !is.data.frame(base)){
-            stop("If you provide a formula, a data.frame must be given in argument 'base'.")
+        if(missing(data) || !is.data.frame(data)){
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+
+            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
-        if(any(!vars %in% names(base))){
-            stop("The variable", enumerate_items(setdiff(vars, names(base)), addS = TRUE)," not in 'base'.")
+        if(any(!vars %in% names(data))){
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -1869,9 +1894,9 @@ plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col
         fml = extract_pipe(fml_in)$fml
         pipe = extract_pipe(fml_in)$pipe
 
-        x = eval(fml[[2]], base)
-        time = eval(fml[[3]], base)
-        moderator = eval(pipe, base)
+        x = eval(fml[[2]], data)
+        time = eval(fml[[3]], data)
+        moderator = eval(pipe, data)
 
         if(is.null(moderator)){
             moderator = rep(1, length(x))
@@ -1984,7 +2009,7 @@ plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col
         ymax = ylim[2]
 
         if(missing(mod.title)){
-            if(is.numeric(moderator)){
+            if(is.numeric(moderator) || is.logical(moderator)){
                 mod.title = moderator_name
             } else {
                 mod.title = NULL
@@ -2118,7 +2143,7 @@ plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col
             legend_options$col = all_col
             legend_options$lty = all_lty
             legend_options$pch = all_pch
-            legend_options$pt.cex = pt.cex
+            legend_options$pt.cex = pmin(pt.cex, 1.5)
             legend_options$lwd = lwd
         } else if(style == "bar"){
             legend_options$fill = all_col
@@ -2146,8 +2171,8 @@ plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col
 #' @inheritParams plot_distr
 #' @inheritParams plot_bar
 #'
-#' @param fml A formula of the type: \code{var ~ case|moderator}. Note that if a formula is provided then the argument \sQuote{base} must be provided.
-#' @param base A data.frame/data.table containing the relevant information.
+#' @param fml A formula of the type: \code{var ~ case | moderator}. Note that if a formula is provided then the argument \sQuote{data} must be provided.
+#' @param data A data.frame/data.table containing the relevant information.
 #' @param case When argument fml is a vector, this argument can receive a vector of cases.
 #' @param moderator When argument fml is a vector, this argument can receive a vector of moderators.
 #' @param inCol A vector of colors that will be used for within the boxes.
@@ -2181,19 +2206,42 @@ plot_lines = function(fml, base, time, moderator, smoothing_window = 0, fun, col
 #'
 #' plot_box(Petal.Length ~ period|Species, m)
 #'
-plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density = -1, lty = 1, pch = 18, addLegend = TRUE,  legend_options = list(), lwd=2, outlier, dict_case, dict_moderator, order_case, order_moderator, addMean = TRUE, mean.col = "darkred", mean.pch = 18, mean.cex = 2, labels.tilted, trunc = 20, trunc.method = "auto", max_line, dict = getFplot_dict(), ...){
+plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density = -1, lty = 1, pch = 18, addLegend = TRUE,  legend_options = list(), lwd=2, outlier, dict_case, dict_moderator, order_case, order_moderator, addMean, mean.col = "darkred", mean.pch = 18, mean.cex = 2, mod.title, labels.tilted, trunc = 20, trunc.method = "auto", max_line, dict = getFplot_dict(), ...){
 
-    # Hidden arguments:
-    # case and moderator
+    # DT VARS USED
+    case_nb = moderator_nb = span = q3 = q1 = min_whisker = y_min = max_whisker = y_max = NULL
+
     fml_in = fml
+
+    mc = match.call()
+
+    # Controls
+
+    check_arg(addLegend, "singleLogical")
+    check_arg(outlier, "singleLogical")
+    check_arg(order_case, "singleLogical")
+    check_arg(order_moderator, "singleLogical")
+    check_arg(addMean, "singleLogical")
+    check_arg(mod.title, "singleCharacter")
+    check_arg(labels.tilted, "singleLogical")
+    check_arg(trunc, "singleIntegerGE5")
 
     #
     # Extracting the information
     #
 
+    moderator_name = ""
     if("formula" %in% class(fml_in)){
-        if(missing(base) || !is.data.frame(base)){
-            stop("If you provide a formula, a data.frame must be given in argument 'base'.")
+
+        if(missing(data) || !is.data.frame(data)){
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+
+            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
+        }
+
+        vars = all.vars(fml_in)
+        if(any(!vars %in% names(data))){
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -2204,11 +2252,15 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
         fml = extract_pipe(fml_in)$fml
         pipe = extract_pipe(fml_in)$pipe
 
-        x = eval(fml[[2]], base)
-        case = eval(fml[[3]], base)
-        moderator = eval(pipe, base)
+        x = eval(fml[[2]], data)
+        case = eval(fml[[3]], data)
+        moderator = eval(pipe, data)
 
-        if(is.null(moderator)) moderator = rep(1, length(x))
+        if(is.null(moderator)){
+            moderator = rep(1, length(x))
+        } else {
+            moderator_name = gsub("^.*\\| *", "", deparse(fml_in[[3]]))
+        }
 
         # other info
         x_name = deparse(fml[[2]])
@@ -2228,6 +2280,7 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
                 if(length(x) != length(moderator)){
                     stop("If provided, the argument 'moderator' must be of the same length of 'x'.")
                 }
+                moderator_name = clean_name(deparse(substitute(moderator)))
             } else {
                 moderator = rep(1, length(x))
             }
@@ -2255,12 +2308,14 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
     # Renaming: dict
     x_name = getNames(x_name, dict)
     case_name = getNames(case_name, dict)
+    moderator_name = getNames(moderator_name, dict)
 
 
     #
     # Aggregation
     #
 
+    mod_num_logical = is.logical(moderator) || is.numeric(moderator) # used later
     moderator = as.character(moderator)
 
     CASE_FACTOR = FALSE
@@ -2272,6 +2327,12 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
 
 
     quoi = data.table(x=as.numeric(x), case=case, moderator=moderator)
+
+    delayAddMean = FALSE
+    if(missnull(addMean)){
+        addMean = TRUE
+        delayAddMean = TRUE
+    }
 
     if(addMean){
         base_agg = quoi[, list(y_min = min(x), q1 = quantile(x, 0.25), m = median(x), q3 = quantile(x, 0.75), y_max = max(x), avg = mean(x)), keyby = list(case, moderator)]
@@ -2324,7 +2385,7 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
 
     aliasModerator = moderator_unik
     if(!missing(dict_moderator) && !is.null(dict_moderator)){
-        if(!is.character(dict_moderator)|| is.null(names(dict_moderator))) stop("the arg. 'dict_moderator' must be a named character vector.")
+        if(!is.character(dict_moderator)|| is.null(names(dict_moderator))) stop("The argument 'dict_moderator' must be a named character vector.")
 
         qui = which(moderator_unik %in% names(dict_moderator))
         aliasModerator[qui] = dict_moderator[moderator_unik[qui]]
@@ -2358,6 +2419,14 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
         isLegend = TRUE
     }
 
+    if(missing(mod.title) && isLegend){
+        if(mod_num_logical){
+            mod.title = moderator_name
+        } else {
+            mod.title = NULL
+        }
+    }
+
 
     #
     # Preparation
@@ -2373,6 +2442,11 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
         }
     }
 
+    # default for addMean
+    if(delayAddMean){
+        addMean = !outlier
+    }
+
     # ylim
 
     if(outlier){
@@ -2382,7 +2456,7 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
     }
 
     if(isLegend){
-        info_legend = legendFit(legend = aliasModerator, plot = FALSE)
+        info_legend = legendFit(legend = aliasModerator, plot = FALSE, title = mod.title)
         # hauteur_caractere = strheight("W", "in", cex = info_legend$cex)
         # ylim[2] = ylim[2] + 2.5*hauteur_caractere / par("pin")[2] * diff(ylim)
         total_height = info_legend$total_height
@@ -2492,6 +2566,7 @@ plot_box = function(fml, base, case, moderator, inCol, outCol = "black", density
         # mandatory
         legend_options$legend = aliasModerator
         legend_options$fill = all_inCol
+        legend_options$title = mod.title
 
         # options
         listDefault(legend_options, "x", "top")
