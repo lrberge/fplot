@@ -182,7 +182,8 @@ What can we remark from the previous graph? When the legend would not fit in one
 We can add some simple smoothing with the option `smoothing_window`:
 
 ```{r, fig.width=7}
-plot_lines(1 ~ year | institution, us_pub_biology[institution %in% top5_instit], smoothing_window = 1)
+plot_lines(1 ~ year | institution, us_pub_biology[institution %in% top5_instit], 
+           smoothing_window = 1)
 ```
 
 The smoothing uses the n$^{th}$ future and past years to smooth the data, missing years due to the smoothing remain on the graph.
@@ -198,7 +199,7 @@ base_pub = us_pub_biology[, .(nb_pub_top_5 = sum(jnl_top_5p)), by = .(year, inst
 plot_box(nb_pub_top_5 ~ year, base_pub)
 ```
 
-By default the outliers are not shown when the boxplots would disappear because of the scale of the outliers. The means however are by default always represented, here by a red diamond. We can see that while the 3rd quartile almost doubled in the period, the mean almost trebled which means that the outliers gained weight over time.
+By default the outliers are not shown when the boxplots would disappear because of the scale of the outliers. The means however are displayed when the outliers are not, here it is represented by a red diamond. We can see that while the 3rd quartile almost doubled in the period, the mean almost trebled which means that the outliers gained weight over time.
 
 Now let's redo the same analysis but by distinguishing the top 5 institutions from the rest:
 
@@ -211,7 +212,7 @@ Now the outliers are reported, to avoid this behavior, we can use the argument `
 
 ```{r}
 # we also drop the mean
-plot_box(nb_pub_top_5 ~ year | isTop5, base_pub, outlier = FALSE, addMean = FALSE)
+plot_box(nb_pub_top_5 ~ year | isTop5, base_pub, outlier = FALSE)
 ```
 
 
