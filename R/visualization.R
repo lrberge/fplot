@@ -772,8 +772,10 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             other_col[, x_nb := maxBins + 1]
             # we limit the size of this last column
             share_max = max(data_freq[x_nb %in% 1:maxBins, share])
-            r = 1 + rank(other_col$value, ties.method = "max") / moderator_cases / 10
-            other_col[, share := pmin(share_top, r * share_max)]
+
+            # r = 1 + rank(other_col$value, ties.method = "max") / moderator_cases / 10
+            # other_col[, share := pmin(share_top, r * share_max)]
+            other_col[, share := pmin(share_top, 1.1 * share_max)]
 
             if(any(other_col$share < other_col$share_top)){
                 CUT_BAR = TRUE
@@ -942,6 +944,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # managing "other"
         # info_all[, isOther := is.na(x)]
+
         if(any(info_all$isOther)){
             # bounding bar size
             share_max = max(info_all[isOther == FALSE, share])
@@ -982,6 +985,10 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             } else {
                 onTop = "none"
             }
+        } else if(moderator_cases > 1 && !grepl("split", mod.method)){
+            # when neck to neck => much easier to compare shares
+            # otherwise it is confusing
+            onTop = "frac"
         } else {
             # if coef of variation of x is low => better information is the number
             values = data_freq[share_top <= share, ytop]
