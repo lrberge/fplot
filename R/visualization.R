@@ -430,6 +430,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     numAxis = FALSE
     binned_data = FALSE
+    maxBins_old = maxBins # used with delayLogChecking
     if(isNum && !toLog){
         if(!missnull(bin)){
             if(!missing(int.categorical) && int.categorical && all(x %% 1 == 0)){
@@ -466,7 +467,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
                 if(IS_MAXBIN_USER == FALSE){
                     # we reset the number of bins: specific to the numeric case
-                    maxBins_old = maxBins
                     maxBins = bin_max_all[1]
                 }
 
@@ -1167,13 +1167,18 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 # Displaying the ticks "all at once" (including the last one)
                 mysep = (data_freq$xleft[2] - data_freq$xright[1]) / 2
 
+                exp_value_right = ceiling(exp(x_all + 1))
+
                 # on the right
                 myat = data_freq_valid$xright + mysep
 
                 # We add the first tick on the left
                 data_first = data_freq_valid[x_nb == 1]
                 myat = c(data_first$xleft - mysep, myat)
-                exp_value = c(ceiling(exp(data_first$x_num - 1)), exp_value)
+                # exp_value = c(ceiling(exp(data_first$x_num - 1)), exp_value)
+                first_val = ceiling(exp(data_first$x_num - 1))
+                first_val[data_first$x_num == -1] = 0
+                exp_value = c(first_val, exp_value_right)
 
                 exp_value_format = formatAxisValue(exp_value)
 
@@ -1194,30 +1199,35 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             if(any(data_freq$isOther)){
                 data_freq_other = data_freq[isOther == TRUE]
 
-                # we reconstruct the number -- A bit complicated... I know...
-                my_sign = gsub(" .+", "", data_freq_other$otherValue)
-                nber2show_raw = gsub(".+ ", "", data_freq_other$otherValue)
+                # # we reconstruct the number -- A bit complicated... I know...
+                # my_sign = gsub(" .+", "", data_freq_other$otherValue)
+                # nber2show_raw = gsub(".+ ", "", data_freq_other$otherValue)
+                #
+                # nber2show = formatAxisValue(ceiling(exp(as.numeric(nber2show_raw))))
+                #
+                # qui_lower = my_sign == "<"
+                # if(any(qui_lower)){
+                #     nber2show[qui_lower] = formatAxisValue(ceiling(exp(as.numeric(nber2show_raw) - 1)))
+                # }
+                #
+                # text2show = paste0(my_sign, " ", nber2show)
+                #
+                # # we get the right cex
+                # w = data_freq_other[1, xright - xleft]
+                # max_lab = text2show[which.max(strwidth(text2show))]
+                #
+                # minCex = 0.7
+                # myCex = 1
+                # while(myCex > minCex && strwidth(max_lab, cex = myCex) > w){
+                #     myCex = myCex * 0.95
+                # }
+                #
+                # axis(1, at = data_freq_other[, (xleft + xright)/2], labels = text2show, lwd = 0, line = -0.8, cex.axis = myCex)
 
-                nber2show = formatAxisValue(ceiling(exp(as.numeric(nber2show_raw))))
+                text2show = rep(">", nrow(data_freq_other))
+                text2show[grepl("<", data_freq_other$otherValue)] = "<"
 
-                qui_lower = my_sign == "<"
-                if(any(qui_lower)){
-                    nber2show[qui_lower] = formatAxisValue(ceiling(exp(as.numeric(nber2show_raw) - 1)))
-                }
-
-                text2show = paste0(my_sign, " ", nber2show)
-
-                # we get the right cex
-                w = data_freq_other[1, xright - xleft]
-                max_lab = text2show[which.max(strwidth(text2show))]
-
-                minCex = 0.7
-                myCex = 1
-                while(myCex > minCex && strwidth(max_lab, cex = myCex) > w){
-                    myCex = myCex * 0.95
-                }
-
-                axis(1, at = data_freq_other[, (xleft + xright)/2], labels = text2show, lwd = 0, line = -0.8, cex.axis = myCex)
+                axis(1, at = data_freq_other[, (xleft + xright)/2], labels = text2show, lwd = 0, line = -0.8, font = 2)
             }
 
         } else {
@@ -1284,43 +1294,47 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             if(ADD_OTHER){
 
-                minCex = 0.75
-                myCex = 1
-                myShift = 0
-                maxShift = 1
-                while(myCex > minCex && too_large(otherText, myCex, myShift)){
-                    myCex = myCex * 0.95
-                    while(myShift < maxShift && too_large(otherText, myCex, myShift)){
-                        myShift = myShift + 0.1
-                    }
-                    if(too_large(otherText, myCex, myShift)) break
-                    myShift = 0
+                # minCex = 0.75
+                # myCex = 1
+                # myShift = 0
+                # maxShift = 1
+                # while(myCex > minCex && too_large(otherText, myCex, myShift)){
+                #     myCex = myCex * 0.95
+                #     while(myShift < maxShift && too_large(otherText, myCex, myShift)){
+                #         myShift = myShift + 0.1
+                #     }
+                #     if(too_large(otherText, myCex, myShift)) break
+                #     myShift = 0
+                #
+                # }
+                #
+                #
+                # axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + maxShift, line = -1, labels = otherText, lwd = 0, cex.axis = myCex)
 
-                }
+                axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.8, labels = ">", lwd = 0, font = 2)
 
-
-                axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + maxShift, line = -1, labels = otherText, lwd = 0, cex.axis = myCex)
-                # axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.5, labels = otherText, lwd = 0, cex.axis = myCex)
             }
 
             if(ADD_OTHER_LEFT){
 
-                minCex = 0.75
-                myCex = 1
-                myShift = 0
-                maxShift = 1
-                while(myCex > minCex && too_large(otherTextLeft, myCex, myShift)){
-                    myCex = myCex * 0.95
-                    while(myShift < maxShift && too_large(otherTextLeft, myCex, myShift)){
-                        myShift = myShift + 0.1
-                    }
-                    if(!too_large(otherTextLeft, myCex, myShift)) break
-                    myShift = 0
+                # minCex = 0.75
+                # myCex = 1
+                # myShift = 0
+                # maxShift = 1
+                # while(myCex > minCex && too_large(otherTextLeft, myCex, myShift)){
+                #     myCex = myCex * 0.95
+                #     while(myShift < maxShift && too_large(otherTextLeft, myCex, myShift)){
+                #         myShift = myShift + 0.1
+                #     }
+                #     if(!too_large(otherTextLeft, myCex, myShift)) break
+                #     myShift = 0
+                #
+                # }
+                #
+                # axis(1, at = at_info[x_nb == 0, mid_point] - myShift, line = -1, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
 
-                }
+                axis(1, at = at_info[x_nb == 0, mid_point], line = -0.8, labels = "<", lwd = 0, font = 2)
 
-                axis(1, at = at_info[x_nb == 0, mid_point] - myShift, line = -1, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
-                # axis(1, at = at_info[x_nb == 0, mid_point], line = -0.5, labels = otherTextLeft, lwd = 0, cex.axis = myCex)
             }
         }
 
@@ -1445,6 +1459,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         if(labels.tilted == FALSE && mean(diff(x_unik)) == 1){
             # This is a "normal" axis
             # everything number follows, this is fine
+
+            # we still add the xlab we removed before (we could not anticipate the result)
+            if(checkForTilting){
+                if(noXlab) title(xlab = x_name)
+            }
 
             axis(1, myAt, labels = myLabels)
         } else {
