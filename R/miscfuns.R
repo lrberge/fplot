@@ -433,7 +433,7 @@ xaxis_biased = function(at, labels, angle, cex, max_line = 1, yadj = 0.5, trunc 
 }
 
 
-legendFit = function(where = "top", legend, minCex = 0.6, trunc, trunc.method = "auto", plot = TRUE, title = NULL, title_out = FALSE, ...){
+legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = "auto", plot = TRUE, title = NULL, title_out = FALSE, ...){
     # units in inch to avoid the need of having a graph already plotted
     # (you cannot use par("usr) when there is no graph plotted)
 
@@ -1600,6 +1600,9 @@ addCommas = function(x){
 
 
 ttable = function(x, sorted = TRUE){
+    # DT VARS USED
+    id = NULL
+
     # Faster than table thx to data.table
     info = data.table(id = x)
 
@@ -1648,6 +1651,9 @@ sunique = function(x){
 
     # we use data.table (faster for characters)
 
+    # DT VARS USED
+    id = NULL
+
     data = data.table(id = x)
     res <- unique(data)
     res <- res[order(id)]
@@ -1683,6 +1689,9 @@ dict2number = function(dict, x){
     # this function takes in a vector of (unique) identifiers
     # and a vector that should put x into numbers
     # it returns the numbers associated to the identifier
+
+    # DT VARS USED
+    id = id_obs = NULL
 
     # check
     if(length(dict) != length(unique(dict))) stop("The argument 'dict' should be a vector of UNIQUE identifiers.")
