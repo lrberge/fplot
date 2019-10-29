@@ -1,13 +1,13 @@
 Package: fplot
 Type: Package
-Title: Aggregate/conditional graphs with automatic layout using formulas
+Title: Automatic Distribution Graphs Using Formulas
 Version: 0.1.0
 Authors@R: person("Laurent", "Berge", email = "laurent.berge@uni.lu", role = c("aut", "cre"))
 Imports: stats, graphics, utils, Formula, Rcpp
 Suggests: knitr, rmarkdown, fixest
 LinkingTo: Rcpp
 Depends: R(>= 3.5.0), data.table
-Description: Easy way to plot common types of graphics with moderators by using formulas. The distribution plots are automatic, meaning that the many options are adapted to the data at hand in order to provide the nicest and most meaningful graphs possible.
+Description: Easy way to plot common types of graphics with moderators by using formulas. The core of the package concerns distribution plots which are automatic: the many options are tailored to the data at hand to offer the nicest and most meaningful graphs possible -- with no/minimum user input.
 License: GPL-3
 SystemRequirements: C++11
 VignetteBuilder: knitr
