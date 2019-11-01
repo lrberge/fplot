@@ -21,12 +21,12 @@
 #' @param col A vector of colors, default is close to paired. You can also use \dQuote{set1} or \dQuote{paired}.
 #' @param outCol Outer color of the bars. Defaults is \code{"black"}.
 #' @param maxBins Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.
-#' @param bin Only used for numeric values. If provided, it creates bins of observations of size \code{bin}. It creates bins by default for numeric non-integer data.
+#' @param bin.size Only used for numeric values. If provided, it creates bins of observations of size \code{bin.size}. It creates bins by default for numeric non-integer data.
 #' @param legend_options A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.
 #' @param yaxis.show Whether the y-axis should be displayed, default is \code{TRUE}.
-#' @param yaxis.num Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "total"} or \code{mod.method = "splitTotal"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).
+#' @param yaxis.num Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).
 #' @param mod.select Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values that cannot be greater than 5. Alternatively, you can put an integer between 1 and 5.
-#' @param mod.method A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{within}, the default for data in logarithmic form, or \dQuote{total}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case.
+#' @param mod.method A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{sideWithin}, the default for data in logarithmic form or numeric data, \dQuote{sideTotal} or \dQuote{stack}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case. If side: moderators are represented side by side for each value of the variable. If stack: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population (in this case the within distribution does not make sense).
 #' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).
 #' @param labels.angle Only if the labels of the x-axis are tilted. The angle of the tilt.
 #' @param addOther Logical. Should there be a last column counting for the observations not displayed? Default is \code{TRUE} except when the data is split.
@@ -92,7 +92,7 @@
 #'
 #'
 #'
-plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # DT VARS
@@ -102,7 +102,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     fml_in = fml
 
     if(!missing(mod.method)){
-        mod.method = control_variable(mod.method, "singleCharacterMatch.arg", charVec = c("within", "total", "splitWithin", "splitTotal"))
+        mod.method = control_variable(mod.method, "singleCharacterMatch.arg", charVec = c("sideWithin", "sideTotal", "splitWithin", "splitTotal", "stack"))
     }
 
 
@@ -118,7 +118,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(centered, "singleLogical")
     check_arg(maxBins, "nullSingleIntegerGT0")
     check_arg(col, "vector")
-    check_arg(bin, "nullSingleNumericGT0")
+    check_arg(bin.size, "nullSingleNumericGT0")
     check_arg(moderator, "nullVector")
     check_arg(weight, "nullNumericVector")
     check_arg(dict, "nullCharacterVectorNoNA")
@@ -438,14 +438,19 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     binned_data = FALSE
     maxBins_old = maxBins # used with delayLogChecking
     if(isNum && !toLog){
-        if(!missnull(bin)){
+        if(!missnull(bin.size)){
             if(!missing(int.categorical) && int.categorical && all(x %% 1 == 0)){
                 isInteger = TRUE
             } else {
-                x = (x %/% bin) * bin
+                x = (x %/% bin.size) * bin.size
                 binned_data = TRUE
                 if(!maxFirst){
                     numAxis = TRUE
+                    if(IS_MAXBIN_USER == FALSE){
+                        # Since it's a numeric axis, we put a LOT of bins
+                        # It is a maximum anyway
+                        maxBins = 50
+                    }
                 }
             }
 
@@ -481,8 +486,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 # we try to find a "good" bin size
                 x_min = min(x)
                 x_max = max(x)
-                bin = signif((x_max - x_min) / min(max(maxBins - 1, 10), 15), 1)
-                x_tmp = (x %/% bin) * bin
+                bin.size = signif((x_max - x_min) / min(max(maxBins - 1, 10), 15), 1)
+                x_tmp = (x %/% bin.size) * bin.size
                 tx = ttable(x_tmp)
                 if(sum(tx/sum(tx) > 0.03) < 6){
                     # Condition: nber of bins with more than 3% is lower than 6
@@ -508,11 +513,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                         # Condition: nber of bins with more than 1% is lower than 6
                         # More complex binning
                         x_med = median(x)
-                        bin = signif((x_med - x_min) / min(max(maxBins/2, 5), 7), 1)
+                        bin.size = signif((x_med - x_min) / min(max(maxBins/2, 5), 7), 1)
                         if(isInteger){
-                            bin = ceiling(bin)
+                            bin.size = ceiling(bin.size)
                         }
-                        x = (x %/% bin) * bin
+                        x = (x %/% bin.size) * bin.size
                     } else {
                         x = x_tmp
                     }
@@ -527,10 +532,16 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     # Splitting
     if(missnull(mod.method)){
         if(toLog || numAxis){
-            mod.method = "within"
+            mod.method = "sideWithin"
         } else {
             mod.method = "splitWithin"
         }
+    }
+
+    DO_STACK = FALSE
+    if(mod.method == "stack"){
+        DO_STACK = TRUE
+        mod.method = "sideTotal"
     }
 
     DO_SPLIT = FALSE
@@ -562,7 +573,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             yaxis.num = TRUE
         }
     } else if(yaxis.num == TRUE && moderator_cases > 1 && grepl("ithin", mod.method)){
-        stop("Argument yaxis.num: You cannot have a numeric y-axis when the 'within' distributions among moderators should be reported (because the data is rescaled as frequencies first). Use mod.method = 'total' or mod.method = 'splitTotal' to display a numeric y-axis.")
+        stop("Argument yaxis.num: You cannot have a numeric y-axis when the 'within' distributions among moderators should be reported (because the data is rescaled as frequencies first). Use mod.method = 'sideTotal', mod.method = 'splitTotal' or mod.method = 'stack' to display a numeric y-axis.")
     }
 
     checkForTilting = FALSE
@@ -647,7 +658,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             data_freq = raw_data[, list(value = .N), keyby = list(x, moderator)]
         }
 
-        if(USE_MOD && mod.method == "within"){
+        if(USE_MOD && mod.method == "sideWithin"){
             data_freq[, "total_moderator" := list(sum(value)), by = moderator]
             data_freq[, "share" := list(value/total_moderator*100)]
         } else {
@@ -733,15 +744,14 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                         otherTextLeft = substitute(phantom()<x_val, list(x_val = formatAxisValue(x_first)))
                         data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_first))]
                     } else {
-                        if(missnull(bin)){
+                        if(binned_data == FALSE){
                             x_other = data_freq[x_nb == 1, x][1]
-                            # otherTextLeft = paste0("<", x_other)
                             otherTextLeft = substitute(phantom()<x_val, list(x_val = formatAxisValue(x_other)))
                             data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_other))]
                         } else {
                             # we update the value
                             x_other = data_freq[x_nb == 1, x][1]
-                            data_freq[x_nb == 0, x := x_other - bin]
+                            data_freq[x_nb == 0, x := x_other - bin.size]
                             otherTextLeft = substitute(phantom()<x_other, list(x_other = formatAxisValue(x_other)))
                             data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_other))]
                         }
@@ -796,13 +806,12 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                     otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_last)))
                     data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_last))]
                 } else {
-                    if(missnull(bin)){
+                    if(binned_data == FALSE){
                         x_value = data_freq[x_nb == maxBins, x]
-                        # otherText = paste0(">", data_freq[x_nb == maxBins, x])
                         otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_value)))
                         data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_value))]
                     } else {
-                        x_other = data_freq[x_nb == maxBins, x][1] + bin
+                        x_other = data_freq[x_nb == maxBins, x][1] + bin.size
                         data_freq[x_nb == maxBins + 1, x := x_other]
                         otherText = substitute(phantom()>=x_other, list(x_other = formatAxisValue(x_other)))
                         data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_other))]
@@ -857,9 +866,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # The coordinates
         if(numAxis){
-            # Still experimental => Needs bin!!!
-            data_freq[, xleft := x + bin/moderator_cases * (moderator_nb - 1)]
-            data_freq[, xright := x + bin/moderator_cases * moderator_nb]
+            data_freq[, xleft := x + bin.size/moderator_cases * (moderator_nb - 1)]
+            data_freq[, xright := x + bin.size/moderator_cases * moderator_nb]
         } else {
             data_freq[, xleft := (x_nb-1)*(moderator_cases+sep) + moderator_nb - 1]
             data_freq[, xright := (x_nb-1)*(moderator_cases+sep) + moderator_nb]
@@ -892,9 +900,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             qui = moderator == moderator_unik[i]
             if(USE_WEIGHT){
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
             } else {
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin = bin, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
             }
 
             # updating the information
@@ -912,7 +920,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 data_freq[, xleft := xleft - min_left + x_add]
                 data_freq[, xright := xright - min_left + x_add]
 
-                x_add = x_add_next + bin
+                x_add = x_add_next + bin.size
             } else {
                 min_left = min(data_freq$xleft)
                 x_add_next = x_add + max(data_freq$xright) - min_left
@@ -969,6 +977,26 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         xlim = range_plus(c(data_freq$xleft, data_freq$xright), 5)
     }
 
+
+    if(DO_STACK == TRUE){
+        # we reformat the data
+        # return(data_freq)
+        new_coords = data_freq[isOther == FALSE, .(x_nb, xleft, xright, ybottom, ytop)]
+
+        new_coords[, c("xleft_new", "xright_new") := .(min(xleft), max(xright)), by = x_nb]
+        new_coords[, ytop_new := cumsum(ytop), by = x_nb]
+        new_coords[, ybottom_new := shift(ytop_new, n = 1, fill = 0), by = x_nb]
+
+        data_freq[isOther == FALSE, c("xleft", "xright", "ybottom", "ytop") := .(new_coords$xleft_new, new_coords$xright_new, new_coords$ybottom_new, new_coords$ytop_new)]
+
+        if(any(data_freq$isOther)){
+            # new values top
+            max_y = max(data_freq$ytop)
+            data_freq[isOther == TRUE, ytop := pmin(1.1 * max_y, share_top)]
+        }
+        # browser()
+    }
+
     if(plot == FALSE){
         return(data_freq)
     }
@@ -1001,7 +1029,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     }
 
     if(is.null(dots$ylim)){
-        ylim = c(0, max(data_freq$share))
+        ylim = c(0, max(data_freq$ytop))
         ymax_grid = ylim[2]
 
         # hauteur_caractere_legend = 0
@@ -1013,11 +1041,23 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         hauteur_caractere_top = 0
         if(onTop != "none"){
+
+            # We create the information to display top
+
+            if(DO_STACK == FALSE){
+                # Normal case
+                info_top = data_freq[, .(x_mid = (xleft+xright)/2, ytop, value, share_top)]
+            } else if(DO_STACK == TRUE){
+                info_top = data_freq[isOther == FALSE, .(x_mid = mean((xleft+xright)/2), ytop = max(ytop), value = sum(value), share_top = sum(share_top)), by = x_nb]
+                info_top_other = data_freq[isOther == TRUE, .(x_mid = (xleft+xright)/2, ytop, value, share_top)]
+            }
+
+
             # We find the optimal cex for the top numbers
             if(onTop == "nb"){
-                top.value2display = formatAxisValue(data_freq$value)
+                top.value2display = formatAxisValue(info_top$value)
             } else {
-                top.value2display = paste0(mysignif(data_freq$share_top, d = 2, r = 0), "%")
+                top.value2display = paste0(mysignif(info_top$share_top, d = 2, r = 0), "%")
             }
 
             #
@@ -1031,25 +1071,56 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             #   - plotting a "clean" plot, so that R knows the actual size of the window.
             #       * Drawback: if the user calls for several plots in the same window => we're screwed
             #   - making a "smart guess" by assuming that the new window will be larger
-            #       * drawback: if it is not the case, it will be ugly (better too small that too big)
+            #       * drawback: if it is not the case, it will be ugly (better too small than too big)
 
             # Getting the width of the bars in inches
-            # unitary_width = par("pin")[1] / diff(par("usr")[1:2])
             unitary_width = par("pin")[1] / usr_width(xlim)
             if(numAxis){
                 tdx = table(data_freq$xright - data_freq$xleft)
                 bar_w = as.numeric(names(tdx)[which.max(tdx)])
                 unitary_width = unitary_width * bar_w
             }
-            unitary_width_top = unitary_width
+
+            # When DO_STACK==TRUE and numAxis==FALSE:
+            #   the width is equal to the nber of moderators
+            unitary_width_top = unitary_width * (1 + (moderator_cases - 1) * DO_STACK * (!numAxis))
 
             top.cex = 1
             minCex = 0.5
-            while(top.cex > minCex && max(strwidth(top.value2display, units = "in", cex = top.cex)) > unitary_width_top*0.9){
+            v_max = top.value2display[which.max(strwidth(top.value2display, units = "in"))]
+            while(top.cex > minCex && strwidth(v_max, units = "in", cex = top.cex) > unitary_width_top*0.9){
                 top.cex = top.cex * 0.95
             }
 
+            # the height we need to add to the plot
             hauteur_caractere_top = strheight("W", "in", cex = top.cex) * 1.35 + strwidth("W", "in", cex = 1) * top.cex
+
+            # If DO_STACK==TRUE: the "other" columns have another width
+            if(DO_STACK == TRUE && nrow(info_top_other) > 0){
+
+                if(onTop == "nb"){
+                    top.value2display_other = formatAxisValue(info_top_other$value)
+                } else {
+                    top.value2display_other = paste0(mysignif(info_top_other$share_top, d = 2, r = 0), "%")
+                }
+
+                top.cex_other = 1
+                minCex = 0.5
+                v_max = top.value2display_other[which.max(strwidth(top.value2display_other, units = "in"))]
+                while(top.cex_other > minCex && strwidth(v_max, units = "in", cex = top.cex_other) > unitary_width*0.9){
+                    top.cex_other = top.cex_other * 0.95
+                }
+
+                hauteur_caractere_top_other = strheight("W", "in", cex = top.cex_other) * 1.35 + strwidth("W", "in", cex = 1) * top.cex_other
+
+                # We are careful to add only the necessary height to the plot
+                hauteur_caractere_top_usr = hauteur_caractere_top / par("pin")[2] * diff(ylim)
+                hauteur_caractere_top_other_usr = hauteur_caractere_top_other / par("pin")[2] * diff(ylim)
+                height_normal = max(info_top$ytop) + hauteur_caractere_top_usr
+                height_other = max(info_top_other$ytop) + hauteur_caractere_top_other_usr
+
+                hauteur_caractere_top = (max(height_normal, height_other) - ylim[2]) * par("pin")[2] / diff(ylim)
+            }
 
         }
 
@@ -1066,12 +1137,20 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     # ylab
     if(moderator_cases > 1){
-        text = switch(mod.method, within = "% Within", total = "% Total", splitWithin = "% Within", splitTotal = "% Total")
+        text = switch(mod.method, sideWithin = "% Within", sideTotal = "% Total", splitWithin = "% Within", splitTotal = "% Total")
 
         if(USE_WEIGHT){
-            ylab = paste0("Distribution of ", weight_name, " (", text, ")")
+            if(yaxis.num == TRUE){
+                ylab = weight_name
+            } else {
+                ylab = paste0("Distribution of ", weight_name, " (", text, ")")
+            }
         } else {
-            ylab = text
+            if(yaxis.num == TRUE){
+                ylab = "Frequency"
+            } else {
+                ylab = text
+            }
         }
     } else if(USE_WEIGHT){
         ylab = paste0("Distribution of ", weight_name)
@@ -1412,7 +1491,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # We add the bin information
         if(noSub){
-            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin))), cex.sub = 0.9)
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin.size))), cex.sub = 0.9)
         }
 
         # now the Other
@@ -1437,7 +1516,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # We add the bin information
         if(noSub){
-            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin))), cex.sub = 0.9)
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin.size))), cex.sub = 0.9)
         }
 
         myBox(1)
@@ -1471,7 +1550,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # We add the bin information => specific case: max first + numeric data
         if(binned_data && noSub){
-            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin))), cex.sub = 0.9)
+            title(sub = substitute(paste("Bin size", phantom()==b), list(b = formatAxisValue(bin.size))), cex.sub = 0.9)
         }
 
         data_freq[, mid_point := (xleft + xright) / 2]
@@ -1609,7 +1688,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         y_points = y_points[y_points <= 100]
 
         if(yaxis.num){
-            x1 = data_freq[x_nb == 1]
+            x1 = data_freq[x_nb == 1][1, ]
             y_labels = formatAxisValue(y_points / x1$ytop * x1$value)
         } else {
             y_labels = paste0(y_points, "%")
@@ -1654,8 +1733,22 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         qui = strwidth(top.value2display, units = "in", cex = top.cex) <= unitary_width_top*1.5 | nchar(top.value2display) <= 3
 
+        # we don't display the 0s only
+        qui = qui & info_top$value > 0
+
+        # if(top.cex < 0.95 && onTop == "frac"){
+        #     # we don't display the small numbers
+        #     max_height = max(info_top$ytop)
+        #     qui = qui & (info_top$ytop > max_height*0.05 | info_top$share_top >= 1)
+        # }
+
         if(any(qui)){
-            text(data_freq[, (xleft+xright)/2][qui], data_freq$share[qui], label = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
+            # text(data_freq[, (xleft+xright)/2][qui], data_freq$ytop[qui], label = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
+            text(info_top$x_mid[qui], info_top$ytop[qui], label = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
+        }
+
+        if(DO_STACK && nrow(info_top_other) > 0){
+            text(info_top_other$x_mid[qui], info_top_other$ytop[qui], label = top.value2display_other[qui], pos = 3, cex = top.cex_other, offset = 0.5 * top.cex_other * 0.9)
         }
 
     }
