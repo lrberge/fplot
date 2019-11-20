@@ -40,7 +40,7 @@
 #' @param int.categorical Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).
 #' @param trunc If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.
 #' @param trunc.method If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "trimRight" or "trimRight".
-#' @param onTop What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot.
+#' @param onTop What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.
 #' @param ... Other elements to be passed to plot.
 #'
 #' @author Laurent Berge
@@ -92,7 +92,7 @@
 #'
 #'
 #'
-plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # DT VARS
@@ -107,7 +107,14 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
 
     if(!missnull(onTop)){
-        onTop = control_variable(onTop, "singleCharacterMatch.arg", charVec = c("frac", "nb", "none"))
+        if(isFALSE(onTop)){
+            onTop = "none"
+        } else if(length(onTop) == 1 && is.character(onTop) && onTop == ""){
+            onTop = "none"
+        } else {
+            onTop = control_variable(onTop, "singleCharacterMatch.arg", charVec = c("frac", "nb", "none"))
+        }
+
     }
 
     check_arg(sep, "nullSingleNumericGE0")
@@ -127,6 +134,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(yaxis.show, "singleLogical")
     check_arg(yaxis.num, "singleLogical")
     check_arg(int.categorical, "singleLogical")
+    check_arg(cumul, "singleLogical")
 
     mc = match.call()
 
@@ -230,7 +238,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_weight))
         msg_na = paste0(c("x: ", "moderator: ", "weight: "), nb_na)
-        message(sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         weight = weight[!quiNA]
@@ -249,6 +257,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         moderator_unik = levels(moderator[drop = TRUE])
     } else {
         moderator_unik = sunique(moderator)
+    }
+
+    if(cumul){
+        if(!missing(addOther) && addOther == TRUE) message("Argument addOther = TRUE is ignored since the cumulative distribution is asked for.")
+        addOther = FALSE
     }
 
     moderator_cases = length(moderator_unik)
@@ -423,9 +436,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         bin_fit_all = c(20, 11, 8, 6, 5)
         bin_max_all = c(15, 9, 7, 5, 4)
 
-        maxBins = bin_fit_all[moderator_cases]
+        nb = ifelse(!missing(mod.method) && mod.method == "stack", 1, moderator_cases)
+
+        maxBins = bin_fit_all[nb]
         if(length(unique(x)) > maxBins){
-            maxBins = bin_max_all[moderator_cases]
+            maxBins = bin_max_all[nb]
         }
     }
 
@@ -540,6 +555,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     DO_STACK = FALSE
     if(mod.method == "stack"){
+
+        if(cumul == TRUE){
+            stop("You cannot use the argument cumul=TRUE with mod.method='stack' (it makes no sense).")
+        }
+
         DO_STACK = TRUE
         mod.method = "sideTotal"
     }
@@ -997,6 +1017,17 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         # browser()
     }
 
+    # Cumulative
+    if(cumul == TRUE){
+        data_freq[, share_top_cum := cumsum(share_top), by = moderator]
+        data_freq[, value_cum := cumsum(share), by = moderator]
+        data_freq[, ytop_cum := cumsum(ytop), by = moderator]
+
+        data_freq[, share_top := share_top_cum]
+        data_freq[, value := value_cum]
+        data_freq[, ytop := ytop_cum]
+    }
+
     if(plot == FALSE){
         return(data_freq)
     }
@@ -1006,7 +1037,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     # default for onTop
     if(missnull(onTop)){
-        if(numAxis){
+        if(cumul){
+            onTop = "frac"
+        } else if(numAxis){
             if(any(data_freq$isOther)){
                 onTop = "frac"
             } else {
@@ -1136,24 +1169,28 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     dots$x = dots$y = dots$col = 0
 
     # ylab
+    prefix = ""
+    if(cumul) prefix = "Cumulative "
     if(moderator_cases > 1){
         text = switch(mod.method, sideWithin = "% Within", sideTotal = "% Total", splitWithin = "% Within", splitTotal = "% Total")
 
         if(USE_WEIGHT){
             if(yaxis.num == TRUE){
-                ylab = weight_name
+                ylab = paste0(prefix, weight_name)
             } else {
-                ylab = paste0("Distribution of ", weight_name, " (", text, ")")
+                ylab = paste0("Distribution of ", weight_name, " (", prefix, text, ")")
             }
         } else {
             if(yaxis.num == TRUE){
-                ylab = "Frequency"
+                ylab = paste0(prefix, "Frequency")
             } else {
-                ylab = text
+                ylab = paste0(prefix, text)
             }
         }
     } else if(USE_WEIGHT){
-        ylab = paste0("Distribution of ", weight_name)
+        ylab = paste0(prefix, "Distribution of ", weight_name)
+    } else if(cumul){
+        ylab = "Cumulative %"
     }
 
     # xlab
@@ -1677,6 +1714,16 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method)
         }
 
+        # We also add ticks every 5/10 bins to help counting
+        qui = which(at_info$x_nb %% 5 == 0)
+        qui = qui[qui != nrow(at_info)]
+        if(length(at_info)){
+            axis(3, at = (at_info[qui, mid_point] + at_info[qui+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, pos = 0, tck = -0.0075)
+            qui_10 = intersect(qui, which(at_info$x_nb %% 10 == 0))
+            if(length(qui_10)){
+                axis(1, at = (at_info[qui_10, mid_point] + at_info[qui_10+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, tck = -0.0075)
+            }
+        }
     }
 
 
@@ -1896,7 +1943,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_agg))
         msg_na = paste0(c("x: ", "agg: "), nb_na)
-        warning(sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
         x = x[!quiNA]
         agg = agg[!quiNA]
     }
@@ -2125,7 +2172,7 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_time))
         msg_na = paste0(c("x: ", "moderator: ", "time: "), nb_na)
-        warning(sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         time = time[!quiNA]
@@ -2475,7 +2522,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_case))
         msg_na = paste0(c("x: ", "moderator: ", "case: "), nb_na)
-        warning(sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         case = case[!quiNA]
