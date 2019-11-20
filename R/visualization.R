@@ -401,12 +401,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         if(!isNum || any(x < 0)){
             toLog = FALSE
         } else {
+            toLog = FALSE
             if(diff(range(log(x[x>0]))) >= 3 && max(x) > 100){
-                # toLog = TRUE
                 delayLogChecking = TRUE
-                toLog = FALSE
-            } else {
-                toLog = FALSE
             }
         }
     } else if(toLog && !isNum){
@@ -526,12 +523,45 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 if(!toLog){
                     if(sum(tx/sum(tx) > 0.01) < 6){
                         # Condition: nber of bins with more than 1% is lower than 6
-                        # More complex binning
-                        x_med = median(x)
-                        bin.size = signif((x_med - x_min) / min(max(maxBins/2, 5), 7), 1)
-                        if(isInteger){
-                            bin.size = ceiling(bin.size)
+                        # More complex binning:
+                        # We try to find the "optimal" number of bins
+
+                        n_bins = maxBins
+                        q001 = quantile(x, seq(0, 1, by = 1 / 40))
+                        n_q = length(q001)
+
+                        s_vect = c()
+                        score_total_vect = c()
+                        score_range_vect = c()
+                        score_fullness_vect = c()
+
+                        for(i in 1:20){
+
+                            if(i == 1){
+                                s = signif(diff(range(x)) / n_bins, 1)
+                            } else {
+                                s = signif(s / 1.5, 1)
+                            }
+
+                            value_range = integer(n_bins)
+                            for(k in 1:n_q){
+                                s_start = q001[k]
+                                value_range[k] = sum(q001 >= s_start & q001 <= s_start + n_bins*s)
+                                if(value_range[k] == length(q001)) break
+                            }
+                            s_start = q001[which.max(value_range)]
+
+                            missing_range = 1 - sum(q001 >= s_start & q001 <= s_start + n_bins*s)/n_q
+                            score_fullness = length(unique(na.omit(cut(q001, seq(s_start, by = s, length.out = n_bins + 1), include.lowest = TRUE))))/ n_bins
+
+                            # Save
+                            s_vect[i] = s
+                            score_total_vect[i] = score_fullness/2 - 2*missing_range
+
+                            if(missing_range > 0.4) break
                         }
+
+                        bin.size = s_vect[which.max(score_total_vect)]
                         x = (x %/% bin.size) * bin.size
                     } else {
                         x = x_tmp
