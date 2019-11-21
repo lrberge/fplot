@@ -60,7 +60,7 @@ setFplot_dict = function(dict){
     if(any(td > 1)){
         qui = which(dict_names %in% names(td)[td > 1])
         name_dup = unique(names(dict)[qui])
-        stop("Argument 'dict' contains duplicated names: ", enumerate_items(name_dup, verb = FALSE))
+        stop("Argument 'dict' contains duplicated names: ", enumerate_items(name_dup))
     }
 
     options("fplot_dict" = dict)

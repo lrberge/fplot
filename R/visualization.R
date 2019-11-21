@@ -25,7 +25,7 @@
 #' @param legend_options A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.
 #' @param yaxis.show Whether the y-axis should be displayed, default is \code{TRUE}.
 #' @param yaxis.num Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).
-#' @param mod.select Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values that cannot be greater than 5. Alternatively, you can put an integer between 1 and 5.
+#' @param mod.select Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 5. Alternatively, you can put an integer between 1 and 5.
 #' @param mod.method A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{sideWithin}, the default for data in logarithmic form or numeric data, \dQuote{sideTotal} or \dQuote{stack}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case. If side: moderators are represented side by side for each value of the variable. If stack: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population (in this case the within distribution does not make sense).
 #' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).
 #' @param labels.angle Only if the labels of the x-axis are tilted. The angle of the tilt.
@@ -34,6 +34,7 @@
 #' @param sep Positive number. The separation space between the bars. The scale depends on the type of graph.
 #' @param centered Logical, default is \code{TRUE}. For numeric data only and when \code{maxFirst=FALSE}, whether the histogram should be centered on the mode.
 #' @param weight.fun A function, by default it is \code{sum}. Aggregate function to be applied to the weight with respect to variable and the moderator. See examples.
+#' @param tick_5 Logical. When plotting categorical variables, adds small discrete ticks every 5 bars, and bigger ticks every 10 bars. Helps to get the rank of the bars. By default it is equal to TRUE when strictly more than 10 bars have to be plotted.
 #' @param dict A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.
 #' @param mod.title Character scalar. The title of the legend in case there is a moderator. By default it is equal to the moderator name (possibly modified by the argument dict) if the moderator is numeric, and empty if the moderator is *not* numeric. You can set it to \code{TRUE} to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.
 #' @param cex.axis Cex value to be passed to biased labels. By defaults, it finds automatically the right value.
@@ -92,7 +93,7 @@
 #'
 #'
 #'
-plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, outCol = "black", mod.method, mod.select, tick_5, labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(), mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # DT VARS
@@ -135,6 +136,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(yaxis.num, "singleLogical")
     check_arg(int.categorical, "singleLogical")
     check_arg(cumul, "singleLogical")
+    check_arg(tick_5, "singleLogical")
 
     mc = match.call()
 
@@ -147,14 +149,14 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     x_name = ylab = weight_name = moderator_name = ""
     if("formula" %in% class(fml_in)){
         if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
 
             stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
         if(any(!vars %in% names(data))){
-            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s")," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -196,7 +198,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             if(length(x) == 0){
                 reason = "Currently, the length of fml is 0."
             } else {
-                reason = paste0("Currently, fml is of class ", enumerate_items(class(x)))
+                reason = paste0("Currently, fml is of class ", enumerate_items(class(x)), ".")
             }
 
             stop("Wrong argument in fml. It must be either a formula, either a vector. ", reason)
@@ -238,7 +240,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_weight))
         msg_na = paste0(c("x: ", "moderator: ", "weight: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         weight = weight[!quiNA]
@@ -304,7 +306,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                     suggestion = " It must consist of a vector of moderator values only."
                 }
 
-                stop("In the argument 'mod.select', the value", enumerate_items(mod_pblm, addS = TRUE), " not in the moderator variable.", suggestion)
+                stop("In the argument 'mod.select', the value", enumerate_items(mod_pblm, "s.is"), " not in the moderator variable.", suggestion)
             }
 
             # 2) selection
@@ -733,7 +735,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             if(USE_MOD){
                 data_freq[, "total_x" := list(sum(value)), by = x]
                 # data_freq = data_freq[order(-total_x, moderator)]
-                setorderv(data_freq, c("total_x", "moderator"), c(-1, 1))
+                # setorderv(data_freq, c("total_x", "moderator", "x"), c(-1, 1, 1))
+                setorderv(data_freq, c("total_x", "x"), c(-1, 1))
             } else {
                 # data_freq = data_freq[order(-value)]
                 setorderv(data_freq, "value", -1)
@@ -1745,15 +1748,22 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         }
 
         # We also add ticks every 5/10 bins to help counting
-        qui = which(at_info$x_nb %% 5 == 0)
-        qui = qui[qui != nrow(at_info)]
-        if(length(at_info)){
-            axis(3, at = (at_info[qui, mid_point] + at_info[qui+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, pos = 0, tck = -0.0075)
-            qui_10 = intersect(qui, which(at_info$x_nb %% 10 == 0))
-            if(length(qui_10)){
-                axis(1, at = (at_info[qui_10, mid_point] + at_info[qui_10+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, tck = -0.0075)
+        if(missing(tick_5)){
+            tick_5 = max(at_info$x_nb) > 10
+        }
+
+        if(tick_5){
+            qui = which(at_info$x_nb %% 5 == 0)
+            qui = qui[qui != nrow(at_info)]
+            if(length(at_info)){
+                axis(3, at = (at_info[qui, mid_point] + at_info[qui+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, pos = 0, tck = -0.0075)
+                qui_10 = intersect(qui, which(at_info$x_nb %% 10 == 0))
+                if(length(qui_10)){
+                    axis(1, at = (at_info[qui_10, mid_point] + at_info[qui_10+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, tck = -0.0075)
+                }
             }
         }
+
     }
 
 
@@ -1765,7 +1775,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         y_points = y_points[y_points <= 100]
 
         if(yaxis.num){
-            x1 = data_freq[x_nb == 1][1, ]
+            # x1 = data_freq[x_nb == 1][1, ]
+            x1 = data_freq[ytop > 0][1, ]
             y_labels = formatAxisValue(y_points / x1$ytop * x1$value)
         } else {
             y_labels = paste0(y_points, "%")
@@ -1907,14 +1918,14 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
         # Control of the formula
 
         if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
 
             stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
         if(any(!vars %in% names(data))){
-            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -1973,7 +1984,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_agg))
         msg_na = paste0(c("x: ", "agg: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
         x = x[!quiNA]
         agg = agg[!quiNA]
     }
@@ -2060,6 +2071,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
 #' @param time Only if argument \sQuote{fml} is a vector. It should be the vector of \sQuote{time} identifiers to average over.
 #' @param moderator Only if argument \sQuote{fml} is a vector. It should be a vector of conditional values to average over. This is an optional parameter.
 #' @param fun Function to apply when aggregating the values on the time variable. Default is \code{mean}.
+#' @param mod.select Which moderators to select. By default the top 5 moderators in terms of frequency (or in terms of the value of fun in case of identical frequencies) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 10. Alternatively, you can put an integer between 1 and 10.
 #' @param smoothing_window Default is 0. The number of time periods to average over. Note that if it is provided the new value for each period is the average of the current period and the \code{smoothing_window} time periods before and after.
 #' @param col The colors. Either a vector or a keyword (\dQuote{Set1} or \dQuote{paired}). By default those are the \dQuote{Set1} colors colorBrewer. This argument is used only if there is a moderator.
 #' @param lty The line types, in the case there are more than one moderator. By default it is equal to 1 (ie no difference between moderators).
@@ -2082,7 +2094,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
 #' plot_lines(Petal.Length ~ Species, df)
 #'
 #'
-plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = getFplot_dict(), mod.title, ...){
+plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = getFplot_dict(), mod.title, ...){
     # This functions plots the means of x wrt the id
     # we can also add a moderator
 
@@ -2097,6 +2109,8 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
     mc = match.call()
 
     fml_in = fml
+
+    check_arg(smoothing_window, "singleIntegerGE0")
 
     control_variable(dict, "nullCharacterVectorNoNA")
 
@@ -2118,14 +2132,14 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
         # Control of the formula
 
         if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
 
             stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
         if(any(!vars %in% names(data))){
-            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -2202,21 +2216,11 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_time))
         msg_na = paste0(c("x: ", "moderator: ", "time: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], "s.is"), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         time = time[!quiNA]
     }
-
-    if(n_moderator == 1){
-        isLegend = FALSE
-    } else {
-        isLegend = TRUE
-    }
-
-    #
-    # Aggregation
-    #
 
     # We first check the function is valid
     if(missing(fun)){
@@ -2225,7 +2229,119 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
         if(!is.function(fun)){
             stop("Argument 'fun' must be a function. A the moment its class is ", class(fun)[1], ".")
         }
+
+        test = try(fun(head(x, 5)), silent = TRUE)
+        if("try-error" %in% class(test)){
+            stop("Evaluation of the function '", deparse_long(mc$fun), "' leads to an error\n", test)
+        } else if(length(test) > 1){
+            stop("The function in argument 'fun' MUST be an aggregating function: that is returning something of length 1. This is not the case currently.")
+        }
+
     }
+
+    if(n_moderator == 1){
+        isLegend = FALSE
+    } else {
+        isLegend = TRUE
+    }
+
+    # mod.select
+    if(n_moderator > 1){
+
+        n_select = NA
+        do_recreate = FALSE
+        if(missing(mod.select)){
+            if(n_moderator <= 8){
+                # FINE!
+            } else {
+                # We select the top 5
+                n_select = 5
+            }
+        } else if(length(mod.select) > 10){
+            stop("The argument 'mod.select' (currently of length ", length(mod.select), ") cannot be of a length greater than 10.")
+        } else if(length(mod.select) == 1 && is.numeric(mod.select) && mod.select %% 1 == 0){
+            # Possibly a number
+            if(mod.select %in% 1:10){
+                n_select = mod.select
+            } else {
+                stop("Argument 'mod.select' does not have a valid value: if it is an integer, its value must lie between 1 and 10.")
+            }
+        } else {
+            # mod.select must contain moderator values
+
+            # 1) checking the problems
+            mod_pblm = setdiff(mod.select, moderator_unik)
+            if(length(mod_pblm) > 0){
+
+                if(length(mod_pblm) != length(mod.select) && any(quiNA)){
+                    # means some are OK
+                    suggestion = paste0(" Maybe because ", ifsingle(mod_pblm, "it has", "they have"), " only NA values?")
+                } else {
+                    suggestion = " It must consist of a vector of moderator values only."
+                }
+
+                stop("In the argument 'mod.select', the value", enumerate_items(mod_pblm, "s.is"), " not in the moderator variable.", suggestion)
+            }
+
+            # 2) selection
+            do_recreate = TRUE
+
+        }
+
+        # AUTOMATIC selection
+        if(!is.na(n_select) && n_moderator > n_select){
+
+            # We proceed with the "automatic" selection
+
+            info_mod = data.table(moderator = moderator)
+            info_mod = info_mod[, list(value = .N), by = moderator]
+            if(var(info_mod$value) == 0){
+                # same freq for all
+                info_mod = data.table(x = x, moderator = moderator)
+                info_mod = info_mod[, list(value = fun(x)), by = moderator]
+                info_method = paste0("the max of ", deparse(mc$fun)[1], ".")
+            } else {
+                info_method = "frequency."
+            }
+
+            # We inform on the method for the choice
+            message(ifelse(n_select == 1, "The moderator was", paste0("The ", n_select, " moderators were")), " chosen based on ", info_method)
+
+            info_mod = info_mod[order(-value)]
+            mod.select = info_mod[1:n_select, moderator]
+
+            do_recreate = TRUE
+
+            if(n_select == 1){
+                isLegend = FALSE
+            }
+
+        }
+
+        if(do_recreate){
+            # We recreate the variables
+
+            qui_select = which(moderator %in% mod.select)
+            # we recreate all the values
+            x = x[qui_select]
+            moderator = moderator[qui_select]
+            time = time[qui_select]
+
+            # Re-Dealing with the moderator
+            if(is.factor(moderator)){
+                moderator_unik = levels(moderator[drop = TRUE])
+            } else {
+                moderator_unik = sunique(moderator)
+            }
+
+            n_moderator = length(moderator_unik)
+        }
+
+    }
+
+    #
+    # Aggregation
+    #
 
     quoi = data.table(x=x, time=time, moderator=moderator)
     base_agg = quoi[!is.na(x), list(x = fun(x)), by = list(time, moderator)]
@@ -2302,6 +2418,8 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
         }
     }
 
+
+
     if(style == "bar"){
         total_width = min(diff(sort(unique(base_agg$time))))
         bar_width = total_width / (n_moderator + 1)
@@ -2309,6 +2427,16 @@ plot_lines = function(fml, data, time, moderator, smoothing_window = 0, fun, col
         if(is.null(dots$xlim)){
             total_width = min(diff(sort(unique(base_agg$time))))
             dots$xlim = c(min(base_agg$time) - total_width * 0.5 + bar_width/2, max(base_agg$time) + total_width * 0.5 - bar_width/2)
+        }
+    } else {
+        if(smoothing_window > 0){
+            quoi = sort(dots$x)
+
+            if(length(quoi) < 2*smoothing_window + 2){
+                stop("To smooth with smoothing_window=", smoothing_window, " you need at least ", 2*smoothing_window + 2, " periods. Yet at the moment there is only ", length(quoi), " periods.")
+            }
+
+            dots$xlim = quoi[c(smoothing_window + 1, length(quoi) - smoothing_window)]
         }
     }
 
@@ -2487,14 +2615,14 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     if("formula" %in% class(fml_in)){
 
         if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data), verb = FALSE)), "")
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data)), "."), "")
 
             stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }
 
         vars = all.vars(fml_in)
         if(any(!vars %in% names(data))){
-            stop("The variable", enumerate_items(setdiff(vars, names(data)), addS = TRUE)," not in the data set (", deparse(mc$data), ").")
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse_long(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -2552,7 +2680,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     if(any(quiNA)){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_case))
         msg_na = paste0(c("x: ", "moderator: ", "case: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], verb = FALSE), ")")
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ").")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         case = case[!quiNA]
