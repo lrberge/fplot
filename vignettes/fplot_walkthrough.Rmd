@@ -16,6 +16,24 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
+<!-- output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false -->
+      
+      
+<!-- fontsize: 12pt
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true -->
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -23,7 +41,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-`fplot` provides automatic plotting of common graphs (distributions, lines, bar plots and boxplots). The syntax uses formulas, allowing aggregate/conditional/weighted graphs with minimum efforts. The many arguments are automatically adjusted to the data in order to provide the nicest and most meaningful graphs depending on the data at hand.
+`fplot` plots of distributions, automatically adjusting the parameters for the user. The syntax uses formulas, allowing conditional/weighted distributions with minimum efforts. The many arguments are automatically adjusted to provide the most meaningful (and hopefully beautiful!) graphs depending on the data at hand.
+
+Although the core of the package concerns distributions, `fplot` also offers functions to plot trends (possibly conditional), aggregate barplots and conditional boxplots. 
 
 # Distributions
 
@@ -39,13 +59,17 @@ We will use data on publications extracted from the Microsoft Academic Graph.
 
 ```{r, echo = TRUE}
 library(fplot)
-data(us_pub_biology)
+data(us_pub_econ)
 ```
 
-This data corresponds to publications from U.S. institution in the field of biology in the period 1985-1990. Here is a sample of the data:
+This data corresponds to publications from U.S. institution in the field of economics in the period 1985-1990. Here is a sample of the data:
 
 ```{r, echo=FALSE, results='asis'}
-tab = head(us_pub_biology)
+tab = head(us_pub_econ)
+# Following line to be run when pdf output only
+if ("pdf_document" %in% rmarkdown::all_output_formats(knitr::current_input())){
+  tab = as.data.table(lapply(tab, fplot:::truncate_string, method = "trimMid", trunc = 16))
+}
 knitr::kable(tab)
 ```
 
@@ -53,23 +77,23 @@ knitr::kable(tab)
 What's the distribution of publications per institutions?
 
 ```{r, fig.width=7}
-# When there is only the variable, you can use a vector
-plot_distr(us_pub_biology$institution)
+# When there is only one variable, you can use a vector
+plot_distr(us_pub_econ$institution)
 
 ```
 
-What can we remark? First only the first 15 most important institutions are plotted. Indeed, since the institution variable is a categorical data, plotting all the 591 different would have just cluttered the graph and nothing could have been visible. We can increase the number of bars plotted with argument `maxBins`.
+What can we remark? First only the first 15 most important institutions are plotted. Indeed, since the institution variable is a categorical data, plotting all the 444 different would have just cluttered the graph and nothing could have been visible. We can increase the number of bars plotted with argument `maxBins`.
 
 Although only the first are plotted, we still have information on the institutions left with the last (broken) bar reporting the number of publications that are left. We can avoid displaying this column with the argument `addOther = FALSE`.
 
 We can also notice that not only the graph of the distribution is shown, but the number of observations is reported on the top of each bar to have a quick insight of the total numbers. Further, the size of the numbers always fit the width of the bars. The argument `onTop` manages the information displayed on the top of the bars: it can be numbers (`onTop = "nb"`), fractions (`onTop = "frac"`), or nothing (`onTop = "none"`). The default depends on the type of data. 
 
-Finally, the labels in the x-axis: i) all appear and ii) are truncated meaningfully. Since the institution variable is categorical, there is no way to deduce to which institution each bar represent if it is not displayed explicitly. They are further truncated at 20 characters (argument `trunc`) and the truncation method tries to keep the most information from the labels (`trunc.method = "auto"`). But there are other truncation methods, like trimming the right (resp. the middle) of the label with `trunc.method = "trimRight"` (resp. `trunc.method = "trimMid"`). To display horizontal labels instead, you can use `labels.tilted = FALSE`.
+Finally, the labels in the x-axis: i) all appear and ii) are truncated meaningfully. Since the institution variable is categorical, there is no way to deduce which institution each bar represent if it is not displayed explicitly. They are further truncated at 20 characters (argument `trunc`) and the truncation method tries to keep the most information from the labels (`trunc.method = "auto"`). But there are other truncation methods, like trimming the right (resp. the middle) of the label with `trunc.method = "trimRight"` (resp. `trunc.method = "trimMid"`). To display horizontal labels instead, you can use `labels.tilted = FALSE`.
 
 Now let's weight the production of the institutions by the quality of the journals:
 
 ```{r, fig.width=7}
-plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology)
+plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ)
 
 ```
 
@@ -78,11 +102,11 @@ We used a formula to add the weight. Note that since there is no moderator, we r
 Now we illustrate the conditional graphs by asking the question of what are the journals in which the 3 most productive institutions publish.
 
 ```{r, fig.width=7}
-plot_distr(journal ~ institution, us_pub_biology)
+plot_distr(journal ~ institution, us_pub_econ)
 
 ```
 
-What happened? In the x-axis, the journals are displayed since they are the "variable", and since we added the institution as a moderator, the data is broken down across each institution. But not all the 591 institutions are shown: by default only the three moderator values (here institutions) that appear the most are reported. When there is an automatic selection, a message is also prompted. The user can increase the number of moderator values reported with the argument `mod.select`, or provide the specific values to be shown.
+What happened? In the x-axis, the journals are displayed since they are the "variable", and since we added the institution as a moderator, the data is broken down across each institution. But not all the 444 institutions are shown: by default only the three moderator values (here institutions) that appear the most are reported. When there is an automatic selection, a message is also prompted. The user can increase the number of moderator values reported with the argument `mod.select`, or provide the specific values to be shown.
 
 The 7 most important journals are displayed for each institution and the scale corresponds to the share of the journal within the institution. Instead of displaying the within share, the total share could have been displayed with the option `mod.method = "splitTotal"`.
 
@@ -92,9 +116,19 @@ By default, when the data is split, the bar containing the "other" information i
 
 ```{r, fig.width=7}
 # Previous graph + "other" column
-plot_distr(journal ~ institution, us_pub_biology, addOther = TRUE)
+plot_distr(journal ~ institution, us_pub_econ, addOther = TRUE)
 
 ```
+
+One last thing, what would happen if we add a x-axis label given that the full space is already taken by the journal labels? Let's try.
+
+```{r, fig.width=7}
+# Previous graph + "other" column
+plot_distr(journal ~ institution, us_pub_econ, xlab = "Journal")
+
+```
+
+Everything fits! The tilt of the labels is increased and their size is made smaller to accomodate the x-axis label.
 
 ## Numeric data
 
@@ -132,7 +166,7 @@ Now let's look at another set of numeric data using the `iris` data set.
 plot_distr(iris$Petal.Length)
 ```
 
-For "well distributed" continuous data, it looks very much like a regular histogram, but a bit nicer. Now we can also split the data by species:
+For "well distributed" continuous data, it looks very much like a regular histogram, but a bit nicer. Note that the bin size is always "discrete" to allow easy reading. Now we can also split the data by species:
 
 ```{r}
 plot_distr(Petal.Length ~ Species, iris)
@@ -148,33 +182,50 @@ plot_distr(Petal.Length ~ Species, iris, mod.method = "splitWithin")
 
 The full distribution of the three species are now separated.
 
+## Stacking 
 
+Another way to display moderators is by stacking their values. Let's see the sepal length distribution by iris species:
+
+```{r}
+plot_distr(Sepal.Length ~ Species, iris, mod.method = "stack")
+```
+
+## Cumulative distribution
+
+To display the umulative distribution, simply use the argument `cumul = TRUE`. Let's look at the cumulative distribution of the top 5% publications:
+
+```{r}
+plot_distr(institution ~ 1|jnl_top_5p, us_pub_econ, cumul = TRUE)
+```
+
+Just 10 institutions (the small black tick in between bars means 10) account for 33% of all top 5% publications.
 
 # Trends
 
 You can also show the evolution of the aggregate of some variable using the function `plot_lines`. By default, the function applied by `plot_lines` is the average, but can be modified at will. Let's look at the evolution of the fraction of publications published in top 5% journals:
 
 ```{r, fig.width=7}
-plot_lines(jnl_top_5p ~ year, us_pub_biology)
+plot_lines(jnl_top_5p ~ year, us_pub_econ)
 ```
 
-The data is first aggregated at the year level, i.e. `mean(us_pub_biology[year == YEAR, jnl_top_5p])` is applied for each year, then a simple scatter plot is drawn.
+The data is first aggregated at the year level, i.e. `mean(us_pub_econ[year == YEAR, jnl_top_5p])` is applied for each year, then a simple scatter plot is drawn.
 
 As before, it is very easy to make the graph conditional. Let's look at the evolution for the three top institutions:
 
 ```{r, fig.width=7}
 # Let's find out the top 3/5 institutions in terms of production
 # we use plot_distr without plotting:
-info = plot_distr(us_pub_biology$institution, plot = FALSE)
+info = plot_distr(us_pub_econ$institution, plot = FALSE)
 top3_instit = head(info$x, 3)
 top5_instit = head(info$x, 5)
-plot_lines(jnl_top_5p ~ year | institution, us_pub_biology[institution %in% top3_instit])
+plot_lines(jnl_top_5p ~ year | institution, 
+           us_pub_econ[institution %in% top3_instit])
 ```
 
 If we want to display the conditional evolution of the frequencies per year, we can use 1 as a variable, which will set the default function to `sum` in order to get the frequencies:
 
 ```{r, fig.width=7}
-plot_lines(1 ~ year | institution, us_pub_biology[institution %in% top5_instit])
+plot_lines(1 ~ year | institution, us_pub_econ[institution %in% top5_instit])
 ```
 
 What can we remark from the previous graph? When the legend would not fit in one line, the algorithm automatically adds one line to display all the relevant information while using all the width of the graph for readability.
@@ -182,11 +233,11 @@ What can we remark from the previous graph? When the legend would not fit in one
 We can add some simple smoothing with the option `smoothing_window`:
 
 ```{r, fig.width=7}
-plot_lines(1 ~ year | institution, us_pub_biology[institution %in% top5_instit], 
+plot_lines(1 ~ year | institution, us_pub_econ[institution %in% top5_instit], 
            smoothing_window = 1)
 ```
 
-The smoothing uses the n$^{th}$ future and past years to smooth the data, missing years due to the smoothing remain on the graph.
+The smoothing uses the n$^{th}$ future and past years to smooth the data.
 
 
 
@@ -195,7 +246,8 @@ The smoothing uses the n$^{th}$ future and past years to smooth the data, missin
 The function `plot_box` is made for conditional boxplots: one variable conditionally to one or two moderators. Let's have an example with the publications data. First we create the number of publications in top 5% journals per year and per institution, then we display a yearly boxplot:
 
 ```{r}
-base_pub = us_pub_biology[, .(nb_pub_top_5 = sum(jnl_top_5p)), by = .(year, institution)]
+base_pub = us_pub_econ[, .(nb_pub_top_5 = sum(jnl_top_5p)), 
+                          by = .(year, institution)]
 plot_box(nb_pub_top_5 ~ year, base_pub)
 ```
 
@@ -223,13 +275,14 @@ plot_box(nb_pub_top_5 ~ year | isTop5, base_pub, outlier = FALSE)
 The package `fplot` offers a tool to rename the variables permanently to have more meaningful graphic labels costlessly. Let's use the example on U.S. publications where we relabel the variable `institution` and `jnl_top_5p` with the function `setFplot_dict`:
 
 ```{r}
-setFplot_dict(c(institution = "U.S. institution", jnl_top_5p = "Publications in Top 5% Journals"))
+setFplot_dict(c(institution = "U.S. institution", 
+                jnl_top_5p = "Publications in Top 5% Journals"))
 ```
 
 Now, for any `fplot` graph using any of these two variables, when these variable names should appear, their new label would appear instead:
 
 ```{r}
-plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, maxBins = 10)
+plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ, maxBins = 10)
 ```
 
 
