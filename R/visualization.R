@@ -4,7 +4,7 @@
 # ~: user-visible visualization functions
 #----------------------------------------------#
 
-# load("data/us_pub_biology.RData")
+# load("data/us_pub_econ.RData")
 # roxygen2::roxygenise(roclets = "rd")
 
 
@@ -41,6 +41,7 @@
 #' @param int.categorical Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).
 #' @param trunc If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.
 #' @param trunc.method If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "trimRight" or "trimRight".
+#' @param cumul Logical, default is \code{FALSE}. If \code{TRUE}, then the cumulative distribution is plotted.
 #' @param onTop What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.
 #' @param ... Other elements to be passed to plot.
 #'
@@ -50,32 +51,32 @@
 #' @examples
 #'
 #' # Data on publications from U.S. institutions
-#' data(us_pub_biology)
+#' data(us_pub_econ)
 #'
 #' # 1) Let's plot the distribution of publications by institutions:
-#' plot_distr(institution~1, us_pub_biology)
+#' plot_distr(institution~1, us_pub_econ)
 #'
 #' # When there is only the variable, you can use a vector instead:
-#' plot_distr(us_pub_biology$institution)
+#' plot_distr(us_pub_econ$institution)
 #'
 #' # 2) Now the production of institution weighted by journal quality
-#' plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology)
+#' plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ)
 #'
 #' # 3) Let's plot the journal distribution for the top 3 institutions
 #'
 #' # We can get the data from the previous graph
-#' graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_biology, plot = FALSE)
+#' graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ, plot = FALSE)
 #' # And then select the top universities
 #' top3_instit = graph_data$x[1:3]
 #' top5_instit = graph_data$x[1:5] # we'll use it later
 #'
 #' # Now the distribution of journals
-#' plot_distr(journal ~ institution, us_pub_biology[institution %in% top3_instit])
+#' plot_distr(journal ~ institution, us_pub_econ[institution %in% top3_instit])
 #' # Alternatively, you can use the argument mod.select:
-#' plot_distr(journal ~ institution, us_pub_biology, mod.select = top3_instit)
+#' plot_distr(journal ~ institution, us_pub_econ, mod.select = top3_instit)
 #'
 #' # 3') Same graph as before with "other" column, 5 institutions
-#' plot_distr(journal ~ institution, us_pub_biology,
+#' plot_distr(journal ~ institution, us_pub_econ,
 #'            mod.select = top5_instit, addOther = TRUE)
 #'
 #' #
@@ -89,7 +90,7 @@
 #' plot_distr(Sepal.Length ~ Species, iris)
 #'
 #' # idem but the three in the same axis:
-#' plot_distr(Sepal.Length ~ Species, iris, mod.method = "within")
+#' plot_distr(Sepal.Length ~ Species, iris, mod.method = "sideWithin")
 #'
 #'
 #'
@@ -98,6 +99,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     # DT VARS
     total_moderator = x_nb = isOther = otherValue = nb_new = share = share_top = moderator_nb = xleft = xright = ybottom = xleft_real = xright_real = x_num = mid_point = NULL
+    ytop_new = ybottom_new = share_top_cum = value_cum = ytop_cum = value = NULL
 
     # save full formula
     fml_in = fml
@@ -156,7 +158,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         vars = all.vars(fml_in)
         if(any(!vars %in% names(data))){
-            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s")," not in the data set (", deparse(mc$data), ").")
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse(mc$data), ").")
         }
 
         # Creation of x and the condition
@@ -195,13 +197,19 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         # We check the vector
         if(!checkVector(x)){
-            if(length(x) == 0){
-                reason = "Currently, the length of fml is 0."
+
+            if(length(class(x)) == 1 && class(x) == "table"){
+                x = as.vector(x)
             } else {
-                reason = paste0("Currently, fml is of class ", enumerate_items(class(x)), ".")
+                if(length(x) == 0){
+                    reason = "Currently, the length of fml is 0."
+                } else {
+                    reason = paste0("Currently, fml is of class ", enumerate_items(class(x)), ".")
+                }
+
+                stop("Wrong argument in fml. It must be either a formula, either a vector. ", reason)
             }
 
-            stop("Wrong argument in fml. It must be either a formula, either a vector. ", reason)
         }
 
         # moderator
@@ -1034,13 +1042,13 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     if(DO_STACK == TRUE){
         # we reformat the data
         # return(data_freq)
-        new_coords = data_freq[isOther == FALSE, .(x_nb, xleft, xright, ybottom, ytop)]
+        new_coords = data_freq[isOther == FALSE, list(x_nb, xleft, xright, ybottom, ytop)]
 
-        new_coords[, c("xleft_new", "xright_new") := .(min(xleft), max(xright)), by = x_nb]
+        new_coords[, c("xleft_new", "xright_new") := list(min(xleft), max(xright)), by = x_nb]
         new_coords[, ytop_new := cumsum(ytop), by = x_nb]
         new_coords[, ybottom_new := shift(ytop_new, n = 1, fill = 0), by = x_nb]
 
-        data_freq[isOther == FALSE, c("xleft", "xright", "ybottom", "ytop") := .(new_coords$xleft_new, new_coords$xright_new, new_coords$ybottom_new, new_coords$ytop_new)]
+        data_freq[isOther == FALSE, c("xleft", "xright", "ybottom", "ytop") := list(new_coords$xleft_new, new_coords$xright_new, new_coords$ybottom_new, new_coords$ytop_new)]
 
         if(any(data_freq$isOther)){
             # new values top
@@ -1112,10 +1120,10 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             if(DO_STACK == FALSE){
                 # Normal case
-                info_top = data_freq[, .(x_mid = (xleft+xright)/2, ytop, value, share_top)]
+                info_top = data_freq[, list(x_mid = (xleft+xright)/2, ytop, value, share_top)]
             } else if(DO_STACK == TRUE){
-                info_top = data_freq[isOther == FALSE, .(x_mid = mean((xleft+xright)/2), ytop = max(ytop), value = sum(value), share_top = sum(share_top)), by = x_nb]
-                info_top_other = data_freq[isOther == TRUE, .(x_mid = (xleft+xright)/2, ytop, value, share_top)]
+                info_top = data_freq[isOther == FALSE, list(x_mid = mean((xleft+xright)/2), ytop = max(ytop), value = sum(value), share_top = sum(share_top)), by = x_nb]
+                info_top_other = data_freq[isOther == TRUE, list(x_mid = (xleft+xright)/2, ytop, value, share_top)]
             }
 
 
@@ -1719,10 +1727,14 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     } else {
 
-        if(anyNA(at_info$x)){
-            # in case we don't have numeric data: the other is made as a regular text to plot in the axis
-            at_info$x[is.na(at_info$x)] = otherText
+        # if(anyNA(at_info$x)){
+        #     # in case we don't have numeric data: the other is made as a regular text to plot in the axis
+        #     at_info$x[is.na(at_info$x)] = otherText
+        #     maxBins = maxBins + 1
+        # }
+        if(ADD_OTHER){
             maxBins = maxBins + 1
+            at_info$x[maxBins] = otherText
         }
 
         x_unik = at_info[x_nb %in% 1:maxBins, x]
@@ -2099,7 +2111,7 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
     # we can also add a moderator
 
     # DT VARS
-    moderator_cases = xleft = xright = ybottom = ytop = NULL
+    moderator_cases = xleft = xright = ybottom = ytop = value = NULL
 
     # old params
     style = "line"
