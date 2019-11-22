@@ -1833,13 +1833,13 @@ clean_name = function(x){
 
 #' Publication data sample
 #'
-#' This data reports the publications of U.S. institutions in the field of biology between 1985 and 1990.
+#' This data reports the publications of U.S. institutions in the field of economics between 1985 and 1990.
 #'
 #' @usage
-#' data(us_pub_biology)
+#' data(us_pub_econ)
 #'
 #' @format
-#' \code{us_pub_biology} is a data table with 150,066 observations and 6 variables.
+#' \code{us_pub_econ} is a data table with 30,756 observations and 6 variables.
 #'
 #' \itemize{
 #' \item{paper_id: Numeric identifier of the publication.}
@@ -1859,6 +1859,6 @@ clean_name = function(x){
 #'
 #'
 #'
-"us_pub_biology"
+"us_pub_econ"
 
 
