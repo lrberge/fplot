@@ -15,7 +15,7 @@ importFrom("graphics", "abline", "axis", "barplot", "box", "grid",
              "legend", "lines", "par", "plot", "points", "polygon",
              "rect", "segments", "strheight", "strwidth", "text",
              "title")
-importFrom("stats", "lm", "median", "quantile", "sd", "formula")
+importFrom("stats", "lm", "median", "quantile", "sd", "formula", "na.omit", "var")
 importFrom("utils", "head", "tail")
 importFrom("Formula", "Formula")
 
