@@ -44,7 +44,7 @@ plot_bar(fml, data, agg, fun = mean, dict = getFplot_dict(),
 
 \item{hgrid}{Default \code{TRUE}. Should the horizontal grid be displayed?}
 
-\item{onTop}{What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot.}
+\item{onTop}{What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.}
 
 \item{showOther}{Default is \code{TRUE}. In the case the number of bins is lower than the number of cases, should the remaining obervations be displayed by a bar?}
 
