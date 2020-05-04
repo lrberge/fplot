@@ -46,9 +46,9 @@ The code to run the plots are in the titles of the graphs. You'll notice that th
 
 ![Figure 14: Distribution of exporting value by exporting country -- export value on top of the bars.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_2.png)
 
-![Figure 15: Distribution of exporting value by importing country, the sample is split by the top exporters.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_1.png)
+![Figure 15: Distribution of exporting value by importing country, the sample is split by the top exporters.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_1.png)
 
-![Figure 16: Distribution of exporting value by importing country, the sample is split by the top exporters -- bar for the "other" group.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_2.png)
+![Figure 16: Distribution of exporting value by importing country, the sample is split by the top exporters -- bar for the "other" group.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_2.png)
 
 ![Figure 17: Conditional production of US institution, conditional on year, stacked.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_pub.png)
 
