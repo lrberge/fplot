@@ -8,12 +8,13 @@
 # Input of line.min / line.max => the default bottom margin goes from 0 to 4 (5 lines)
 # Starts at 0!
 # Beware: we return line => but in the axis sense! (input 0 is output -1)
-xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8, add_ticks = FALSE, trunc = 20, trunc.method = "auto", only.params = FALSE, ...){
+xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8, add_ticks = FALSE, trunc = 20, trunc.method = "auto", only.params = FALSE, xlim, ...){
     # This function automates the placement of labels into the axis 1
     # It first put the cex to the appropritate level to insert the 1st
     # label into the frame, then
     # It uses the vertical placement to fit all the labels
     # if only.params => nothing is plotted
+    # We can't use "usr" coordinates when only.params => we need some hypotheses if xlim not provided!
 
     # only 1 value => we do nothing
     if(length(at) == 1){
@@ -48,11 +49,18 @@ xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8, ad
 
 
     # We compute the space that is left to display the label
-    # 1st into the plot
-    largeur = diff(par("usr")[1:2])
-    half_plotSpace_in = (myAt[1] - par("usr")[1]) / largeur * par("pin")[1]
-    # 2nd using the margin
-    total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
+    if(!missing(xlim)){
+        largeur = diff(xlim)
+        half_plotSpace_in = (myAt[1] - xlim[1]) / largeur * par("pin")[1]
+        total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
+    } else {
+        # 1st into the plot
+        largeur = diff(par("usr")[1:2])
+        half_plotSpace_in = (myAt[1] - par("usr")[1]) / largeur * par("pin")[1]
+        # 2nd using the margin
+        total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
+    }
+
 
     # If it is too large, we reduce it:
     myCex = 1
@@ -235,7 +243,7 @@ xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2, yadj
     line_height = par("mai")[1] / par("mar")[1]
 
     if(DO_ALGO){
-        lab_max = labels_trunc[which.max(strwidth(labels_trunc))]
+        lab_max = labels_trunc[which.max(strwidth(labels_trunc, "in"))]
         n_angle = length(angle2check)
         w_all = rep(sapply(cex2check, function(x) strwidth(lab_max, "in", cex = x)), n_angle)*1.05
         SH_all = rep(sapply(cex2check, function(x) strheight("W", "in", cex = x)), n_angle)
@@ -259,7 +267,7 @@ xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2, yadj
         }
 
     } else if(only.params) {
-        lab_max = labels_trunc[which.max(strwidth(labels_trunc))]
+        lab_max = labels_trunc[which.max(strwidth(labels_trunc, "in"))]
         n_angle = length(angle2check)
         w_all = rep(sapply(cex2check, function(x) strwidth(lab_max, "in", cex = x)), n_angle)*1.05
         SH_all = rep(sapply(cex2check, function(x) strheight("W", "in", cex = x)), n_angle)

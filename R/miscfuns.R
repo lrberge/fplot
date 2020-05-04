@@ -72,6 +72,8 @@ getFplot_dict = function(){
 #'
 #' Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain the desired point size for the plotting text. The function \code{setFplot_page} sets the target page size (once and for all). This is important for the accuracy of the export, although the default values should be working well most of the time.
 #'
+#' @inheritParams pdf_fit
+#'
 #' @param page What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.
 #' @param margins The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in **inches**. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.
 #'
@@ -98,7 +100,7 @@ getFplot_dict = function(){
 #' setFplot_page(margins = c(2, 2.5) / 2.54) # cm to in
 #' setFplot_page(margins = c(2, 2.5, 2, 2.5) / 2.54)
 #'
-setFplot_page = function(page = "us", margins = "normal", units = "tw"){
+setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10, w2h = 1.75){
 
     # page => us / a4 / a3 / a2 / a1 // => to be implemented later
     # or: w, h (vector or character)
@@ -111,6 +113,8 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw"){
 
     check_arg_plus(page, "match(us, a4) | vector character len(1) | vector numeric len(,2) GT{0}")
     check_arg(units, "charin(tw, pw, in, cm, px)")
+    check_arg(pt, "numeric scalar GT{0}")
+    check_arg(w2h, "numeric scalar GT{0}")
 
     if(length(page) == 1){
         if(is.numeric(page)){
@@ -148,7 +152,7 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw"){
 
     page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
 
-    options(fplot_img_opts = list(page_dim = page_dim, page_dim_net = page_dim_net, units = units))
+    options(fplot_img_opts = list(page_dim = page_dim, page_dim_net = page_dim_net, units = units, pt = pt, w2h = w2h))
 
 }
 
@@ -303,7 +307,7 @@ png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 
 
 #' @describeIn png_fit TIFF export with guaranteed text size
-tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, antialias = "cleartype", ...){
+tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
 
     mc = match.call(expand.dots = TRUE)
     export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
@@ -319,7 +323,7 @@ tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
 }
 
 #' @describeIn png_fit JPEG export with guaranteed text size
-jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, antialias = "cleartype", ...){
+jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
 
     mc = match.call(expand.dots = TRUE)
     export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
@@ -335,7 +339,7 @@ jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
 }
 
 #' @describeIn png_fit BMP export with guaranteed text size
-bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, antialias = "cleartype", ...){
+bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
 
     mc = match.call(expand.dots = TRUE)
     export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
@@ -370,14 +374,26 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
     }
 
     MISS_RATIO = sum(arg_in[3:4]) == 0
+
+    # The dimension of the page + default
+    opts = getOption("fplot_img_opts")
+    if(is.null(opts)){
+        # options not initialized => init
+        setFplot_page()
+        opts = getOption("fplot_img_opts")
+    }
+    page_dim_net = opts$page_dim_net
+    page_dim = opts$page_dim
+    if(!"pt" %in% names(mc)){
+        pt = opts$pt
+    }
+    if(!"w2h" %in% names(mc)){
+        w2h = opts$w2h
+    }
+
     if(arg_in[4]){
         w2h = 1 / h2w
     }
-
-    # The dimension of the page
-    opts = getOption("fplot_img_opts")
-    page_dim_net = opts$page_dim_net
-    page_dim = opts$page_dim
 
     # Handling the parameters
     if(sideways && opts$units %in% c("tw", "pw")){
@@ -1760,6 +1776,366 @@ abplot <- function(x, y, where="default", signifCode = c("***" = 0.001, "**" = 0
     if(legend) legend(where,legend = c(myEq, substitute(R^2 == r2, list(r2=signif(r2, 2))), expression()),  cex=.8, bty="n")
 }
 
+find_margins_left = function(ylab, y_labels, ylab.resize){
+    # ylab = "This is a very long message that will need to be cut because it is verbose and way too long"
+    # LATER: add cex as argument
+
+    # First: we resize
+    if(ylab.resize){
+        width_ok_in = par("pin")[2] - sum(par("mai")[c(1, 3)])
+        current_width_in = strwidth(ylab, units = "in")
+        if(current_width_in > width_ok_in){
+            new_msg = list()
+            unit_w = strwidth(" ", units = "in")
+            msg_split = strsplit(ylab, " ")[[1]]
+
+            while(TRUE){
+                all_w = strwidth(msg_split, units = "in")
+                cum_w = cumsum(all_w + unit_w) - unit_w
+                qui = which.max(cum_w > width_ok_in) - 1
+                new_msg[[length(new_msg) + 1]] = paste(msg_split[1:qui], collapse = " ")
+                msg_split = msg_split[-(1:qui)]
+
+                if(sum(strwidth(msg_split, units = "in") + unit_w) - unit_w < width_ok_in){
+                    new_msg[[length(new_msg) + 1]] = paste(msg_split, collapse = " ")
+                    break
+                }
+            }
+
+            ylab = paste(unlist(new_msg), collapse = "\n")
+
+        }
+    }
+
+    line_height = par("mai")[1] / par("mar")[1]
+
+    lab.width_in = max(strwidth(y_labels, units = "in"))
+
+    ylab.line = 2 + lab.width_in / line_height
+
+    nlines = lab.width_in / line_height + 2
+    if(ylab != ""){
+        nlines = nlines + ceiling(strheight(ylab, units = "in") / line_height)
+    }
+
+    total_width = nlines * line_height
+
+    list(ylab = ylab, ylab.line = ylab.line, total_width = total_width)
+}
+
+find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, numAxis, maxBins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, maxFirst, labels.tilted, delayLabelsTilted, checkForTilting, checkNotTilted, noSub, binned_data, line.max, trunc, trunc.method, cex.axis, labels.angle, at_5, xlim){
+    # This function finds the size of the margin needed to display all the x-axis labels + xlab + sub
+    # This is highly complex because the decision on how to show the x-axis labels
+    # depend on many things in plot_distr.
+    #
+    # So far I didn't find a good solution to handle this
+    #
+    # I duplicated the code from plot_distr, then I gather the information painstackingly
+    # THIS IS CRAPPY!!!! very hard to maintain, but I didn't find a better solution for now
+    #
+    # SOLUTION 1 (that does not work well):
+    #  - do all the processsing here. Return a list containing
+    #   * xaxis_label, xaxis_tilted, axis
+    #   * then create the calls to these functions in plot_distr
+    # - PROBLEM: I can't really do that because I might need svl calls to these functions...
+    # eg sometimes I add ticks manuall, sometimes I add labels sequentially in a loop, etc...
+    #
+
+    at_info = data_freq[, list(mid_point = (max(xright) + min(xleft)) / 2), by = list(x_nb, x)]
+    myat = at_info$mid_point
+
+    LINE_MIN_TILTED = 0
+    nlines = 0
+
+    if(toLog){
+
+        if(DO_SPLIT){
+
+            data_freq_valid = data_freq[isOther == FALSE, ]
+            data_freq_valid[, x_num := as.numeric(x)]
+            x_all = data_freq_valid$x_num
+            exp_value = ceiling(exp(x_all))
+            exp_value[x_all == -1] = 0
+
+            if(maxFirst){
+
+                if(delayLabelsTilted){
+                    # better display
+                    labels.tilted = TRUE
+                }
+
+                myat = data_freq_valid[, (xleft+xright)/2]
+
+                exp_value_right = ceiling(exp(x_all + 1))
+
+                # Formatting
+                exp_value_format = formatAxisValue(exp_value)
+                exp_value_right_format = formatAxisValue(exp_value_right)
+                label_displayed = paste0("[", exp_value_format, "; ", exp_value_right_format, ")")
+
+                # finding the location
+                if(labels.tilted){
+                    info_tilt = xaxis_biased(at = myat, line.max = line.max, labels = label_displayed, only.params = TRUE)
+                    nlines = info_tilt$height_line + LINE_MIN_TILTED
+                } else {
+                    lab.info = xaxis_labels(at = myat, labels = label_displayed, only.params = TRUE, xlim = xlim)
+                    nlines = nlines + lab.info$height_line
+                }
+
+            } else {
+                # we draw the axes with nice display
+
+                moreLine = any(data_freq$isOther) * .25
+
+                # Displaying the ticks "all at once" (including the last one)
+                mysep = (data_freq$xleft[2] - data_freq$xright[1]) / 2
+
+                exp_value_right = ceiling(exp(x_all + 1))
+
+                # on the right
+                myat = data_freq_valid$xright + mysep
+
+                # We add the first tick on the left
+                data_first = data_freq_valid[x_nb == 1]
+                myat = c(data_first$xleft - mysep, myat)
+                # exp_value = c(ceiling(exp(data_first$x_num - 1)), exp_value)
+                first_val = ceiling(exp(data_first$x_num - 1))
+                first_val[data_first$x_num == -1] = 0
+                exp_value = c(first_val, exp_value_right)
+
+                exp_value_format = formatAxisValue(exp_value)
+
+                # tick location
+
+                # 1) the ticks
+                ## axis(1, at = myat, labels = NA, lwd.ticks = 1, lwd = 0, line = moreLine)
+
+                # 2) The labels
+                # Tilted labels not implemented for this axis
+                if(delayLabelsTilted){
+                    if(strwidth(paste0(exp_value_format, collapse = "  ")) / diff(get_x_lim()) > 0.9){
+                        labels.tilted = TRUE
+                    } else {
+                        labels.tilted = FALSE
+                    }
+
+                }
+
+                if(labels.tilted){
+                    lab.info = xaxis_biased(at = myat, labels = exp_value_format, yadj = 2, angle = 25, only.params = TRUE)
+                    nlines = nlines + lab.info$height_line + 1.5
+                } else {
+                    ## axis(1, at = myat, labels = exp_value_format, line = moreLine, lwd = 0)
+                    nlines = nlines + 2 + moreLine
+                }
+
+            }
+
+        } else {
+            #
+            # formatting of the values
+            #
+
+            x_unik = at_info[x_nb %in% 1:maxBins, x]
+            x_cases = length(x_unik)
+            myat = at_info[x_nb %in% 1:maxBins, mid_point]
+            exp_value = ceiling(exp(x_unik))
+            exp_value[x_unik == -1] = 0
+
+            if(is.unsorted(x_unik) || x_cases == 1 || any(diff(x_unik) != 1)){
+                exp_value_right = ceiling(exp(x_unik + 1))
+
+                # Formatting
+                exp_value_format = substr(exp_value, 1, 7)
+                exp_value_right_format = substr(exp_value_right, 1, 7)
+
+                # finding the location
+                location = xaxis_labels(at = myat, labels = paste0("[", exp_value_format, "; ", exp_value_right_format, "["), only.params = TRUE, xlim = xlim)
+                nlines = nlines + 2 + 1 + location$height_line
+                # 2: axis
+                # 1: see below 1 + location$line[i]
+
+                # drawing
+                # for(i in 1:length(x_unik)){
+                #
+                #     value = substitute(group("[",list(x1, x2),")"), list(x1 = formatAxisValue(exp_value[i]), x2 = formatAxisValue(exp_value_right[i])))
+                #
+                #     ## axis(1, at = myat[i], lwd = 0, labels = value, cex = location$cex, line = 1 + location$line[i])
+                # }
+
+
+            } else {
+                # we draw the axes with nice display
+
+                moreLine = (ADD_OTHER || ADD_OTHER_LEFT) * .25
+
+                # Displaying the ticks "all at once" (including the last one)
+                val = c(exp_value, ceiling(exp(tail(x_unik, 1) + 1)))
+                exp_value_format = formatAxisValue(val)
+
+
+                # tick location
+                # loc = (1:length(val)-1)*(moderator_cases+sep) - sep/2
+                ## axis(1, at = loc, labels = exp_value_format, line = moreLine, lwd.ticks = 1, lwd = 0)
+                nlines = nlines + 2 + moreLine
+
+            }
+
+        }
+
+    } else if(numLabel){
+        # moderator > 1 + split + numeric axis
+
+        current_lim = get_x_lim()
+
+        nlines = nlines + 2
+
+        # We add the bin information
+        if(noSub){
+            sub = "Bin size"
+        }
+
+    } else if(numAxis){
+
+        # We add the bin information
+        if(noSub){
+            sub = "Bin Size"
+        }
+
+        nlines = nlines + 2
+
+    } else if(DO_SPLIT){
+        # we need to display all xs
+
+        # We add the bin information => specific case: max first + numeric data
+        if(binned_data && noSub){
+            sub = "Bin size"
+        }
+
+        data_freq[, mid_point := (xleft + xright) / 2]
+        myLabels = data_freq$x
+        myAt = data_freq$mid_point
+
+
+        if(checkNotTilted){
+            # If very short labels => we don't tilt them // allows to reintroduce xlab
+
+            # axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
+            # # if we reduce the labels => we tilt them
+            # labels.tilted = axis_info$cex < 1 || any(axis_info$line != -1)
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE, xlim = xlim)
+            if(length(unique(axis_info$line)) == 1){
+                labels.tilted = FALSE
+            } else {
+                labels.tilted = TRUE
+            }
+        }
+
+        if(labels.tilted){
+            lab.info = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, only.params = TRUE)
+            nlines = nlines + lab.info$height_line + LINE_MIN_TILTED
+        } else {
+            lab.info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE, xlim = xlim)
+            nlines = nlines + lab.info$height_line
+        }
+
+
+    } else if(isNum){
+        # we can have the "other" column both left and right
+
+        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        myLabels = x_unik
+        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+
+        info_axis = NULL
+        if(labels.tilted == FALSE && mean(diff(x_unik)) == 1){
+            # This is a "normal" axis
+            # everything number follows, this is fine
+
+            ## axis(1, myAt, labels = myLabels)
+            nlines = nlines + 2
+        } else {
+            if(checkForTilting){
+                # If normal axis does not fit => tilt
+                axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE, xlim = xlim)
+                if(axis_info$failed){
+                    labels.tilted = TRUE
+                } else {
+                    labels.tilted = FALSE
+                }
+            }
+
+            if(labels.tilted){
+                lab.info = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, only.params = TRUE)
+                nlines = nlines + lab.info$height_line + LINE_MIN_TILTED
+            } else {
+                lab.info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.max = line.max, only.params = TRUE, xlim = xlim)
+                nlines = nlines + lab.info$height_line
+            }
+        }
+
+    } else {
+
+        if(ADD_OTHER){
+            maxBins = maxBins + 1
+            at_info$x[maxBins] = "Other"
+        }
+
+        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        myLabels = x_unik
+        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+
+        if(checkForTilting){
+            # If normal axis does not fit => tilt
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE, xlim = xlim)
+            if(axis_info$failed){
+                labels.tilted = TRUE
+            } else {
+                labels.tilted = FALSE
+            }
+        }
+
+        # We also add ticks every 5/10 bins to help counting
+        if(missing(at_5)){
+            at_5 = ifelse(max(at_info$x_nb) > 10, TRUE, FALSE)
+            if(at_5) {
+                at_5 = ifelse(labels.tilted, "line", "roman")
+            }
+        } else {
+            at_5 = at_5[1]
+        }
+
+        if(labels.tilted){
+            lab.info = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, line.min = 0.35 * (at_5 == "roman"), only.params = TRUE)
+            nlines = nlines + lab.info$height_line + LINE_MIN_TILTED
+        } else {
+            lab.info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.min = 0.15 * (at_5 == "roman"), only.params = TRUE, xlim = xlim)
+            nlines = nlines + lab.info$height_line
+        }
+
+    }
+
+    line_height = par("mai")[1] / par("mar")[1]
+
+    xlab.line = nlines + 0.5 - 0.5*labels.tilted
+
+    if(xlab != ""){
+        xlab.line = xlab.line + ceiling(strheight(xlab, units = "in") / line_height) - 1
+    }
+
+    sub.line = xlab.line + 1
+
+    if(sub != ""){
+        nlines = sub.line + 1
+    } else if(xlab != ""){
+        nlines = sub.line
+    }
+
+    total_height = nlines * line_height
+
+    list(xlab.line = xlab.line, sub.line = sub.line, total_height = total_height)
+}
+
 
 margins_find = function(xlab, sub, x_labels, ylab, y_labels){
     if(horiz){
@@ -1997,6 +2373,41 @@ getNames = function(x, dict = getOption("fplot_dict")){
     }
 
     res
+}
+
+dict_apply = function(x, dict){
+    # If here: dict is either a logical scalar, either a named character vector
+
+    if(is.logical(dict)){
+        if(dict == FALSE) return(x)
+
+        dict = getFplot_dict()
+    } else {
+        dict_origin = getFplot_dict()
+
+        if(!is.null(dict_origin)){
+            if(!is.null(dict)){
+                dict_origin[names(dict)] = as.vector(dict)
+            }
+        }
+
+        dict = dict_origin
+    }
+
+    if(is.null(dict)){
+        return(x)
+    }
+
+    dict_names = gsub(" ", "", names(dict), fixed = TRUE)
+    x_clean = gsub(" ", "", x, fixed = TRUE)
+    res = x
+    who_in = x_clean %in% dict_names
+    if(any(who_in)){
+        res[who_in] = dict[x_clean[who_in]]
+    }
+
+    res
+
 }
 
 missnull = function(x){
