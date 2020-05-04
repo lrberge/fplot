@@ -19,8 +19,8 @@
 #' @param maxFirst Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.
 #' @param toLog Logical, only used when the data is numeric. If \code{TRUE}, then the data is put to logarithm beforehand. By default numeric values are put to log if the log variation exceeds 3.
 #' @param col A vector of colors, default is close to paired. You can also use \dQuote{set1} or \dQuote{paired}.
-#' @param outCol Outer color of the bars. Defaults is \code{"black"}.
-#' @param maxBins Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.
+#' @param border Outer color of the bars. Defaults is \code{"black"}. Use \code{NA} to remove the borders.
+#' @param nbins Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.
 #' @param bin.size Only used for numeric values. If provided, it creates bins of observations of size \code{bin.size}. It creates bins by default for numeric non-integer data.
 #' @param legend_options A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.
 #' @param yaxis.show Whether the y-axis should be displayed, default is \code{TRUE}.
@@ -106,7 +106,7 @@
 #'
 #'
 #'
-plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, border = "black", mod.method, within, total, mod.select, at_5, labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, border = "black", mod.method, within, total, mod.select, at_5, labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # DT VARS
@@ -143,7 +143,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     check_arg(weight, "null numeric vector na ok")
 
     check_arg(sep, "null numeric scalar GE{0}")
-    check_arg(maxBins, "null integer scalar GT{0}")
+    check_arg(nbins, "null integer scalar GT{0}")
     check_arg(col, "vector(integer, character)")
     check_arg(bin.size, "null numeric scalar GT{0}")
     check_arg(dict, "null named character vector | logical scalar")
@@ -155,6 +155,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     mc = match.call()
 
+    dots = list(...)
+    if("maxBins" %in% names(dots)){
+        warning("Argument 'maxBins' has been renamed. Please use 'nbins' instead.")
+        nbins = dots$maxBins
+    }
 
     #
     # Extracting x and the moderator ####
@@ -495,16 +500,16 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     }
 
     IS_MAXBIN_USER = TRUE
-    if(missnull(maxBins)){
+    if(missnull(nbins)){
         IS_MAXBIN_USER = FALSE
         bin_fit_all = c(20, 11, 8, 6, 5)
         bin_max_all = c(15, 9, 7, 5, 4)
 
         nb = ifelse(!missing(mod.method) && mod.method == "stack", 1, moderator_cases)
 
-        maxBins = bin_fit_all[nb]
-        if(length(unique(x)) > maxBins){
-            maxBins = bin_max_all[nb]
+        nbins = bin_fit_all[nb]
+        if(length(unique(x)) > nbins){
+            nbins = bin_max_all[nb]
         }
     }
 
@@ -519,7 +524,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     numAxis = FALSE
     binned_data = FALSE
-    maxBins_old = maxBins # used with delayLogChecking
+    maxBins_old = nbins # used with delayLogChecking
     if(isNum && !toLog){
         if(!missnull(bin.size)){
             if(!missing(int.categorical) && int.categorical && all(x %% 1 == 0)){
@@ -532,7 +537,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                     if(IS_MAXBIN_USER == FALSE){
                         # Since it's a numeric axis, we put a LOT of bins
                         # It is a maximum anyway
-                        maxBins = 50
+                        nbins = 50
                     }
                 }
             }
@@ -561,7 +566,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
                 if(IS_MAXBIN_USER == FALSE){
                     # we reset the number of bins: specific to the numeric case
-                    maxBins = bin_max_all[1]
+                    nbins = bin_max_all[1]
                 }
 
                 binned_data = TRUE
@@ -569,7 +574,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 # we try to find a "good" bin size
                 x_min = min(x)
                 x_max = max(x)
-                bin.size = signif((x_max - x_min) / min(max(maxBins - 1, 10), 15), 1)
+                bin.size = signif((x_max - x_min) / min(max(nbins - 1, 10), 15), 1)
                 x_tmp = (x %/% bin.size) * bin.size
                 tx = ttable(x_tmp)
                 if(sum(tx/sum(tx) > 0.03) < 6){
@@ -585,7 +590,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                             x = x_ln
                             numAxis = FALSE
                             binned_data = FALSE
-                            maxBins = maxBins_old
+                            nbins = maxBins_old
                         }
 
                     }
@@ -597,7 +602,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                         # More complex binning:
                         # We try to find the "optimal" number of bins
 
-                        n_bins = maxBins
+                        n_bins = nbins
                         q001 = quantile(x, seq(0, 1, by = 1 / 40))
                         n_q = length(q001)
 
@@ -847,10 +852,10 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
 
         # if we center on the mode
-        if(centered && any(data_freq$x_nb > maxBins) && isNum){
+        if(centered && any(data_freq$x_nb > nbins) && isNum){
             # we center the distribution
             data_freq[, nb_new := x_nb - which.max(value)]
-            data_freq[, nb_new := nb_new + max(min(ceiling(maxBins/2), abs(min(nb_new)) + 1), maxBins - max(nb_new))]
+            data_freq[, nb_new := nb_new + max(min(ceiling(nbins/2), abs(min(nb_new)) + 1), nbins - max(nb_new))]
             data_freq[, x_nb := nb_new]
             data_freq[, nb_new := NULL]
 
@@ -858,7 +863,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 if(!any(data_freq$x_nb < 0)){
                     # we just add that bin
                     data_freq[, x_nb := x_nb + 1]
-                    maxBins = maxBins + 1
+                    nbins = nbins + 1
                 } else {
                     ADD_OTHER_LEFT = TRUE
                     # We create a bin on the left
@@ -869,7 +874,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                     other_col[is.na(other_col)] = 0
                     other_col[, x_nb := 0]
                     # we limit the size of this last column
-                    share_max = max(data_freq[x_nb %in% 1:maxBins, share])
+                    share_max = max(data_freq[x_nb %in% 1:nbins, share])
                     # r = 1 + rank(other_col$value, ties.method = "max") / moderator_cases / 10
                     # other_col[, share := pmin(share_top, r * share_max)]
                     other_col[, share := pmin(share_top, 1.1 * share_max)]
@@ -912,21 +917,21 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         }
 
         # The "other" column
-        if(addOther && max(data_freq$x_nb) == maxBins + 1){
+        if(addOther && max(data_freq$x_nb) == nbins + 1){
             # we just add the bin
-            maxBins = maxBins + 1
-            data_freq = data_freq[x_nb <= maxBins]
-        } else if(addOther && any(data_freq$x_nb > maxBins)){
+            nbins = nbins + 1
+            data_freq = data_freq[x_nb <= nbins]
+        } else if(addOther && any(data_freq$x_nb > nbins)){
             # we create the other colum as the sum of the rest
             ADD_OTHER = TRUE
-            data_other = data_freq[x_nb > maxBins]
+            data_other = data_freq[x_nb > nbins]
             data_other = data_other[, list(value = sum(value), share_top = sum(share)), by = moderator]
             tmp = as.data.table(expand.grid(moderator = data_other$moderator))
             other_col = merge(data_other, tmp)
             other_col[is.na(other_col)] = 0
-            other_col[, x_nb := maxBins + 1]
+            other_col[, x_nb := nbins + 1]
             # we limit the size of this last column
-            share_max = max(data_freq[x_nb %in% 1:maxBins, share])
+            share_max = max(data_freq[x_nb %in% 1:nbins, share])
 
             # r = 1 + rank(other_col$value, ties.method = "max") / moderator_cases / 10
             # other_col[, share := pmin(share_top, r * share_max)]
@@ -937,37 +942,37 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             }
 
             # we merge the information
-            data_freq = rbindDS(data_freq[x_nb <= maxBins], other_col)
+            data_freq = rbindDS(data_freq[x_nb <= nbins], other_col)
             qui_NA = is.na(data_freq$share_top)
             data_freq$share_top[qui_NA] = data_freq$share[qui_NA]
 
             # Other text => depends on the type of values
-            data_freq[x_nb == maxBins + 1, "isOther" := TRUE]
+            data_freq[x_nb == nbins + 1, "isOther" := TRUE]
             if(!isNum || maxFirst){
                 otherText = "Other"
-                data_freq[x_nb == maxBins + 1, "otherValue" := "Other"]
+                data_freq[x_nb == nbins + 1, "otherValue" := "Other"]
             } else {
                 if(toLog){
-                    x_last = round(exp(data_freq[x_nb == maxBins, x] + 1))
+                    x_last = round(exp(data_freq[x_nb == nbins, x] + 1))
                     otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_last)))
-                    data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_last))]
+                    data_freq[x_nb == nbins + 1, "otherValue" := paste(">", formatAxisValue(x_last))]
                 } else {
                     if(binned_data == FALSE){
-                        x_value = data_freq[x_nb == maxBins, x]
+                        x_value = data_freq[x_nb == nbins, x]
                         otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_value)))
-                        data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_value))]
+                        data_freq[x_nb == nbins + 1, "otherValue" := paste(">", formatAxisValue(x_value))]
                     } else {
-                        x_other = data_freq[x_nb == maxBins, x][1] + bin.size
-                        data_freq[x_nb == maxBins + 1, x := x_other]
+                        x_other = data_freq[x_nb == nbins, x][1] + bin.size
+                        data_freq[x_nb == nbins + 1, x := x_other]
                         otherText = substitute(phantom()>=x_other, list(x_other = formatAxisValue(x_other)))
-                        data_freq[x_nb == maxBins + 1, "otherValue" := paste(">", formatAxisValue(x_other))]
+                        data_freq[x_nb == nbins + 1, "otherValue" := paste(">", formatAxisValue(x_other))]
                     }
 
                 }
             }
 
         } else {
-            data_freq = data_freq[x_nb <= maxBins]
+            data_freq = data_freq[x_nb <= nbins]
         }
 
 
@@ -1051,9 +1056,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             qui = moderator == moderator_unik[i]
             if(USE_WEIGHT){
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, nbins = nbins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
             } else {
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, maxBins = maxBins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, nbins = nbins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
             }
 
             # updating the information
@@ -1169,7 +1174,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     }
 
     # Plot preparation
-    dots = list(...)
 
     # default for onTop
     if(missnull(onTop)){
@@ -1433,7 +1437,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     mleft = find_margins_left(ylab, y_labels, ylab.resize = ylab.resize)
     # finding the bottom margin is a pain in the neck!!!
-    mbot = find_margins_bottom(xlab = xlab, sub = sub, data_freq = data_freq, toLog = toLog, isNum = isNum, numLabel = numLabel, numAxis = numAxis, maxBins = maxBins, DO_SPLIT = DO_SPLIT, ADD_OTHER = ADD_OTHER, ADD_OTHER_LEFT = ADD_OTHER_LEFT, maxFirst = maxFirst, labels.tilted = labels.tilted, delayLabelsTilted = delayLabelsTilted, checkForTilting = checkForTilting, checkNotTilted = checkNotTilted, noSub = noSub, binned_data = binned_data, line.max = line.max, trunc = trunc, trunc.method = trunc.method, cex.axis = cex.axis, labels.angle = labels.angle, at_5 = at_5, xlim = xlim)
+    mbot = find_margins_bottom(xlab = xlab, sub = sub, data_freq = data_freq, toLog = toLog, isNum = isNum, numLabel = numLabel, numAxis = numAxis, nbins = nbins, DO_SPLIT = DO_SPLIT, ADD_OTHER = ADD_OTHER, ADD_OTHER_LEFT = ADD_OTHER_LEFT, maxFirst = maxFirst, labels.tilted = labels.tilted, delayLabelsTilted = delayLabelsTilted, checkForTilting = checkForTilting, checkNotTilted = checkNotTilted, noSub = noSub, binned_data = binned_data, line.max = line.max, trunc = trunc, trunc.method = trunc.method, cex.axis = cex.axis, labels.angle = labels.angle, at_5 = at_5, xlim = xlim)
 
     if(mleft$total_width > par("mai")[2] || mbot$total_height > par("mai")[1]){
         new_mai = par("mai")
@@ -1600,9 +1604,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             # formatting of the values
             #
 
-            x_unik = at_info[x_nb %in% 1:maxBins, x]
+            x_unik = at_info[x_nb %in% 1:nbins, x]
             x_cases = length(x_unik)
-            myat = at_info[x_nb %in% 1:maxBins, mid_point]
+            myat = at_info[x_nb %in% 1:nbins, mid_point]
             exp_value = ceiling(exp(x_unik))
             exp_value[x_unik == -1] = 0
 
@@ -1659,7 +1663,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
             if(ADD_OTHER){
 
-                axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -0.8, labels = ">", lwd = 0, font = 2)
+                axis(1, at = at_info[x_nb == nbins + 1, mid_point], line = -0.8, labels = ">", lwd = 0, font = 2)
 
             }
 
@@ -1726,7 +1730,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             axis(1, axis_at[1:(length(axis_at) - 1)])
 
             # the "other" text
-            axis(1, at = at_info[x_nb == maxBins + 1, mid_point], line = -1, labels = otherText, lwd = 0)
+            axis(1, at = at_info[x_nb == nbins + 1, mid_point], line = -1, labels = otherText, lwd = 0)
         } else {
             axis(1)
         }
@@ -1784,9 +1788,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     } else if(isNum){
         # we can have the "other" column both left and right
 
-        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        x_unik = at_info[x_nb %in% 1:nbins, x]
         myLabels = x_unik
-        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+        myAt = at_info[x_nb %in% 1:nbins, mid_point]
 
         info_axis = NULL
         if(labels.tilted == FALSE && mean(diff(x_unik)) == 1){
@@ -1824,13 +1828,13 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             # the "other" text
 
             if(is.null(info_axis)){
-                axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + strwidth("> "), line = -0.85, labels = otherText, lwd = 0, cex.axis = 1)
+                axis(1, at = at_info[x_nb == nbins + 1, mid_point] + strwidth("> "), line = -0.85, labels = otherText, lwd = 0, cex.axis = 1)
             } else if(labels.tilted){
-                xaxis_biased(at = at_info[x_nb == maxBins + 1, mid_point], labels = otherText, angle = info_axis$angle, cex = info_axis$cex, trunc = trunc, trunc.method = trunc.method)
+                xaxis_biased(at = at_info[x_nb == nbins + 1, mid_point], labels = otherText, angle = info_axis$angle, cex = info_axis$cex, trunc = trunc, trunc.method = trunc.method)
             } else {
                 all_lines = sort(unique(info_axis$line))
                 my_line = min(info_axis$line[info_axis$line != tail(info_axis$line, 1)])
-                axis(1, at = at_info[x_nb == maxBins + 1, mid_point] + strwidth("> ", cex = info_axis$cex), line = my_line, labels = otherText, lwd = 0, cex.axis = info_axis$cex)
+                axis(1, at = at_info[x_nb == nbins + 1, mid_point] + strwidth("> ", cex = info_axis$cex), line = my_line, labels = otherText, lwd = 0, cex.axis = info_axis$cex)
             }
         }
 
@@ -1850,13 +1854,13 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     } else {
 
         if(ADD_OTHER){
-            maxBins = maxBins + 1
-            at_info$x[maxBins] = otherText
+            nbins = nbins + 1
+            at_info$x[nbins] = otherText
         }
 
-        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        x_unik = at_info[x_nb %in% 1:nbins, x]
         myLabels = x_unik
-        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+        myAt = at_info[x_nb %in% 1:nbins, mid_point]
 
         if(checkForTilting){
             # If normal axis does not fit => tilt
@@ -2000,213 +2004,6 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     return(invisible(data_freq))
 }
-
-
-#' Barplot with aggregate and moderator possibilities
-#'
-#' This functions draws a barplot in which the variables can have been aggregated beforehand.
-#'
-#' @inheritParams plot_distr
-#'
-#' @param fml A formula of the form: \code{var ~ agg} with \code{var} the variable, \code{agg} the variable over which to aggregate that will appear in the x-axis.
-#' @param data A data.frame containing all the variables in the formula argument.
-#' @param agg In the case \code{fml} is a vector, \code{agg} can be a vector of values over which to aggregate the main variable.
-#' @param maxBins Defaults to 50. All other information that does not fit is put into the bin \dQuote{other}.
-#' @param order Defaults to \code{FALSE}. Should the data be ordered w.r.t. frequency?
-#' @param show0 Default to \code{FALSE}. Should the 0 be kept? By default, all the 0s are dropped.
-#' @param cex.text The size of the text appearing on the top of the bins. Defaults to 0.7.
-#' @param isDistribution Defaults to \code{FALSE}. It impacts the y-axis display. If it's a distribution, then percentages are shown on the y-axis.
-#' @param yaxis.show Defaults to \code{FALSE}. Should the y-axis labels be displayed?
-#' @param hgrid Default \code{TRUE}. Should the horizontal grid be displayed?
-#' @param line.max Integer, default is 1. By defaults the labels of the x-axis can be displayed on several lines (from -1 to 1). This arguments says how far can the algorithm for the placement of the labels go downwards in the x-axis region.
-#' @param showOther Default is \code{TRUE}. In the case the number of bins is lower than the number of cases, should the remaining obervations be displayed by a bar?
-#' @param fun A function for the aggregation. Default is \code{mean}.
-#' @param xlab The x-axis labels. By default it is the name of the aggregating variable.
-#' @param ylab The y-axis labels. By default it is the name of the x variable combined with the function applied to it.
-#' @param inCol Color of the interior of the bars. Default to blue.
-#' @param border Color of the border of the bars. Defatult is black.
-#' @param ... Other arguments to be passed to \code{barplot}.
-#'
-#' @author Laurent Berge
-#'
-#' @return
-#' Invisibly returns the aggregated data.
-#'
-#' @examples
-#'
-#' plot_bar(Sepal.Length~Species, iris)
-#'
-#' plot_bar(Sepal.Length~Species, iris, fun = var, labels.tilted = TRUE)
-#'
-#'
-#'
-plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, maxBins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", border = "white", xlab, ylab, ...){
-    # this function formats a bit the data and sends it to myBarplot
-
-    # Old params
-    isLog = FALSE
-
-    fml_in = fml
-
-    # Controls
-    check_arg("logical scalar", order, show0, isDistribution, labels.tilted, hgrid, showOther)
-
-    check_arg(maxBins, trunc, "integer scalar GE{1}")
-    check_arg(trunc.method, "character scalar")
-
-    #
-    # Extracting the information
-    #
-
-    mc = match.call()
-    if("fun" %in% names(mc)){
-        fun_name = paste0(" (", deparse(mc$fun), ")")
-    } else {
-        fun_name = " (Average)"
-    }
-
-    doAgg = TRUE
-    if("formula" %in% class(fml_in)){
-        # Control of the formula
-
-        if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
-
-            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
-        }
-
-        vars = all.vars(fml_in)
-        if(any(!vars %in% names(data))){
-            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse(mc$data), ").")
-        }
-
-        # Creation of x and the condition
-        if(!length(fml_in) == 3){
-            stop("The formula must be of the type 'var ~ agg'.")
-        }
-
-        fml = extract_pipe(fml_in)$fml
-        pipe = extract_pipe(fml_in)$pipe
-
-        x = eval(fml[[2]], data)
-        agg = eval(fml[[3]], data)
-
-        if(length(agg) == 1){
-            # No agg!
-            doAgg = FALSE
-            agg = 1:length(x)
-            agg_name = ""
-            fun_name = ""
-        } else {
-            agg_name = deparse(fml[[3]])
-        }
-
-        # other info
-        x_name = paste0(deparse(fml[[2]]), fun_name)
-
-
-    } else {
-
-        x = fml_in
-
-        if(missing(agg)){
-            if(is.null(names(x))){
-                agg = 1:length(x)
-            } else {
-                agg = names(x)
-            }
-            doAgg = FALSE
-        } else if(length(x) != length(agg)){
-            stop("The arguments 'x' and 'agg' must be of the same length.")
-        }
-
-        # other info
-        x_name = ""
-        agg_name = ""
-    }
-
-    # Naming
-    x_name = dict_apply(x_name, dict)
-    agg_name = dict_apply(agg_name, dict)
-
-    # Dropping NAs
-    quiNA_x = is.na(x)
-    quiNA_agg = is.na(agg)
-    quiNA = quiNA_x | quiNA_agg
-    if(any(quiNA)){
-        nb_na = c(sum(quiNA_x), sum(quiNA_agg))
-        msg_na = paste0(c("x: ", "agg: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
-        x = x[!quiNA]
-        agg = agg[!quiNA]
-    }
-
-    #
-    # Aggregation
-    #
-
-    if(doAgg){
-        AGG_FACTOR = FALSE
-        if(is.factor(agg)){
-            AGG_FACTOR = TRUE
-            agg_names = levels(agg[, drop = TRUE])
-            agg = unclass(agg[, drop = TRUE])
-        }
-
-        quoi = data.table(x=x, agg=agg)
-        base_agg = quoi[, list(x = fun(x)), by = list(agg)]
-        setorder(base_agg, agg)
-
-        res = base_agg$x
-        if(AGG_FACTOR){
-            names(res) = agg_names
-        } else {
-            names(res) = base_agg$agg
-        }
-
-    } else {
-        res = x
-        names(res) = agg
-    }
-
-
-    #
-    # Sending to myBarplot
-    #
-
-    # Some default values
-    if(missnull(labels.tilted)){
-        if(!is.numeric(agg)){
-            size = sum(nchar(names(res)))
-            if(size * strwidth("W", "in") > 1.5*par("pin")[1]){
-                labels.tilted = TRUE
-                agg_name = ""
-            } else {
-                labels.tilted = FALSE
-            }
-        } else {
-            labels.tilted = FALSE
-        }
-    } else {
-        if(labels.tilted){
-            agg_name = ""
-        }
-    }
-
-    if(missing(xlab)){
-        xlab = agg_name
-    }
-
-    if(missing(ylab)){
-        ylab = x_name
-    }
-
-    myBarplot(x = res, order=order, maxBins=maxBins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, line.max=line.max, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = border, xlab = xlab, ylab = ylab, ...)
-
-    invisible(base_agg)
-}
-
-
 
 
 

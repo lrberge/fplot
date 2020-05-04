@@ -1412,7 +1412,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
 }
 
 
-myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", line.max, ...){
+myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", line.max, ...){
     # This function draws a nice barplot
 
     # We get whether the labels from x are numeric
@@ -1423,19 +1423,19 @@ myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog
     if(order) x = sort(x, decreasing = TRUE)
 
     doTrim = FALSE
-    if(length(x) > maxBins) {
+    if(length(x) > nbins) {
 
         if(!showOther){
             doTrim = TRUE
         } else {
-            y = x[1:(maxBins-1)]
+            y = x[1:(nbins-1)]
 
             # We change the name
-            max_name = ifelse(isNumericLabel & !order, paste0(names(x)[maxBins], "+"), "other")
+            max_name = ifelse(isNumericLabel & !order, paste0(names(x)[nbins], "+"), "other")
             allNames = names(y)
 
             # we recreate x
-            z = c(y, sum(x[maxBins:length(x)]))
+            z = c(y, sum(x[nbins:length(x)]))
             x = z
             names(x) = c(allNames, max_name)
         }
@@ -1449,10 +1449,10 @@ myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog
     }
 
     if(doTrim){
-        cases_left = length(x) - maxBins
+        cases_left = length(x) - nbins
         sum_x = sum(x)
-        x = x[1:maxBins]
-        x_share = x_share[1:maxBins]
+        x = x[1:nbins]
+        x_share = x_share[1:nbins]
         share_left = 1 - sum(x) / sum_x
     }
 
@@ -1823,7 +1823,7 @@ find_margins_left = function(ylab, y_labels, ylab.resize){
     list(ylab = ylab, ylab.line = ylab.line, total_width = total_width)
 }
 
-find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, numAxis, maxBins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, maxFirst, labels.tilted, delayLabelsTilted, checkForTilting, checkNotTilted, noSub, binned_data, line.max, trunc, trunc.method, cex.axis, labels.angle, at_5, xlim){
+find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, numAxis, nbins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, maxFirst, labels.tilted, delayLabelsTilted, checkForTilting, checkNotTilted, noSub, binned_data, line.max, trunc, trunc.method, cex.axis, labels.angle, at_5, xlim){
     # This function finds the size of the margin needed to display all the x-axis labels + xlab + sub
     # This is highly complex because the decision on how to show the x-axis labels
     # depend on many things in plot_distr.
@@ -1938,9 +1938,9 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
             # formatting of the values
             #
 
-            x_unik = at_info[x_nb %in% 1:maxBins, x]
+            x_unik = at_info[x_nb %in% 1:nbins, x]
             x_cases = length(x_unik)
-            myat = at_info[x_nb %in% 1:maxBins, mid_point]
+            myat = at_info[x_nb %in% 1:nbins, mid_point]
             exp_value = ceiling(exp(x_unik))
             exp_value[x_unik == -1] = 0
 
@@ -2045,9 +2045,9 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
     } else if(isNum){
         # we can have the "other" column both left and right
 
-        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        x_unik = at_info[x_nb %in% 1:nbins, x]
         myLabels = x_unik
-        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+        myAt = at_info[x_nb %in% 1:nbins, mid_point]
 
         info_axis = NULL
         if(labels.tilted == FALSE && mean(diff(x_unik)) == 1){
@@ -2079,13 +2079,13 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
     } else {
 
         if(ADD_OTHER){
-            maxBins = maxBins + 1
-            at_info$x[maxBins] = "Other"
+            nbins = nbins + 1
+            at_info$x[nbins] = "Other"
         }
 
-        x_unik = at_info[x_nb %in% 1:maxBins, x]
+        x_unik = at_info[x_nb %in% 1:nbins, x]
         myLabels = x_unik
-        myAt = at_info[x_nb %in% 1:maxBins, mid_point]
+        myAt = at_info[x_nb %in% 1:nbins, mid_point]
 
         if(checkForTilting){
             # If normal axis does not fit => tilt
@@ -2726,6 +2726,180 @@ isVector = function(x){
 
     return(FALSE)
 }
+
+####
+#### DEPRECATED ####
+####
+
+plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, nbins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", border = "white", xlab, ylab, ...){
+    # this function formats a bit the data and sends it to myBarplot
+
+    # Old params
+    isLog = FALSE
+
+    fml_in = fml
+
+    # Controls
+    check_arg("logical scalar", order, show0, isDistribution, labels.tilted, hgrid, showOther)
+
+    check_arg(nbins, trunc, "integer scalar GE{1}")
+    check_arg(trunc.method, "character scalar")
+
+    #
+    # Extracting the information
+    #
+
+    mc = match.call()
+    if("fun" %in% names(mc)){
+        fun_name = paste0(" (", deparse(mc$fun), ")")
+    } else {
+        fun_name = " (Average)"
+    }
+
+    doAgg = TRUE
+    if("formula" %in% class(fml_in)){
+        # Control of the formula
+
+        if(missing(data) || !is.data.frame(data)){
+            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
+
+            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
+        }
+
+        vars = all.vars(fml_in)
+        if(any(!vars %in% names(data))){
+            stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse(mc$data), ").")
+        }
+
+        # Creation of x and the condition
+        if(!length(fml_in) == 3){
+            stop("The formula must be of the type 'var ~ agg'.")
+        }
+
+        fml = extract_pipe(fml_in)$fml
+        pipe = extract_pipe(fml_in)$pipe
+
+        x = eval(fml[[2]], data)
+        agg = eval(fml[[3]], data)
+
+        if(length(agg) == 1){
+            # No agg!
+            doAgg = FALSE
+            agg = 1:length(x)
+            agg_name = ""
+            fun_name = ""
+        } else {
+            agg_name = deparse(fml[[3]])
+        }
+
+        # other info
+        x_name = paste0(deparse(fml[[2]]), fun_name)
+
+
+    } else {
+
+        x = fml_in
+
+        if(missing(agg)){
+            if(is.null(names(x))){
+                agg = 1:length(x)
+            } else {
+                agg = names(x)
+            }
+            doAgg = FALSE
+        } else if(length(x) != length(agg)){
+            stop("The arguments 'x' and 'agg' must be of the same length.")
+        }
+
+        # other info
+        x_name = ""
+        agg_name = ""
+    }
+
+    # Naming
+    x_name = dict_apply(x_name, dict)
+    agg_name = dict_apply(agg_name, dict)
+
+    # Dropping NAs
+    quiNA_x = is.na(x)
+    quiNA_agg = is.na(agg)
+    quiNA = quiNA_x | quiNA_agg
+    if(any(quiNA)){
+        nb_na = c(sum(quiNA_x), sum(quiNA_agg))
+        msg_na = paste0(c("x: ", "agg: "), nb_na)
+        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
+        x = x[!quiNA]
+        agg = agg[!quiNA]
+    }
+
+    #
+    # Aggregation
+    #
+
+    if(doAgg){
+        AGG_FACTOR = FALSE
+        if(is.factor(agg)){
+            AGG_FACTOR = TRUE
+            agg_names = levels(agg[, drop = TRUE])
+            agg = unclass(agg[, drop = TRUE])
+        }
+
+        quoi = data.table(x=x, agg=agg)
+        base_agg = quoi[, list(x = fun(x)), by = list(agg)]
+        setorder(base_agg, agg)
+
+        res = base_agg$x
+        if(AGG_FACTOR){
+            names(res) = agg_names
+        } else {
+            names(res) = base_agg$agg
+        }
+
+    } else {
+        res = x
+        names(res) = agg
+    }
+
+
+    #
+    # Sending to myBarplot
+    #
+
+    # Some default values
+    if(missnull(labels.tilted)){
+        if(!is.numeric(agg)){
+            size = sum(nchar(names(res)))
+            if(size * strwidth("W", "in") > 1.5*par("pin")[1]){
+                labels.tilted = TRUE
+                agg_name = ""
+            } else {
+                labels.tilted = FALSE
+            }
+        } else {
+            labels.tilted = FALSE
+        }
+    } else {
+        if(labels.tilted){
+            agg_name = ""
+        }
+    }
+
+    if(missing(xlab)){
+        xlab = agg_name
+    }
+
+    if(missing(ylab)){
+        ylab = x_name
+    }
+
+    myBarplot(x = res, order=order, nbins=nbins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, line.max=line.max, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = border, xlab = xlab, ylab = ylab, ...)
+
+    invisible(base_agg)
+}
+
+
+
+
 
 
 ####
