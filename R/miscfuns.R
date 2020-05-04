@@ -22,13 +22,9 @@
 #'
 #' @examples
 #'
-#' \donttest{
-#' library(fixest)
-#' data(trade)
-#' setFplot_dict(c(Origin = "Country of Origin", Euros = "Exportations"))
-#' plot_distr(Origin~1|Euros, trade)
-#' setFplot_dict()
-#' }
+#' data(airquality)
+#' setFplot_dict(c(Ozone = "Ozone (ppb)"))
+#' plot_distr(Month~1|Ozone, airquality, weight.fun = mean)
 #'
 setFplot_dict = function(dict){
 
@@ -41,20 +37,10 @@ setFplot_dict = function(dict){
     # Controls
     #
 
-    if(!is.character(dict) || !checkVector(dict)){
-        stop("Argument 'dict' must be a character vector.")
-    }
-
-    if(anyNA(dict)){
-        stop("Argument 'dict' must be a character vector without NAs.")
-    }
+    check_arg(dict, "named character vector")
 
     # Formatting the names
     dict_names = names(dict)
-    if(is.null(dict_names)){
-        stop("Argument 'dict', the dictionary, must be a named vector. Currently it has no names.")
-    }
-
     dict_names = gsub(" +", "", dict_names)
     td = table(dict_names)
     if(any(td > 1)){
@@ -81,28 +67,576 @@ getFplot_dict = function(){
     x
 }
 
+
+#' Sets the target page size for figure exporting
+#'
+#' Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain the desired point size for the plotting text. The function \code{setFplot_page} sets the target page size (once and for all). This is important for the accuracy of the export, although the default values should be working well most of the time.
+#'
+#' @param page What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.
+#' @param margins The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in **inches**. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.
+#'
+#' @seealso
+#' Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}. The function closing the connection and showing the obtained graph in the viewer: \code{\link[fplot]{fit.off}}.
+#'
+#'
+#' @examples
+#'
+#' #
+#' # How to set the page size
+#' #
+#'
+#' # All examples below provide the same page size
+#' setFplot_page(page = "us")
+#' setFplot_page(page = "8.5in, 11in")
+#' setFplot_page(page = "8.5/11in")
+#' setFplot_page(page = c(8.5, 11))
+#'
+#' # All examples below provide the same margins
+#' setFplot_page(margins = "normal")
+#' setFplot_page(margins = "2cm, 2.5cm, 2cm, 2.5cm")
+#' setFplot_page(margins = "2/2.5/2/2.5cm")
+#' setFplot_page(margins = c(2, 2.5) / 2.54) # cm to in
+#' setFplot_page(margins = c(2, 2.5, 2, 2.5) / 2.54)
+#'
+setFplot_page = function(page = "us", margins = "normal", units = "tw"){
+
+    # page => us / a4 / a3 / a2 / a1 // => to be implemented later
+    # or: w, h (vector or character)
+
+    # margins: normal / thin
+    # or vector of length 1 / 2 or 4
+    # or b, l, t, r with in/cm
+
+    # Later => add default for width, height, w2h etc
+
+    check_arg_plus(page, "match(us, a4) | vector character len(1) | vector numeric len(,2) GT{0}")
+    check_arg(units, "charin(tw, pw, in, cm, px)")
+
+    if(length(page) == 1){
+        if(is.numeric(page)){
+            page = rep(page, 2)
+        } else if(page == "us"){
+            page_dim = c(8.5, 11)
+        } else if(page == "a4"){
+            page_dim = c(8.3, 11.7)
+        } else {
+            page_dim = get_dimensions(page, 2)
+        }
+    }
+
+    check_arg_plus(margins, "match(normal, thin, FALSE, F, 0) | vector character len(1) | vector numeric len(,2) GE{0} | vector numeric len(4) GE{0}")
+
+    if(length(margins) == 1){
+        if(is.numeric(margins)){
+            mar = rep(margins, 4)
+        } else if(margins %in% c("FALSE", "F", "0")){
+            mar = rep(0, 4)
+        } else if(margins == "normal"){
+            mar = c(2, 2.5, 2, 2.5) / 2.54
+        } else if(margins == "thin"){
+            mar = c(1.5, 1, 1.5, 1) / 2.54
+        } else {
+            # valid measures: in, cm, px
+            mar = get_dimensions(margins, 4)
+        }
+    } else if(length(margins) == 2){
+        mar = c(margins, margins)
+    } else {
+        # length = 4 => ok
+        mar = margins
+    }
+
+    page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
+
+    options(fplot_img_opts = list(page_dim = page_dim, page_dim_net = page_dim_net, units = units))
+
+}
+
+
+#' PDF export with guaranteed text size
+#'
+#' This function is an alternative to \code{\link[grDevices]{pdf}}, it makes it easy to export figures of appropriate size that should end up in a document. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
+#'
+#' @param file The name of the file to which export the pdf figure.
+#' @param pt The size of the text, in pt, once the figure is inserted in your final document. The default is 11. This means that all text appearing in the plot with \code{cex = 1} will appear with 11pt-sized fonts in your document (most likely an article).
+#' @param width The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}.
+#' @param height Numeric between 0 and 1. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{"90\%"}.
+#' @param w2h Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.
+#' @param h2w Numeric scalar, default is missing. Used to determine the width of the figure based on the height. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall.
+#' @param sideways Logical, defaults to \code{FALSE}. If the figure will be placed in landscape in the final document, then \code{sideways} should be equal to \code{TRUE}. If TRUE, then the argument \code{width} now refers to the height of the text, and the argument \code{height} to its width.
+#' @param ... Other arguments to be passed to \code{\link[grDevices]{pdf}}.
+#'
+#' @details
+#' If you use \code{\link[fplot]{fit.off}} instead of \code{dev.off} to close the graph, the resulting graph will be displayed in the viewer pane. So you don't have to open the document to see how it looks.
+#'
+#' @section Setting the page size:
+#'
+#' You can set the page size with the function \code{\link[fplot]{setFplot_page}}, which defines the size of the page and its margins to deduce the size of the body of the text in which the figures will be inserted. By default the page is considered to be US-letter with *normal* margins (not too big nor thin).
+#'
+#' It is important to set the page size appropriately to have a final plotting-text size guaranteed once the figure is inserted in the document.
+#'
+#' @section Setting the width and height:
+#'
+#' As you will remark, you cannot set the width or the height in absolute terms using inches or any other measure (px, cm, etc). This is in purpose: the aim of this function is to get a figure ready to be inserted in a document. Therefore the width and height are always expressed relatively to the size available in the document (i.e. the dimensions of the bofy of the text). The page size in turned is set once and for all with the function \code{\link[fplot]{setFplot_page}}.
+#'
+#' @seealso
+#' To set the geometry and the defaults: \code{\link[fplot]{setFplot_page}}. To close the graph and display it on the viewer pane: \code{\link[fplot]{fit.off}}.
+#'
+#' @author
+#' Laurent Berge
+#'
+#' @examples
+#'
+#'
+#' # This function creates figures made to be inserted
+#' # in a Latex document (US-letter with "normal" margins)
+#' # By default, the figures should take 100% of the
+#' # text width. If so, the size of the text in the figures
+#' # will be exact.
+#'
+#' # You need pdftools to display PDFs in the viewer pane with fit.off
+#' if(require(pdftools)){
+#'
+#'   tmpFile = file.path(tempdir(), "pdf_examples.pdf")
+#'
+#'   pdf_fit(tmpFile, pt = 8)
+#'   plot(1, 1, type = "n", ann = FALSE)
+#'   text(1, 1, "This text will be displayed in 8pt.")
+#'   fit.off()
+#'
+#'   pdf_fit(tmpFile, pt = 12)
+#'   plot(1, 1, type = "n", ann = FALSE)
+#'   text(1, 1, "This text will be displayed in 12pt.")
+#'   fit.off()
+#'
+#'   pdf_fit(tmpFile, pt = 12, sideways = TRUE)
+#'   plot(1, 1, type = "n", ann = FALSE)
+#'   text(1, 1, "This text will be displayed in 12pt if in sideways.")
+#'   fit.off()
+#'
+#'   # If we reduce the end plot width but keep font size constant
+#'   # this will lead to a very big font as compared to the plot
+#'   pdf_fit(tmpFile, pt = 8, width = "50%")
+#'   plot(1, 1, type = "n", ann = FALSE)
+#'   text(1, 1, "This text will be displayed in 8pt\nif in 50% of the text width.")
+#'   fit.off()
+#' }
+#'
+#'
+#'
+#'
+#'
+#'
+pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, ...){
+
+    mc = match.call()
+
+    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+
+    pdf(file, width = export_dim$export_width, height = export_dim$export_height, ...)
+    options(fplot_img_path = file)
+    options(fplot_img_fun = "pdf")
+
+}
+
+
+#' PNG export with guaranteed text size
+#'
+#' This is an alternative to \code{\link[grDevices]{png}} and others. It makes it easy to export figures that should end up in documents. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
+#'
+#' @inheritParams pdf_fit
+#' @inheritSection pdf_fit Setting the width and height
+#' @inheritSection pdf_fit Setting the page size
+#'
+#' @param antialias By default, equal to \code{"cleartype"}. See details in \code{\link[grDevices]{png}}.
+#' @param res Numeric, the resolution in ppi. Default is 300.
+#' @param ... Other arguments to be passed to \code{\link[grDevices]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices]{jpeg}}, or \code{\link[grDevices]{tiff}}.
+#'
+#'
+#' @examples
+#'
+#'
+#' # This function creates figures made to be inserted
+#' # in a Latex document (US-letter with "normal" margins)
+#' # By default, the figures should take 100% of the
+#' # text width. If so, the size of the text in the figures
+#' # will be exact.
+#'
+#' tmpFile = file.path(tempdir(), "png_examples.pdf")
+#'
+#' png_fit(tmpFile, pt = 8)
+#' plot(1, 1, type = "n", ann = FALSE)
+#' text(1, 1, "This text will be displayed in 8pt.")
+#' fit.off()
+#'
+#' png_fit(tmpFile, pt = 12)
+#' plot(1, 1, type = "n", ann = FALSE)
+#' text(1, 1, "This text will be displayed in 12pt.")
+#' fit.off()
+#'
+#' png_fit(tmpFile, pt = 12, sideways = TRUE)
+#' plot(1, 1, type = "n", ann = FALSE)
+#' text(1, 1, "This text will be displayed in 12pt if in sideways.")
+#' fit.off()
+#'
+#' # If we reduce the end plot width but keep font size constant
+#' # this will lead to a very big font as compared to the plot
+#' png_fit(tmpFile, pt = 8, width = "50%")
+#' plot(1, 1, type = "n", ann = FALSE)
+#' text(1, 1, "This text will be displayed in 8pt\nif the graph is 50% of the text width.")
+#' fit.off()
+#'
+png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
+
+    mc = match.call(expand.dots = TRUE)
+    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+
+    problems = intersect(c("filename", "units"), names(mc))
+    if(length(problems) > 0){
+        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
+    }
+
+    png(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    options(fplot_img_path = file)
+    options(fplot_img_fun = "png")
+}
+
+
+#' @describeIn png_fit TIFF export with guaranteed text size
+tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, antialias = "cleartype", ...){
+
+    mc = match.call(expand.dots = TRUE)
+    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+
+    problems = intersect(c("filename", "units"), names(mc))
+    if(length(problems) > 0){
+        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
+    }
+
+    tiff(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    options(fplot_img_path = file)
+    options(fplot_img_fun = "tiff")
+}
+
+#' @describeIn png_fit JPEG export with guaranteed text size
+jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, antialias = "cleartype", ...){
+
+    mc = match.call(expand.dots = TRUE)
+    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+
+    problems = intersect(c("filename", "units"), names(mc))
+    if(length(problems) > 0){
+        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
+    }
+
+    jpeg(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    options(fplot_img_path = file)
+    options(fplot_img_fun = "jpeg")
+}
+
+#' @describeIn png_fit BMP export with guaranteed text size
+bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, antialias = "cleartype", ...){
+
+    mc = match.call(expand.dots = TRUE)
+    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+
+    problems = intersect(c("filename", "units"), names(mc))
+    if(length(problems) > 0){
+        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
+    }
+
+    bmp(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    options(fplot_img_path = file)
+    options(fplot_img_fun = "bmp")
+}
+
+# What follows is an internal function
+fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, mc){
+
+    set_up(1)
+    check_arg(pt, "numeric scalar GT{0}")
+    check_arg(w2h, h2w, "numeric scalar GT{0}")
+    check_arg(width, height, "scalar(numeric, character) GT{0}")
+    check_arg(sideways, "logical scalar")
+
+    # if(!missing(width) && !missing(w2h) && !missing(height)){
+
+    is_given = function(x) x %in% names(mc) && !is.null(x)
+    arg_in = sapply(c("width", "height", "w2h", "h2w"), is_given)
+
+    if(sum(arg_in) > 2){
+        qui_pblm = c("width", "height", "w2h", "h2w")[arg_in]
+        stop_up("You cannot provide the arguments ", enumerate_items(qui_pblm, "quote"), " at the same time. It's max two at a time.")
+    }
+
+    MISS_RATIO = sum(arg_in[3:4]) == 0
+    if(arg_in[4]){
+        w2h = 1 / h2w
+    }
+
+    # The dimension of the page
+    opts = getOption("fplot_img_opts")
+    page_dim_net = opts$page_dim_net
+    page_dim = opts$page_dim
+
+    # Handling the parameters
+    if(sideways && opts$units %in% c("tw", "pw")){
+        if(missing(height) && MISS_RATIO){
+            w2h = NULL
+            height = 0.9
+        } else if(!missing(height)){
+            w2h = NULL
+        }
+        page_dim = rev(page_dim)
+        page_dim_net = rev(page_dim_net)
+    } else {
+        if(!missing(height)){
+            w2h = NULL
+        }
+    }
+
+    width_in = get_dimensions(width, 1, opts$units, page_dim, page_dim_net)
+    height_in = get_dimensions(height, 1, opts$units, page_dim, page_dim_net)
+
+    if(is.null(w2h)){
+        height_relative = height_in / width_in
+    } else {
+        height_relative = 1 / w2h
+    }
+
+    # We find the optimal pdf output size
+    char_size_pt = par("cin")[2] * 72
+
+    export_width = char_size_pt / pt * width_in
+    export_height =  height_relative * export_width
+
+    list(export_width = export_width, export_height = export_height)
+}
+
+
+
+#' Closes the current plotting device and shows the result in the viewer
+#'
+#' To be used in combination with \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}} when exporting images. It performs exactly the same thing as \code{dev.off()} but additionaly shows the resulting graph in the viewer pane provided you're using RStudio.
+#'
+#' @details
+#' To view the results of PDF exports, the function \code{pdf_convert} from package \code{pdftools} is used to convert the PDF files into images -- so you need to have installed \code{pdftools} to make it work.
+#'
+#' In PDFs, only the first page will be viewed.
+#'
+#' @author
+#' Laurent Berge
+#'
+#' @seealso
+#' The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}. Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, \code{\link[fplot]{jpeg_fit}}.
+#'
+#' @examples
+#'
+#' # Exportation example
+#' # The functions pdf_fit, png_fit, etc, guarantee the right
+#' #  point size of the texts present in the graph.
+#' # But you must give the exact size the graph will take in your final document.
+#' # => first use the function setFplot_page, default is:
+#' # setFplot_page(page = "us", margins = "normal")
+#' # By default the graph takes 100% of the text width
+#'
+#' data(us_pub_econ)
+#'
+#' tmpFile = file.path(tempdir(), "DISTR -- institutions.png")
+#'
+#' png_fit(tmpFile)
+#' plot_distr(~institution, us_pub_econ)
+#' fit.off()
+#'
+#' # What's the consequence of increasing the point size of the text?
+#' png_fit(tmpFile, pt = 15)
+#' plot_distr(~institution, us_pub_econ)
+#' fit.off()
+#'
+#'
+fit.off = function(){
+    path = getOption("fplot_img_path")
+
+    dev.off()
+
+    my_viewer = getOption("viewer")
+
+    if(is.null(my_viewer)){
+        if(is.null(getOption("fplot_img_warn_viewer"))){
+            warning("The function 'fit.off' only works with RStudio's viewer--which wasn't found. This message won't be repeated.")
+            options(fplot_img_warn_viewer = TRUE)
+        }
+    } else if(!is.null(path)){
+        # We copy the image and show in the viewer
+        tmpDir = tempdir()
+        if(is.null(getOption("fplot_img_set"))){
+            # setting up the html document
+            html_file = "<!DOCTYPE html>
+                   <html> <body>
+                   <img src = 'fplot_img_exported.PNG' alt='Exported image' width = '100%'>
+                   </body> </html>\n"
+            writeLines(html_file, file.path(tmpDir, "fplot_img_html.html"))
+            options(fplot_img_set = TRUE)
+        }
+
+        doView = TRUE
+        target_path = file.path(tmpDir, "fplot_img_exported.PNG")
+
+        fun = getOption("fplot_img_fun")
+        if(fun == "pdf"){
+            if(!requireNamespace("pdftools", quietly = TRUE)){
+                warning("To preview exported PDF files in the viewer, you need to install the package 'pdftools'.")
+                doView = FALSE
+                # Nothing is done
+            } else {
+                suppressMessages(pdftools::pdf_convert(path, page = 1, filenames = target_path, verbose = FALSE))
+            }
+        } else {
+            file.copy(path, target_path, overwrite = TRUE)
+        }
+
+        if(doView){
+            my_viewer(file.path(tmpDir, "fplot_img_html.html"))
+        }
+
+    }
+}
+
+get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
+    # n_out: if n_out == 1: we want the width or the height
+    # unit.default, page_dim, page_dim_net: only used when n_out = 1
+
+    set_up(1 + (n_out == 1))
+
+    arg_name = deparse(substitute(x))
+
+    # valid measures: in, cm, px
+    if(n_out == 1){
+        if(missing(x)) return(NULL)
+
+        if(arg_name == "width"){
+            page_dim_net = page_dim_net[1]
+            page_dim = page_dim[1]
+        } else if(arg_name == "height"){
+            page_dim_net = page_dim_net[2]
+            page_dim = page_dim[2]
+        } else {
+            stop_up("Internal error: please contact the package author.")
+        }
+
+        if(is.numeric(x)){
+            res = switch (unit.default, "tw" = x * page_dim_net, "pw" = x * page_dim, "in" = x, "cm" = x/2.54, "px" = x/96)
+
+            return(res)
+        }
+
+        valid_units = c("tw", "pw", "in", "cm", "px", "%")
+    } else {
+        valid_units = c("in", "cm", "px")
+    }
+
+    unit_all = sapply(valid_units, function(u) grepl(u, x, fixed = TRUE))
+    if(sum(unit_all) == 0){
+        stop_up("In argument '", arg_name, "', you must provide units. Valid units are ", enumerate_items(valid_units), ".")
+    }
+
+    if(sum(unit_all) > 1){
+        stop_up("In argument '", arg_name, "', you cannot provide different units at the same time. You must choose between ", enumerate_items(valid_units), ".")
+    }
+
+    unit = valid_units[unit_all]
+
+    m = strsplit(gsub("[[:alpha:]%]", "", x), ",|;|/")[[1]]
+    m = trimws(m)
+    m = m[nchar(m) > 0]
+
+    len_valid = switch(n_out, "1" = 1, "2" = 1:2, "4" = c(1, 2, 4))
+
+    if(!length(m) %in% len_valid){
+        stop_up("Problem in parsing the dimensions of argument '", arg_name, "'. Please see the help on how to form it.")
+    }
+
+    m = tryCatch(as.numeric(m), warning = "problem")
+    if(!is.numeric(m)){
+        stop_up("Problem in parsing the dimensions of argument '", arg_name, "', conversion to numeric failed. Please see the help on how to form it.")
+    }
+
+    if(n_out == 1){
+        res = m
+    } else if(n_out == 2){
+        res = switch(length(m), "1" = c(m, 1.61*m), "2" = m)
+    } else if(n_out == 4){
+        res = switch(length(m), "1" = rep(m, 4), "2" = rep(m, 2), "4" = m)
+    }
+
+    if(unit == "cm"){
+        res = res / 2.54
+    } else if(unit == "px"){
+        res = res / 96
+    }
+
+    if(n_out == 1){
+        if(unit == "%"){
+            if(!unit.default %in% c("tw", "pw")){
+                stop_up("You can define '", arg_name, "' as percentage only when the default unit is 'tw' (text width) or 'pw' (page width), which can be set in setFplot_page().")
+            }
+
+            res = switch (unit.default, "tw" = res/100 * page_dim_net, "pw" = res/100 * page_dim)
+
+        } else if(unit %in% c("tw", "pw")){
+            res = switch (unit, "tw" = res * page_dim_net, "pw" = res * page_dim)
+        }
+    }
+
+
+    res
+}
+
+
 ####
 #### Main Graph. Tools ####
 ####
 
+extract_df = function(fml, df){
+    # fml: one sided formula
+    # df: data.frame containing the data
+
+    if(is.null(fml)) return(NULL)
+
+    is_intercept = grepl("(?<=( |~))1(?=( |$))", deparse(fml), perl = TRUE)
+    if(is_intercept){
+        # We keep the order provided by the user
+        fml_str = gsub("(?<=( |~))1(?=( |$))", "Frequency", deparse(fml), perl = TRUE)
+        fml = as.formula(fml_str)
+        df[["Frequency"]] = 1
+    }
+
+    t = terms(fml)
+    vars = attr(t, "term.labels")
+
+    res = list()
+    for(v in vars) res[[v]] = eval(parse(text = v), df)
+
+    res
+}
+
 
 truncate_string = function(x, trunc = 20, method = "auto"){
 
-    control_variable(x, "(characterNumeric)Vector")
-    control_variable(trunc, "singleIntegerGE3")
-
-    method = control_variable(method, "singleCharacterMatch.arg", charVec = c("auto", "trimRight", "trimMid"))
+    check_arg_plus(x, "vector character conv")
+    check_arg(trunc, "integer scalar GE{3}")
+    check_arg_plus(method, "match(auto, right, mid)")
 
     if(is.numeric(x)) x = as.character(x)
 
     n_all = nchar(x)
 
-    if(method == "trimRight"){
+    if(method == "right"){
         res = substr(x, 1, trunc)
         qui = nchar(res) == trunc & n_all > trunc
         res[qui] = gsub("..$", "\\.\\.", res[qui])
 
-    } else if(method == "trimMid"){
+    } else if(method == "mid"){
         res = x
         qui = n_all > trunc
         if(any(qui)){
@@ -197,249 +731,14 @@ truncate_string = function(x, trunc = 20, method = "auto"){
 }
 
 
-xaxis_labels = function(at, labels, minLine = -1, max_line = 1, minCex = 0.8, add_ticks = FALSE, trunc = 20, trunc.method = "auto", onlyParams = FALSE, ...){
-    # This function automates the placement of labels into the axis 1
-    # It first put the cex to the appropritate level to insert the 1st
-    # label into the frame, then
-    # It uses the vertical placement to fit all the labels
-    # if onlyParams => nothing is plotted
-
-    # only 1 value => we do nothing
-    if(length(at) == 1){
-        if(onlyParams){
-            res = list(cex = 1, line = minLine)
-            return(res)
-        }
-        axis(1, at=at, labels = labels, tick = add_ticks)
-        return(invisible(NULL))
-    }
-
-    # To send into a function: myat & lab
-    myOrder = order(at)
-    myLabels = labels[myOrder]
-    myAt = at[myOrder]
-
-    n = length(myAt)
-
-    # # Truncation of the items
-    # myLabels = substr(myLabels, 1, trunc)
-    # # we replace the trucated element with dots to show that there is more
-    # qui = nchar(myLabels) == trunc & nchar(labels[myOrder]) > trunc
-    # myLabels[qui] = gsub("..$", "\\.\\.", myLabels[qui])
-    if(!"call" %in% class(myLabels)){
-        myLabels = truncate_string(myLabels, trunc, method = trunc.method)
-    } else {
-        myLabels = gsub(" *phantom\\([\\)]*\\) *", "", deparse(myLabels))
-    }
-
-
-    # We compute the space that is left to display the label
-    # 1st into the plot
-    largeur = diff(par("usr")[1:2])
-    half_plotSpace_in = (myAt[1] - par("usr")[1]) / largeur * par("pin")[1]
-    # 2nd using the margin
-    total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
-
-    # If it is too large, we reduce it:
-    myCex = 1
-    while(myCex > minCex && strwidth(myLabels[1], units = "in", cex = myCex)/2 > total_half_space){
-        myCex = myCex * 0.95
-    }
-
-    if(myCex < minCex) myCex = minCex
-
-    # Now we order the vertical space where the labels will appear
-    # line_step = max(strheight(myLabels, units = "in", cex = myCex)) / max(strheight(myLabels, units = "in"))
-    # we use the fact that:
-    # 1) smaller characters can be more stacked vertically
-    # 2) a line height is almost equivalent to character height
-
-    # all_lines = -1:max_line
-    ok = FALSE
-    failed = FALSE
-    while(!ok){
-        ok = TRUE # if !ok there's a problem, we need to reduce cex
-
-        all_width = strwidth(myLabels, units = "in", cex = myCex)
-
-        # there can be more lines than expected depending on cex
-        line_step = max(strheight(myLabels, units = "in", cex = myCex)) / max(strheight(myLabels, units = "in"))
-        all_lines = seq(minLine, max_line, by = line_step)
-
-        myLine = current_Line = minLine
-        for(i in 2:n){
-            # for each element, we find out the line where to write it
-            for(line_index in all_lines){
-                # we get the closest index with that Line level
-                if(line_index %in% myLine){
-                    index = max(which(myLine == line_index))
-                    # we look at the distance between the two elements
-                    at_first = myAt[index]
-                    at_second = myAt[i]
-                    # the distance in inches between the two 'at' + the space of one letter
-                    dist_in = (at_second - at_first) * par("pin")[1] / largeur - strwidth("O", units = "in", cex = 1)
-                    # the half sizes of the two strings
-                    half_sums_in = (all_width[index] + all_width[i]) / 2
-                    if(half_sums_in > dist_in){
-                        # we go to the next line_index
-                    } else {
-                        myLine = c(myLine, line_index)
-                        break
-                    }
-                } else {
-                    # this line item has not been used already
-                    myLine = c(myLine, line_index)
-                    break
-                }
-
-                if(line_index == max(all_lines)) {
-                    # Means it does not fit => we need to reduce cex
-                    if(myCex <= minCex){
-                        # already at the minimum, we keep going then
-                        myLine = c(myLine, line_index)
-                        failed = TRUE
-                    } else {
-                        # we get out totally and reduce the cex
-                        ok = FALSE
-                        myCex = myCex * 0.95
-                    }
-                }
-            }
-
-            if(!ok){
-                # This means we've been into a non solvable situation
-                break
-            }
-        }
-    }
-
-    if(onlyParams){
-        res = list(cex = myCex, line = myLine, failed = failed)
-        return(res)
-    }
-
-    # We draw the ticks
-    if(add_ticks){
-        # 1) drawing them
-        for(line in unique(myLine)){
-            qui = which(myLine == line)
-            axis(1, at = myAt[qui], labels = NA, tcl = -1-line, lwd = 0, lwd.ticks = 1)
-
-        }
-
-        # 2) "Cleaning" them
-        n = length(myLabels)
-        mid_width = strwidth(myLabels, units = "user") / 2
-
-        # ceux qui 'debordent' a droite
-        qui = which(mid_width[-n] > diff(myAt))
-        if(length(qui) > 0){
-            for(i in qui){
-                # axis(1, at = myAt[i+1], labels = NA, lwd = 0, col = "white", line = myLine[i], lwd.ticks = 1.5)
-                axis(1, at = myAt[i+1], labels = "|", lwd = 0, col.axis = "white", cex.axis = 1.5, line = myLine[i], lwd.ticks = 0)
-            }
-        }
-
-        # ceux qui 'debordent' a gauche
-        qui = which(mid_width[-1] > diff(myAt))
-        if(length(qui) > 0){
-            for(i in qui){
-                # axis(1, at = myAt[i+1], labels = NA, lwd = 0, col = "white", line = myLine[i], lwd.ticks = 1.5)
-                axis(1, at = myAt[i], labels = "|", lwd = 0, col.axis = "white", cex.axis = 1.5, line = myLine[i+1], lwd.ticks = 0)
-            }
-        }
-
-    }
-
-    # We draw the labels
-    myLine = myLine + 0.2
-    for(line in unique(myLine)){
-        qui = which(myLine == line)
-        # the labels
-        axis(1, at = myAt[qui], labels = myLabels[qui], line = line, cex.axis = myCex, lwd = 0)
-
-    }
-
-    res = list(cex = myCex, line = myLine)
-    return(res)
-
-}
-
-
-xaxis_biased = function(at, labels, angle, cex, max_line = 1, yadj = 0.5, trunc = 20, trunc.method = "auto", ...){
-
-    control_variable(angle, "nullSingleNumeric")
-    control_variable(cex, "nullSingleNumeric")
-
-
-    dots = list(...)
-    dots$x = at
-
-    if(!"call" %in% class(labels)){
-        labels_trunc = truncate_string(labels, trunc = trunc, method = trunc.method)
-    } else {
-        labels_trunc = gsub(" *phantom\\([\\)]*\\) *", "", deparse(labels))
-    }
-
-    dots$labels = labels_trunc
-
-    # setting automatically the cex and angle
-    DO_ALGO = FALSE
-    if(missnull(angle)){
-        angle2check = c(45, 35, 25, 20)
-        DO_ALGO = TRUE
-    } else {
-        angle2check = angle
-    }
-
-    if(missnull(cex)){
-        cex2check = c(1, 0.9, 0.8)
-        DO_ALGO = TRUE
-    } else {
-        cex2check = cex
-    }
-
-    if(DO_ALGO){
-        lab_max = labels_trunc[which.max(strwidth(labels_trunc))]
-        n_angle = length(angle2check)
-        w_all = rep(sapply(cex2check, function(x) strwidth(lab_max, "in", cex = x)), n_angle)*1.05
-        angle_all = rep(angle2check, each = length(cex2check))
-        longueur_cote = cos((90 - angle_all)/360*2*pi)*w_all
-
-        line_height = par("mai")[1] / par("mar")[1]
-        total_height = line_height * (max_line + 2 - yadj)
-
-        qui = longueur_cote <= total_height
-        if(any(qui)){
-            i = which.max(qui)
-            angle = angle_all[i]
-            cex = rep(cex2check, n_angle)[i]
-        } else {
-            angle = tail(angle_all, 1)
-            cex = tail(cex2check, 1)
-        }
-    }
-
-    dots$cex = cex
-    SH = strheight("WWW", units = "user")
-    dots$y = par("usr")[3] - yadj*SH
-    dots$srt = angle
-    dots$xpd = TRUE
-    dots$adj = 1
-
-    do.call("text", dots)
-
-    return(invisible(list(cex=cex, angle=angle)))
-}
-
 
 legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = "auto", plot = TRUE, title = NULL, title_out = FALSE, ...){
     # units in inch to avoid the need of having a graph already plotted
     # (you cannot use par("usr) when there is no graph plotted)
 
     # the title
-    control_variable(title, "nullSingle(CharacterNumeric)")
-    control_variable(title_out, "singleLogical")
+    check_arg_plus(title, "null character scalar conv")
+    check_arg(title_out, "logical scalar")
     ADD_TITLE = FALSE
     if(length(title) == 1 && nchar(title) > 0 && grepl("[^ ]", title)){
         ADD_TITLE = TRUE
@@ -459,6 +758,7 @@ legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = 
     AUTO_TRUNC = TRUE
     if(!missing(trunc)){
         AUTO_TRUNC = FALSE
+        if(is.logical(legend)) legend = as.character(legend)
         myLabels = truncate_string(legend, trunc, trunc.method)
     } else {
         myLabels = legend
@@ -493,9 +793,9 @@ legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = 
     hauteur_caractere = strheight("W", units = "in", cex = myCex)
 
     if(nlines == 2){
-        res$total_height = (4 + do_adj/2)*hauteur_caractere
+        res$total_height = (4 + do_adj/2 + 0.5)*hauteur_caractere
     } else {
-        res$total_height = (2.5 + do_adj/2)*hauteur_caractere
+        res$total_height = (2.5 + do_adj/2 + 0.5)*hauteur_caractere
     }
 
     # Auto truncation
@@ -612,8 +912,8 @@ legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = 
 }
 
 range_plus = function(x, percent = 0){
-    control_variable(x, "numericVector", mustBeThere = TRUE)
-    control_variable(percent, "singleNumeric")
+    check_arg(x, "numeric vector mbt")
+    check_arg(percent, "numeric scalar")
 
     r_x = range(x)
     width = diff(r_x)
@@ -625,9 +925,9 @@ formatAxisValue = function(x, d = 2, r = 0, type = "abbrev"){
     # This function formats values to be displayed in the x-axis
     # It transforms them into easily readable format
 
-    control_variable(d, "singleIntegerGE1")
-    control_variable(r, "singleIntegerGE0")
-    type = control_variable(type, "singleCharacterMatch.arg", charVec = c("abbrev", "plain", "signif", "equation"))
+    check_arg(d, "integer scalar GE{1}")
+    check_arg(r, "integer scalar GE{0}")
+    check_arg_plus(type, "match(abbrev, plain, signif, equation)")
 
 
     formatAxisValue_single = function(x, d, r, type){
@@ -848,8 +1148,7 @@ tell_me_where = function(x, y, all=FALSE){
 hgrid = function(lty = 3, col = "darkgray", ymin = -Inf, ymax = Inf, ...){
     # simple function that draws an horizontal grid
 
-    control_variable(ymin, "singleNumeric")
-    control_variable(ymax, "singleNumeric")
+    check_arg(ymin, ymax, "numeric scalar")
 
     # Finding the coordinates
     y = axis(2, lwd=0, labels = NA)
@@ -866,8 +1165,7 @@ hgrid = function(lty = 3, col = "darkgray", ymin = -Inf, ymax = Inf, ...){
 vgrid = function(lty = 3, col = "darkgray", ymin = -Inf, ymax = Inf, ...){
     # simple function that draws a vertical grid
 
-    control_variable(ymin, "singleNumeric")
-    control_variable(ymax, "singleNumeric")
+    check_arg(ymin, ymax, "numeric scalar")
 
     # Finding the coordinates
     x = axis(1, lwd=0, labels = NA)
@@ -1098,7 +1396,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
 }
 
 
-myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", max_line, ...){
+myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", line.max, ...){
     # This function draws a nice barplot
 
     # We get whether the labels from x are numeric
@@ -1195,22 +1493,22 @@ myBarplot = function(x, order=FALSE, maxBins=10, show0=TRUE, cex.text=0.7, isLog
 
     funLabels = ifelse(labels.tilted, "xaxis_biased", "xaxis_labels")
 
-    if(missnull(max_line)){
-        max_line = ifelse(labels.tilted, 2, 1)
+    if(missnull(line.max)){
+        line.max = ifelse(labels.tilted, 2, 1) + 1
     }
 
     if(isLog){
         if(!niceLabels){
             axis(1, at = (info[-1] + info[-length(info)])/ 2, lwd = 0, lwd.ticks = 1, labels = round(exp(as.numeric(names(x))))[-1])
         } else {
-            axis1Opts = list(at = (info[-1] + info[-length(info)])/ 2, labels = round(exp(as.numeric(names(x))))[-1], trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+            axis1Opts = list(at = (info[-1] + info[-length(info)])/ 2, labels = round(exp(as.numeric(names(x))))[-1], trunc = trunc, trunc.method = trunc.method, line.max = line.max)
             do.call(funLabels, axis1Opts)
         }
     } else {
         if(!niceLabels){
             axis(1, at = info, lwd = 0, labels = names(x))
         } else {
-            axis1Opts = list(at = info, labels = names(x), trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+            axis1Opts = list(at = info, labels = names(x), trunc = trunc, trunc.method = trunc.method, line.max = line.max)
             # axis1Opts$at = info
             # axis1Opts$labels = names(x)
             do.call(funLabels, axis1Opts)
@@ -1463,6 +1761,166 @@ abplot <- function(x, y, where="default", signifCode = c("***" = 0.001, "**" = 0
 }
 
 
+margins_find = function(xlab, sub, x_labels, ylab, y_labels){
+    if(horiz){
+        # we make the labels fit into the margin
+
+        xlab.line = 3
+        sub.line = 4
+
+        # Algorithm:
+        # - if lab.cex is provided:
+        #  => we fit the labels into the margin // we extend the margin until it fits
+        # - if lab.cex is NOT provided:
+        #  => we extend the margin so that the label fit. If the margin exceeds lab.max.mar% of the plot space, we reduce the cex
+        #   etc, until it fits. If it still does not fit => we extend the margin until it fits.
+        #
+
+        nlines = group.height + 2
+        # The last 2 means 1 line on each side of the label
+
+        if(lab.cex > lab.min.cex){
+            # No algorithm
+            lab.width_in = max(strwidth(x_labels, units = "in", cex = lab.cex))
+        } else {
+            # Algorithm
+
+            max_mar_width_in = par("pin")[1] * lab.max.mar
+
+            while(nlines * line_height + lab.width_in > max_mar_width_in && lab.cex > lab.min.cex){
+                lab.cex = 0.95 * lab.cex
+                lab.width_in = max(strwidth(x_labels, units = "in", cex = lab.cex))
+            }
+
+            # Final step => if we go too far, we etend the margin, even beyond max_mar_width_in
+            if(lab.cex < lab.min.cex){
+                lab.cex = lab.min.cex
+                lab.width_in = max(strwidth(x_labels, units = "in", cex = lab.cex))
+            }
+
+        }
+
+        group.baseline = 2 + lab.width_in / line_height
+
+        nlines = nlines + lab.width_in / line_height
+
+        ylab.line = nlines
+
+        if(ylab != ""){
+            nlines = nlines + ceiling(strheight(ylab, units = "in") / line_height)
+        }
+
+        total_width = nlines * line_height
+
+        if(total_width > par("mai")[2]){
+            new_mai = par("mai")
+            new_mai[2] = total_width + 0.05
+            op = par(mai = new_mai)
+            on.exit(par(op))
+        }
+
+    } else {
+        # We adjust the margin only if there are groups and they
+        # don't fit in the original margin
+        # or if there is a xlab and groups at the same time
+
+        ylab.line = 3
+
+        LINE_MIN_TILTED = 0.25
+        LINE_MAX_TILTED = 3
+
+        if(lab.fit == "auto"){
+            # We want to display ALL labels
+            in_to_usr = diff(my_xlim) / par("pin")[1]
+
+            w_all = strwidth(x_labels, cex = lab.cex, units = "in") * in_to_usr
+            em = strwidth("M", units = "in") * in_to_usr
+            is_collided = ((w_all[-1] + w_all[-length(w_all)]) / 2 + em) > 1
+
+            while(any(is_collided) && lab.cex > lab.min.cex){
+                lab.cex = 0.95 * lab.cex
+                w_all = strwidth(x_labels, cex = lab.cex, units = "in") * in_to_usr
+                is_collided = ((w_all[-1] + w_all[-length(w_all)]) / 2 + em) > 1
+            }
+
+            # switch to multi lines
+            if(any(is_collided) || lab.cex < lab.min.cex){
+                lab.info = xaxis_labels(at = x_at, labels = x_labels, line.max = 1, minCex = lab.min.cex, trunc = Inf, only.params = TRUE)
+
+                if(lab.info$failed){
+                    # switch to tilted
+                    lab.fit = "tilted"
+                    lab.info = xaxis_biased(at = x_at, labels = x_labels, line.min = LINE_MIN_TILTED, line.max = LINE_MAX_TILTED, cex = seq(lab.cex, lab.min.cex, length.out = 4), trunc = Inf, only.params = TRUE)
+                    lab.cex = lab.info$cex
+                    nlines = lab.info$height_line + LINE_MIN_TILTED
+
+                } else {
+                    lab.fit = "multi"
+                    nlines = lab.info$height_line
+                    lab.cex = lab.info$cex
+                }
+
+            } else {
+                lab.fit = "simple"
+                nlines = 2 * lab.cex
+            }
+        } else if(lab.fit == "multi"){
+            lab.info = xaxis_labels(at = x_at, labels = x_labels, line.max = 1, minCex = lab.min.cex, trunc = Inf, only.params = TRUE)
+            lab.cex = lab.info$cex
+            nlines = lab.info$height_line
+
+            if(length(unique(lab.info$line)) == 1){
+                lab.fit = "simple"
+                nlines = 2 * lab.cex
+            }
+
+        } else if(lab.fit == "tilted"){
+            lab.info = xaxis_biased(at = x_at, labels = x_labels, line.min = LINE_MIN_TILTED, line.max = LINE_MAX_TILTED, cex = seq(lab.cex, lab.min.cex, length.out = 4), trunc = Inf, only.params = TRUE)
+            lab.cex = lab.info$cex
+            nlines = lab.info$height_line + LINE_MIN_TILTED
+
+        } else if(lab.fit == "simple"){
+            nlines = 2 * lab.cex
+        }
+
+        # browser()
+
+        if(IS_GROUP){
+            # tcl was set before
+            group.baseline = nlines + 1 - 0.75 + tcl
+
+            nlines = nlines + group.height
+
+            xlab.line = nlines
+        } else {
+            xlab.line = 3
+        }
+
+        if(xlab != ""){
+            xlab.line = xlab.line + ceiling(strheight(xlab, units = "in") / line_height) - 1
+        }
+
+        sub.line = xlab.line + 1
+
+        if(sub != ""){
+            nlines = sub.line + 1
+        } else if(xlab != ""){
+            nlines = sub.line
+        }
+
+        total_height = nlines * line_height
+
+        if(total_height > par("mai")[1]){
+            new_mai = par("mai")
+            new_mai[1] = total_height + 0.05
+            op = par(mai = new_mai)
+            on.exit(par(op))
+        }
+
+    }
+}
+
+
 ####
 #### Utilities ####
 ####
@@ -1661,8 +2119,7 @@ sunique = function(x){
 }
 
 to01 = function(x, minmax){
-    control_variable(x, "numericVector", prefix = "to01: ")
-    control_variable(x, "numericVector", prefix = "to01: ")
+    check_arg(x, minmax, "numeric vector")
 
     if(all(is.na(x))) return(x)
 
@@ -1823,6 +2280,26 @@ clean_name = function(x){
     } else {
         return(x)
     }
+}
+
+# Avoids the problem of multiple lines deparse
+deparse_long = function(x){
+    dep_x = deparse(x)
+    if(length(dep_x) == 1){
+        return(dep_x)
+    } else {
+        return(paste(gsub("^ +", "", dep_x), collapse = ""))
+    }
+}
+
+
+isVector = function(x){
+
+    if(is.atomic(x) && is.null(dim(x))){
+        return(TRUE)
+    }
+
+    return(FALSE)
 }
 
 
