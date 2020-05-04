@@ -4,7 +4,8 @@
 \name{us_pub_econ}
 \alias{us_pub_econ}
 \title{Publication data sample}
-\format{\code{us_pub_econ} is a data table with 30,756 observations and 6 variables.
+\format{
+\code{us_pub_econ} is a data table with 30,756 observations and 6 variables.
 
 \itemize{
 \item{paper_id: Numeric identifier of the publication.}
@@ -14,7 +15,8 @@
 \item{jnl_top_25p: 0/1 variable of whether the journal belongs to the top 25\% in terms of average cites.}
 \item{jnl_top_5p: 0/1 variable of whether the journal belongs to the top 5\% in terms of average cites.}
 
-}}
+}
+}
 \source{
 The source is Microsoft Academic Graph (see reference).
 }

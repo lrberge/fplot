@@ -4,16 +4,45 @@
 \alias{plot_distr}
 \title{Plot distributions, possibly conditional}
 \usage{
-plot_distr(fml, data, moderator, weight, maxFirst, toLog, maxBins,
-  bin.size, legend_options = list(), onTop, yaxis.show = TRUE,
-  yaxis.num, col, outCol = "black", mod.method, mod.select, tick_5,
-  labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep,
-  centered = TRUE, weight.fun, int.categorical, dict = getFplot_dict(),
-  mod.title, labels.angle, cex.axis, trunc = 20, trunc.method = "auto",
-  ...)
+plot_distr(
+  fml,
+  data,
+  moderator,
+  weight,
+  maxFirst,
+  toLog,
+  maxBins,
+  bin.size,
+  legend_options = list(),
+  onTop,
+  yaxis.show = TRUE,
+  yaxis.num,
+  col,
+  outCol = "black",
+  mod.method,
+  within,
+  total,
+  mod.select,
+  at_5,
+  labels.tilted,
+  addOther,
+  cumul = FALSE,
+  plot = TRUE,
+  sep,
+  centered = TRUE,
+  weight.fun,
+  int.categorical,
+  dict = getFplot_dict(),
+  mod.title = TRUE,
+  labels.angle,
+  cex.axis,
+  trunc = 20,
+  trunc.method = "auto",
+  ...
+)
 }
 \arguments{
-\item{fml}{A formula or a vector. If a formula, it must be of the type: \code{var ~ moderator | weight}. If there are no moderator nor weights, you can use directly a vector, or use \code{fml = var ~ 1}. To use weights and no moderator, use \code{fml = var ~ 1 | weight}. See examples.}
+\item{fml}{A formula or a vector. If a formula, it must be of the type: \code{weights ~ var | moderator}. If there are no moderator nor weights, you can use directly a vector, or use a one-sided formula \code{fml = ~var}. You can use multiple variables as weights, if so, you cannot use moderators at the same time. See examples.}
 
 \item{data}{A data.frame: data set containing the variables in the formula.}
 
@@ -41,11 +70,15 @@ plot_distr(fml, data, moderator, weight, maxFirst, toLog, maxBins,
 
 \item{outCol}{Outer color of the bars. Defaults is \code{"black"}.}
 
-\item{mod.method}{A character scalar: either \dQuote{splitWithin}, the default for categorical data, \dQuote{splitTotal}, \dQuote{sideWithin}, the default for data in logarithmic form or numeric data, \dQuote{sideTotal} or \dQuote{stack}. This is only used when there is more than one moderator. If within: the bars represent the distribution within each moderator class; if total, the heights of the bar represent the share in the total distribution. If split: there is one separate histogram for each moderator case. If side: moderators are represented side by side for each value of the variable. If stack: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population (in this case the within distribution does not make sense).}
+\item{mod.method}{A character scalar: either i) \dQuote{split}, the default for categorical data, ii) \dQuote{side}, the default for data in logarithmic form or numeric data, or iii) \dQuote{stack}. This is only used when there is more than one moderator. If \code{"split"}: there is one separate histogram for each moderator case. If \code{"side"}: moderators are represented side by side for each value of the variable. If \code{"stack"}: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population. You can use the other arguments \code{within} and \code{total} to say whether the distributions should be within each moderator or over the total distribution.}
+
+\item{within}{Logical, default is missing. Whether the distributions should be scaled to reflect the distribution within each moderator value. By default it is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.}
+
+\item{total}{Logical, default is missing. Whether the distributions should be scaled to reflect the total distribution (and not the distribution within each moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.}
 
 \item{mod.select}{Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 5. Alternatively, you can put an integer between 1 and 5.}
 
-\item{tick_5}{Logical. When plotting categorical variables, adds small discrete ticks every 5 bars, and bigger ticks every 10 bars. Helps to get the rank of the bars. By default it is equal to TRUE when strictly more than 10 bars have to be plotted.}
+\item{at_5}{Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting categorical variables, adds a small Roman number under every 5 bars (\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}). Helps to get the rank of the bars. The default depends on the type of data -- Not implemented when there is a moderator.}
 
 \item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
 
@@ -65,7 +98,7 @@ plot_distr(fml, data, moderator, weight, maxFirst, toLog, maxBins,
 
 \item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
-\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. By default it is equal to the moderator name (possibly modified by the argument dict) if the moderator is numeric, and empty if the moderator is *not* numeric. You can set it to \code{TRUE} to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
+\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
 
 \item{labels.angle}{Only if the labels of the x-axis are tilted. The angle of the tilt.}
 
@@ -73,7 +106,7 @@ plot_distr(fml, data, moderator, weight, maxFirst, toLog, maxBins,
 
 \item{trunc}{If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.}
 
-\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "trimRight" or "trimRight".}
+\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".}
 
 \item{...}{Other elements to be passed to plot.}
 }
@@ -85,30 +118,37 @@ This function plots distributions of items (a bit like an histogram) which can b
 # Data on publications from U.S. institutions
 data(us_pub_econ)
 
+# 0) Let's set a dictionary for a better display of variables
+setFplot_dict(c(institution = "U.S. Institution", jnl_top_25p = "Top 25\% Pub.",
+                jnl_top_5p = "Top 5\% Pub.", Frequency = "Publications"))
+
 # 1) Let's plot the distribution of publications by institutions:
-plot_distr(institution~1, us_pub_econ)
+plot_distr(~institution, us_pub_econ)
 
 # When there is only the variable, you can use a vector instead:
 plot_distr(us_pub_econ$institution)
 
 # 2) Now the production of institution weighted by journal quality
-plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ)
+plot_distr(jnl_top_5p ~ institution, us_pub_econ)
+
+# You can plot several variables:
+plot_distr(1 + jnl_top_25p + jnl_top_5p ~ institution, us_pub_econ)
 
 # 3) Let's plot the journal distribution for the top 3 institutions
 
 # We can get the data from the previous graph
-graph_data = plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ, plot = FALSE)
+graph_data = plot_distr(jnl_top_5p ~ institution, us_pub_econ, plot = FALSE)
 # And then select the top universities
 top3_instit = graph_data$x[1:3]
 top5_instit = graph_data$x[1:5] # we'll use it later
 
 # Now the distribution of journals
-plot_distr(journal ~ institution, us_pub_econ[institution \%in\% top3_instit])
+plot_distr(~ journal | institution, us_pub_econ[institution \%in\% top3_instit])
 # Alternatively, you can use the argument mod.select:
-plot_distr(journal ~ institution, us_pub_econ, mod.select = top3_instit)
+plot_distr(~ journal | institution, us_pub_econ, mod.select = top3_instit)
 
 # 3') Same graph as before with "other" column, 5 institutions
-plot_distr(journal ~ institution, us_pub_econ,
+plot_distr(~ journal | institution, us_pub_econ,
            mod.select = top5_instit, addOther = TRUE)
 
 #
@@ -119,10 +159,13 @@ plot_distr(journal ~ institution, us_pub_econ,
 plot_distr(iris$Sepal.Length)
 
 # now splitting by species:
-plot_distr(Sepal.Length ~ Species, iris)
+plot_distr(~ Sepal.Length | Species, iris)
 
-# idem but the three in the same axis:
-plot_distr(Sepal.Length ~ Species, iris, mod.method = "sideWithin")
+# idem but the three distr. are separated:
+plot_distr(~ Sepal.Length | Species, iris, mod.method = "split")
+
+# Now the three are stacked
+plot_distr(~ Sepal.Length | Species, iris, mod.method = "stack")
 
 
 

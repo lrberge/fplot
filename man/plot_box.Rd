@@ -4,12 +4,36 @@
 \alias{plot_box}
 \title{Boxplots with possibly moderators}
 \usage{
-plot_box(fml, data, case, moderator, inCol, outCol = "black",
-  density = -1, lty = 1, pch = 18, addLegend = TRUE,
-  legend_options = list(), lwd = 2, outlier, dict_case, dict_moderator,
-  order_case, order_moderator, addMean, mean.col = "darkred",
-  mean.pch = 18, mean.cex = 2, mod.title, labels.tilted, trunc = 20,
-  trunc.method = "auto", max_line, dict = getFplot_dict(), ...)
+plot_box(
+  fml,
+  data,
+  case,
+  moderator,
+  inCol,
+  outCol = "black",
+  density = -1,
+  lty = 1,
+  pch = 18,
+  addLegend = TRUE,
+  legend_options = list(),
+  lwd = 2,
+  outlier,
+  dict_case,
+  dict_moderator,
+  order_case,
+  order_moderator,
+  addMean,
+  mean.col = "darkred",
+  mean.pch = 18,
+  mean.cex = 2,
+  mod.title,
+  labels.tilted,
+  trunc = 20,
+  trunc.method = "auto",
+  line.max,
+  dict = getFplot_dict(),
+  ...
+)
 }
 \arguments{
 \item{fml}{A formula of the type: \code{var ~ case | moderator}. Note that if a formula is provided then the argument \sQuote{data} must be provided.}
@@ -54,15 +78,15 @@ plot_box(fml, data, case, moderator, inCol, outCol = "black",
 
 \item{mean.cex}{The cex of the mean, default is 2.}
 
-\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. By default it is equal to the moderator name (possibly modified by the argument dict) if the moderator is numeric, and empty if the moderator is *not* numeric. You can set it to \code{TRUE} to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
+\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
 
 \item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
 
 \item{trunc}{If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.}
 
-\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "trimRight" or "trimRight".}
+\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".}
 
-\item{max_line}{Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.}
+\item{line.max}{Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.}
 
 \item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 

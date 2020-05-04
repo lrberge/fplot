@@ -4,12 +4,31 @@
 \alias{plot_bar}
 \title{Barplot with aggregate and moderator possibilities}
 \usage{
-plot_bar(fml, data, agg, fun = mean, dict = getFplot_dict(),
-  order = FALSE, maxBins = 50, show0 = TRUE, cex.text = 0.7,
-  isDistribution = FALSE, yaxis.show = TRUE, labels.tilted,
-  trunc = 20, trunc.method = "auto", max_line, hgrid = TRUE,
-  onTop = "nb", showOther = TRUE, inCol = "#386CB0",
-  outCol = "white", xlab, ylab, ...)
+plot_bar(
+  fml,
+  data,
+  agg,
+  fun = mean,
+  dict = getFplot_dict(),
+  order = FALSE,
+  maxBins = 50,
+  show0 = TRUE,
+  cex.text = 0.7,
+  isDistribution = FALSE,
+  yaxis.show = TRUE,
+  labels.tilted,
+  trunc = 20,
+  trunc.method = "auto",
+  line.max,
+  hgrid = TRUE,
+  onTop = "nb",
+  showOther = TRUE,
+  inCol = "#386CB0",
+  outCol = "white",
+  xlab,
+  ylab,
+  ...
+)
 }
 \arguments{
 \item{fml}{A formula of the form: \code{var ~ agg} with \code{var} the variable, \code{agg} the variable over which to aggregate that will appear in the x-axis.}
@@ -38,9 +57,9 @@ plot_bar(fml, data, agg, fun = mean, dict = getFplot_dict(),
 
 \item{trunc}{If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.}
 
-\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "trimRight" or "trimRight".}
+\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".}
 
-\item{max_line}{Integer, default is 1. By defaults the labels of the x-axis can be displayed on several lines (from -1 to 1). This arguments says how far can the algorithm for the placement of the labels go downwards in the x-axis region.}
+\item{line.max}{Integer, default is 1. By defaults the labels of the x-axis can be displayed on several lines (from -1 to 1). This arguments says how far can the algorithm for the placement of the labels go downwards in the x-axis region.}
 
 \item{hgrid}{Default \code{TRUE}. Should the horizontal grid be displayed?}
 

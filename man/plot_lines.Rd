@@ -4,13 +4,27 @@
 \alias{plot_lines}
 \title{Display means conditionnally on some other values}
 \usage{
-plot_lines(fml, data, time, moderator, mod.select, smoothing_window = 0,
-  fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),
-  legend_options = list(), pt.cex = 2, lwd = 2,
-  dict = getFplot_dict(), mod.title, ...)
+plot_lines(
+  fml,
+  data,
+  time,
+  moderator,
+  mod.select,
+  smoothing_window = 0,
+  fun,
+  col = "set1",
+  lty = 1,
+  pch = c(19, 17, 15, 8, 5, 4, 3, 1),
+  legend_options = list(),
+  pt.cex = 2,
+  lwd = 2,
+  dict = getFplot_dict(),
+  mod.title = TRUE,
+  ...
+)
 }
 \arguments{
-\item{fml}{A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{data}.}
+\item{fml}{A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{data}. You can use multiple variables. If so, you cannot use a moderator at the same time.}
 
 \item{data}{Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.}
 
@@ -30,7 +44,7 @@ plot_lines(fml, data, time, moderator, mod.select, smoothing_window = 0,
 
 \item{pch}{The form types of the points, in the case there are more than one moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.}
 
-\item{legend_options}{A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Not that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.}
+\item{legend_options}{A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.}
 
 \item{pt.cex}{Default to 2. The \code{cex} of the points.}
 
@@ -38,7 +52,7 @@ plot_lines(fml, data, time, moderator, mod.select, smoothing_window = 0,
 
 \item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
-\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. By default it is equal to the moderator name (possibly modified by the argument dict) if the moderator is numeric, and empty if the moderator is *not* numeric. You can set it to \code{TRUE} to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
+\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
 
 \item{...}{Other arguments to be passed to the function \code{plot}.}
 }
