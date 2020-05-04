@@ -1913,10 +1913,12 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
                 # 2) The labels
                 # Tilted labels not implemented for this axis
                 if(delayLabelsTilted){
-                    if(strwidth(paste0(exp_value_format, collapse = "  ")) / diff(get_x_lim()) > 0.9){
-                        labels.tilted = TRUE
-                    } else {
+
+                    axis_info = xaxis_labels(at = myat, labels = exp_value_format, only.params = TRUE, xlim = xlim)
+                    if(length(unique(axis_info$line)) == 1){
                         labels.tilted = FALSE
+                    } else {
+                        labels.tilted = TRUE
                     }
 
                 }
