@@ -37,8 +37,20 @@ output:
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  eval = TRUE,
   comment = "#>"
 )
+```
+
+```{r, echo = FALSE}
+# We conditionnaly run the code pieces
+IS_FIXEST = TRUE
+msg = function() NULL
+if(!requireNamespace("fixest", quietly = TRUE)){
+  IS_FIXEST = FALSE
+	message("This vignette uses a data set from the package 'fixest', which is not currently available. Examples relating to this data set are removed.")
+	msg = function() message("Package 'fixest' not available: result not reported.")
+}
 ```
 
 `fplot` plots of distributions, automatically adjusting the parameters for the user. The syntax uses formulas, allowing conditional/weighted distributions with minimum efforts. The many arguments are automatically adjusted to provide the most meaningful (and hopefully beautiful!) graphs depending on the data at hand.
@@ -59,7 +71,7 @@ We will use data on publications extracted from the Microsoft Academic Graph.
 
 ```{r, echo = TRUE}
 library(fplot)
-data(us_pub_econ)
+data(us_pub_econ, package = "fplot")
 ```
 
 This data corresponds to publications from U.S. institution in the field of economics in the period 1985-1990. Here is a sample of the data:
@@ -134,28 +146,49 @@ Everything fits! The tilt of the labels is increased and their size is made smal
 
 Now let's illustrate the behavior of the function in presence of numerical data. We first import trade data:
 
-```{r, echo = TRUE, results = "hide"}
+```{r, echo = TRUE, eval = FALSE}
 data(trade, package = "fixest")
 head(trade)
 ```
 
-```{r, echo=FALSE, results='asis'}
-tab = head(trade)
-knitr::kable(tab)
+```{r, echo = FALSE, results = "asis"}
+if(IS_FIXEST){
+  data(trade, package = "fixest")
+  tab = head(trade)
+  knitr::kable(tab)
+} else {
+  msg()
+}
 ```
 
 This data consists of importations between pairs of European countries for different products across time. Let's look at the distribution of trade volume:
 
-```{r, fig.width=7}
+```{r, eval = FALSE, echo = TRUE}
 plot_distr(trade$Euros)
+```
+
+```{r, echo = FALSE, eval = TRUE, fig.width=7}
+if(IS_FIXEST){
+  plot_distr(trade$Euros)
+} else {
+  msg()
+}
 ```
 
 Three main things can be remarked. First, the data has been automatically set to logarithmic form beforehand in order to offer a better display. This behavior can be changed with the argument `toLog`. Second, the first column contains all the leftovers that are lower than 1,097 -- this allows to focus on the part of the graph where there is the most variation. This is why the graph does not start from 0 but rather is focused on the mode of the distribution. Thanks to this first column, there is no loss of information while ensuring greater readability. Finally, the numeric scale is formatted for an easy reading.
 
 Now let's look at the distribution of French and German exports:
 
-```{r}
+```{r, eval = FALSE, echo = TRUE}
 plot_distr(Euros~Origin, trade, mod.select = c("DE", "FR"))
+```
+
+```{r, echo = FALSE, eval = TRUE, fig.width=7}
+if(IS_FIXEST){
+  plot_distr(Euros~Origin, trade, mod.select = c("DE", "FR"))
+} else {
+  msg()
+}
 ```
 
 We use the argument `mod.select` to select the two moderator values. For each logarithmic "bin", the two moderators are compared.
