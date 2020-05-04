@@ -644,30 +644,48 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     }
 
-    # Splitting
+    #
+    # Default values for mod.method
+    #
+
+    # Splitting decision
     if(missnull(mod.method)){
         if(toLog || numAxis){
-            mod.method = "sideWithin"
+            mod.method = "side"
         } else {
-            mod.method = "splitWithin"
+            mod.method = "split"
         }
+    }
+
+    if(!missnull(total)){
+        if(!missnull(within)){
+            stop("You cannot provide the values of both arguments 'within' and 'total' at the same time.")
+        }
+        # we only use the variable 'within' in the code
+        within = !total
+    } else if(!missnull(within) && within && mod.method == "stack"){
+        stop("You cannot use within=TRUE when mod.method='stack'.")
+    } else {
+        within = TRUE
     }
 
     DO_STACK = FALSE
     if(mod.method == "stack"){
 
         if(cumul == TRUE){
-            stop("You cannot use the argument cumul=TRUE with mod.method='stack' (it makes no sense).")
+            stop("You cannot use the argument cumul=TRUE with mod.method='stack'.")
+            # I should implement it later, it might be useful in some situations (non overlapping cases)
         }
 
         DO_STACK = TRUE
-        mod.method = "sideTotal"
+        mod.method = "side"
+        within = FALSE
     }
 
     DO_SPLIT = FALSE
     checkNotTilted = FALSE
     delayLabelsTilted = missnull(labels.tilted)
-    if(moderator_cases > 1 && grepl("split", mod.method)){
+    if(moderator_cases > 1 && mod.method == "split"){
         DO_SPLIT = TRUE
         if(missnull(labels.tilted)){
             labels.tilted = TRUE
@@ -687,13 +705,13 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
     # yaxis.num
     if(missnull(yaxis.num)){
-        if(USE_WEIGHT == FALSE || missing(weight.fun) || (moderator_cases > 1 && grepl("ithin", mod.method))){
+        if(USE_WEIGHT == FALSE || missing(weight.fun) || (moderator_cases > 1 && within)){
             yaxis.num = FALSE
         } else {
             yaxis.num = TRUE
         }
-    } else if(yaxis.num == TRUE && moderator_cases > 1 && grepl("ithin", mod.method)){
-        stop("Argument yaxis.num: You cannot have a numeric y-axis when the 'within' distributions among moderators should be reported (because the data is rescaled as frequencies first). Use mod.method = 'sideTotal', mod.method = 'splitTotal' or mod.method = 'stack' to display a numeric y-axis.")
+    } else if(yaxis.num == TRUE && moderator_cases > 1 && within){
+        stop("Argument yaxis.num: You cannot have a numeric y-axis when the 'within' distributions among moderators should be reported (because the data is rescaled as frequencies first). Use total=TRUE (or within=FALSE) to display a numeric y-axis.")
     }
 
     checkForTilting = FALSE
@@ -703,7 +721,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         checkForTilting = TRUE
         # NOTE that we later update the value of checkForTilting
         # because we don't want to do it all the time (but we first need more information)
-        # just search the next occurrent of checkForTilting
+        # just search the next occurrence of checkForTilting
     }
 
     # The color
@@ -784,7 +802,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             data_freq = raw_data[, list(value = .N), keyby = list(x, moderator)]
         }
 
-        if(USE_MOD && mod.method == "sideWithin"){
+        if(USE_MOD && mod.method == "side" && within){
             data_freq[, "total_moderator" := list(sum(value)), by = moderator]
             data_freq[, "share" := list(value/total_moderator*100)]
         } else {
@@ -1069,7 +1087,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         info_all = rbindlist(info, use.names=TRUE)
 
-        if(mod.method == "splitTotal"){
+        if(mod.method == "split" && within == FALSE){
+            # SPLIT TOTAL
             total = sum(weight)
             info_all[, share := value/total*100]
             info_all[, share_top := share]
@@ -1161,7 +1180,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             } else {
                 onTop = "none"
             }
-        } else if(moderator_cases > 1 && !grepl("split", mod.method)){
+        } else if(moderator_cases > 1 && mod.method == "split"){
             # when neck to neck => much easier to compare shares
             # otherwise it is confusing
             onTop = "frac"
@@ -1207,6 +1226,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 top.value2display = formatAxisValue(info_top$value)
             } else {
                 top.value2display = paste0(mysignif(info_top$share_top, d = 2, r = 0), "%")
+                # We truncate => otherwise ugly
+                top.value2display = gsub("0.0.+", "0.0%", top.value2display)
             }
 
             #
@@ -1288,7 +1309,15 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     prefix = ""
     if(cumul) prefix = "Cumulative "
     if(moderator_cases > 1){
-        text = switch(mod.method, sideWithin = "% Within", sideTotal = "% Total", splitWithin = "% Within", splitTotal = "% Total")
+
+        if(nchar(moderator_name) == 0){
+            # text = switch(mod.method, sideWithin = paste0("% Within"), sideTotal = "% Total", splitWithin = paste0("% Within"), splitTotal = "% Total")
+            text = ifelse(within, "% Within", "% Total")
+        } else {
+            # text = switch(mod.method, sideWithin = paste0("% Within (", moderator_name, ")"), sideTotal = "% Total", splitWithin = paste0("% Within (", moderator_name, ")"), splitTotal = "% Total")
+            text = ifelse(within, paste0("% Within (", moderator_name, ")"), "% Total")
+        }
+
 
         if(USE_WEIGHT){
             if(yaxis.num == TRUE){
@@ -1316,11 +1345,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
     noSub = is.null(dots$sub)
     if(!noXlab || isNum){
         # if data is numeric, we will want the x-label, even if tilted
-        max_line = 1
+        line.max = 1 + 1
     } else if(!noSub){
-        max_line = 2
+        line.max = 2 + 1
     } else {
-        max_line = 3
+        line.max = 3 + 1
     }
 
     # Update of checkForTilting
@@ -1408,7 +1437,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
                 # finding the location
                 if(labels.tilted){
-                    info_tilt = xaxis_biased(at = myat, max_line = max_line, labels = label_displayed)
+                    info_tilt = xaxis_biased(at = myat, line.max = line.max, labels = label_displayed)
                 } else {
                     xaxis_labels(at = myat, labels = label_displayed)
                 }
@@ -1510,7 +1539,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 myat = data_freq_other[, (xleft + xright)/2]
 
                 if(maxFirst && labels.tilted){
-                    xaxis_biased(at = myat, max_line = max_line, labels = text2show, angle = info_tilt$angle, cex = info_tilt$cex)
+                    xaxis_biased(at = myat, line.max = line.max, labels = text2show, angle = info_tilt$angle, cex = info_tilt$cex)
                 } else {
                     axis(1, at = myat, labels = text2show, lwd = 0, line = -0.8, font = my_font)
                 }
@@ -1537,7 +1566,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
                 exp_value_right_format = substr(exp_value_right, 1, 7)
 
                 # finding the location
-                location = xaxis_labels(at = myat, labels = paste0("[", exp_value_format, "; ", exp_value_right_format, "["), onlyParams = TRUE)
+                location = xaxis_labels(at = myat, labels = paste0("[", exp_value_format, "; ", exp_value_right_format, "["), only.params = TRUE)
 
                 # drawing
                 for(i in 1:length(x_unik)){
@@ -1714,7 +1743,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         if(checkNotTilted){
             # If very short labels => we don't tilt them // allows to reintroduce xlab
 
-            # axis_info = xaxis_labels(at = myAt, labels = myLabels, onlyParams = TRUE)
+            # axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
             # # if we reduce the labels => we tilt them
             # labels.tilted = axis_info$cex < 1 || any(axis_info$line != -1)
             if(sum(strwidth(myLabels, cex = 0.8)) < diff(par("usr")[1:2])){
@@ -1728,7 +1757,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         }
 
         if(labels.tilted){
-            xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+            xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max)
         } else {
             xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method)
         }
@@ -1755,7 +1784,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
         } else {
             if(checkForTilting){
                 # If normal axis does not fit => tilt
-                axis_info = xaxis_labels(at = myAt, labels = myLabels, onlyParams = TRUE)
+                axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
                 if(axis_info$failed){
                     labels.tilted = TRUE
                 } else {
@@ -1766,9 +1795,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             }
 
             if(labels.tilted){
-                info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+                info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max)
             } else {
-                info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
+                info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.max = line.max)
             }
         }
 
@@ -1818,7 +1847,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 
         if(checkForTilting){
             # If normal axis does not fit => tilt
-            axis_info = xaxis_labels(at = myAt, labels = myLabels, onlyParams = TRUE)
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
             if(axis_info$failed){
                 labels.tilted = TRUE
             } else {
@@ -1828,30 +1857,50 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
             }
         }
 
-        if(labels.tilted){
-            info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, max_line = max_line)
-        } else {
-            info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method)
-        }
-
         # We also add ticks every 5/10 bins to help counting
-        if(missing(tick_5)){
-            tick_5 = max(at_info$x_nb) > 10
+        if(missing(at_5)){
+            at_5 = ifelse(max(at_info$x_nb) > 10, TRUE, FALSE)
+            if(at_5) {
+                at_5 = ifelse(labels.tilted, "line", "roman")
+            }
+        } else {
+            at_5 = at_5[1]
         }
 
-        if(tick_5){
+        if(at_5 == "roman"){
+            roman_dict = toupper(c("v", "x", "xv", "xx", "xxv", "xxx", "xxxv", "xL", "xLv", "L", "Lv", "Lx", "lxv", "lxx", "lxxv", "lxxx", "lxxxv", "xc", "xcv", "c"))
+            names(roman_dict) = (1:20) * 5
+        }
+
+        if(at_5 != "FALSE"){
             qui = which(at_info$x_nb %% 5 == 0)
             qui = qui[qui != nrow(at_info)]
+
             if(length(at_info)){
-                axis(3, at = (at_info[qui, mid_point] + at_info[qui+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, pos = 0, tck = -0.0075)
-                qui_10 = intersect(qui, which(at_info$x_nb %% 10 == 0))
-                if(length(qui_10)){
-                    axis(1, at = (at_info[qui_10, mid_point] + at_info[qui_10+1, mid_point])/2, labels = NA, lwd = 0, lwd.ticks = 2, tck = -0.0075)
+                # quoi data_freq[qui]
+                for(i in qui){
+                    if(at_5 == "roman"){
+                        axis(1, at = at_info[i, mid_point], lwd = 0, labels = roman_dict[as.character(i)], line = -1.3, cex.axis = 0.6)
+                    } else {
+                        axis(1, at = data_freq[i, .(xleft, xright)], lwd = 3, lwd.ticks = 0, labels = NA)
+                    }
                 }
+
+
             }
         }
 
+        if(labels.tilted){
+            info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, line.min = 0.35 * (at_5 == "roman"))
+        } else {
+            info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.min = 0.15 * (at_5 == "roman"))
+        }
+
     }
+
+    #
+    # yaxis and topping ####
+    #
 
 
     if(yaxis.show){
@@ -1948,7 +1997,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, maxBins, bi
 #' @param isDistribution Defaults to \code{FALSE}. It impacts the y-axis display. If it's a distribution, then percentages are shown on the y-axis.
 #' @param yaxis.show Defaults to \code{FALSE}. Should the y-axis labels be displayed?
 #' @param hgrid Default \code{TRUE}. Should the horizontal grid be displayed?
-#' @param max_line Integer, default is 1. By defaults the labels of the x-axis can be displayed on several lines (from -1 to 1). This arguments says how far can the algorithm for the placement of the labels go downwards in the x-axis region.
+#' @param line.max Integer, default is 1. By defaults the labels of the x-axis can be displayed on several lines (from -1 to 1). This arguments says how far can the algorithm for the placement of the labels go downwards in the x-axis region.
 #' @param showOther Default is \code{TRUE}. In the case the number of bins is lower than the number of cases, should the remaining obervations be displayed by a bar?
 #' @param fun A function for the aggregation. Default is \code{mean}.
 #' @param xlab The x-axis labels. By default it is the name of the aggregating variable.
@@ -2131,7 +2180,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
         ylab = x_name
     }
 
-    myBarplot(x = res, order=order, maxBins=maxBins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, max_line=max_line, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = outCol, xlab = xlab, ylab = ylab, ...)
+    myBarplot(x = res, order=order, maxBins=maxBins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, line.max=line.max, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = outCol, xlab = xlab, ylab = ylab, ...)
 
     invisible(base_agg)
 }
@@ -2160,7 +2209,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
 #' @param pch The form types of the points, in the case there are more than one moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.
 #' @param pt.cex Default to 2. The \code{cex} of the points.
 #' @param lwd Default to 2. The width of the lines.
-#' @param legend_options A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Not that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.
+#' @param legend_options A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.
 #' @param ... Other arguments to be passed to the function \code{plot}.
 #'
 #' @author Laurent Berge
@@ -2234,57 +2283,133 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
             stop("The formula must be of the type 'var ~ time' or 'var ~ time | moderator'.")
         }
 
-        fml = extract_pipe(fml_in)$fml
-        pipe = extract_pipe(fml_in)$pipe
+        info = extract_pipe(fml_in)
 
-        x = eval(fml[[2]], data)
+        lhs_fml = info$lhs_fml
+        fml = info$fml
+        pipe = info$pipe
+
+        x = extract_df(lhs_fml, data)
         time = eval(fml[[3]], data)
         moderator = eval(pipe, data)
 
+        # other info
+        MULTI_VAR = FALSE
+        if(length(x) > 1){
+            # multiple variables to plot
+            MULTI_VAR = TRUE
+
+            if(length(moderator) > 1){
+                stop("You cannot use a moderator and multiple variables at the same time. If you intended to use one variable only, wrap it into I(): I(", deparse(lhs_fml[[2]]), ").")
+            }
+
+            # check
+            for(i in 1:length(x)){
+                if(is.logical(x[[i]])){
+                    x[[i]] = x[[i]] * 1
+                } else if(!is.numeric(x[[i]])){
+                    stop("All variables must be numeric, but variable '", names(x)[i], "' isn't.")
+                }
+            }
+
+            if("Frequency" %in% names(x) && missing(fun)){
+                fun = sum
+                fun_name = "sum"
+            } else if(missing(fun)){
+                fun_name = "mean"
+            } else {
+                fun_name = deparse(substitute(fun))
+            }
+
+            # We need to stack the data
+            n = length(x[[1]])
+            all_x_names = getNames(names(x), dict)
+
+            # x_name = paste0(fun_name, "(Variables)")
+            x_name = substitute(paste(f, phantom(1), group("(", italic(Variables), ")")), list(f = fun_name))
+
+            moderator = factor(rep(all_x_names, each = n), levels = all_x_names)
+            time = rep(time, length(x))
+            x = unlist(x)
+
+            if(missing(mod.title)){
+                mod.title = "Variables"
+            }
+
+            moderator_name = ""
+        } else {
+            x = unlist(x)
+            if(is.logical(x)) x = x * 1
+            x_name = deparse(fml[[2]])
+            if(!is.numeric(x)) stop("The variable to plot must be numeric, currently '", x_name, "' isn't.")
+            if(x_name == "1"){
+                x_name = "Frequency"
+                fun = sum
+            }
+        }
+        # if(length(x) == 1){
+        #     # this is a shortcut to say that we want to display the frequency
+        #     fun = sum
+        #     x_name = "Frequency"
+        #     x = rep(1, length(time))
+        # } else {
+        #     x_name = deparse(fml[[2]])
+        # }
+
         if(is.null(moderator)){
             moderator = rep(1, length(x))
-        } else {
+        } else if(MULTI_VAR == FALSE){
             moderator_name = gsub("^.*\\| *", "", deparse(fml_in[[3]]))
-        }
-
-        # other info
-        if(length(x) == 1){
-            # this is a shortcut to say that we want to display the frequency
-            fun = sum
-            x_name = "Frequency"
-        } else {
-            x_name = deparse(fml[[2]])
         }
 
         time_name = deparse(fml[[3]])
 
     } else {
-        if(missing(time)){
-            stop("You must provide the argument 'time'.")
+
+        # Wow, the next two lines replace 10 lines of code, and error-handling is much better done
+        check_arg(time, "vector len(data) mbt", .data = fml)
+        check_arg(moderator, "safe NULL vector len(data)", .data = fml)
+
+        x = fml_in
+
+        if(!missnull(moderator)){
+            moderator_name = deparse(substitute(moderator))
         } else {
-            x = fml_in
-
-            if(length(x) != length(time)){
-                stop("The arguments 'x' and 'time' must be of the same length.")
-            }
-
-            if(!missnull(moderator)){
-                if(length(x) != length(moderator)){
-                    stop("If provided, the argument 'moderator' must be of the same length of 'x'.")
-                }
-                moderator_name = deparse(substitute(moderator))
-            } else {
-                moderator = rep(1, length(x))
-            }
-
-            # other info
-            x_name = deparse(substitute(fml_in))
-            time_name = deparse(substitute(time))
+            moderator = rep(1, length(x))
         }
+
+        x_name = deparse(substitute(fml_in))
+        time_name = deparse(substitute(time))
+        # 14 lignes
+
+        # if(missing(time)){
+        #     stop("You must provide the argument 'time'.")
+        # } else {
+        #     x = fml_in
+        #
+        #     if(length(x) != length(time)){
+        #         stop("The arguments 'x' and 'time' must be of the same length.")
+        #     }
+        #
+        #     if(!missnull(moderator)){
+        #         if(length(x) != length(moderator)){
+        #             stop("If provided, the argument 'moderator' must be of the same length of 'x'.")
+        #         }
+        #         moderator_name = deparse(substitute(moderator))
+        #     } else {
+        #         moderator = rep(1, length(x))
+        #     }
+        #
+        #     # other info
+        #     x_name = deparse(substitute(fml_in))
+        #     time_name = deparse(substitute(time))
+        # }
+        # 22 lignes
     }
 
     # Naming
-    x_name = getNames(x_name, dict)
+    if(!is.call(x_name)) x_name = getNames(x_name, dict)
+
     time_name = getNames(time_name, dict)
     moderator_name = getNames(moderator_name, dict)
 
@@ -2453,20 +2578,7 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
     if(isLegend){
         ymax = ylim[2]
 
-        # if(missing(mod.title)){
-        #     if(is.numeric(moderator) || is.logical(moderator)){
-        #         mod.title = moderator_name
-        #     } else {
-        #         mod.title = NULL
-        #     }
-        # }
-        if(missing(mod.title)){
-            if(is.numeric(moderator) || is.logical(moderator)){
-                mod.title = moderator_name
-            } else {
-                mod.title = NULL
-            }
-        } else if(isTRUE(mod.title)){
+        if(isTRUE(mod.title)){
             mod.title = moderator_name
         } else if(isFALSE(mod.title)){
             mod.title = NULL
@@ -2478,7 +2590,10 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
     }
 
     listDefault(dots, "ylim", ylim)
-    listDefault(dots, "ylab", x_name)
+    is_ylab = "ylab" %in% names(dots)
+    my_ylab = ifelse(is_ylab, dots$ylab, "")
+    dots$ylab = ""
+    # listDefault(dots, "ylab", x_name)
     listDefault(dots, "xlab", time_name)
     dots$type = "n"
 
@@ -2529,6 +2644,14 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
 
     do.call("plot", dots)
     dots$axes = NULL # not a graphical parameter afterwards
+
+    # ylab: because of problems with calls
+    if(is_ylab){
+        title(ylab = my_ylab)
+    } else {
+        title(ylab = x_name)
+    }
+
 
     if(style == "bar"){
         hgrid(ymax = ymax)
@@ -2657,7 +2780,7 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
 #' @param mean.col The color of the mean. Default is darkred.
 #' @param mean.cex The cex of the mean, default is 2.
 #' @param mean.pch The patch of the mean, default is 18.
-#' @param max_line Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.
+#' @param line.max Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.
 #' @param density The density of lines within the boxes. By default it is equal to -1, which means the boxes are filled with color.
 #' @param lty The type of lines for the border of the boxes. Default is 1 (solid line).
 #' @param ... Other parameters to be passed to \code{plot}.
@@ -2946,6 +3069,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         case_name = ""
     }
 
+
     listDefault(dots, "ylim", ylim)
     listDefault(dots, "ylab", x_name)
     listDefault(dots, "xlab", case_name)
@@ -2966,17 +3090,19 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
 
     if(isAxes){
         box()
-        axis(2)
+
+        las = dots$las
+        axis(2, las = las)
 
         at_labels = 1 + (n_moderator-1)/2 + (0:(n_case-1))*(n_moderator+sep)
         # axis(1, at = at_labels, labels = aliasCase, lwd = 0)
 
         if(labels.tilted){
-            if(missnull(max_line)) max_line = 2
-            xaxis_biased(at = at_labels, labels = aliasCase, trunc = trunc, trunc.method = trunc.method, max_line=max_line)
+            if(missnull(line.max)) line.max = 2 + 1
+            xaxis_biased(at = at_labels, labels = aliasCase, trunc = trunc, trunc.method = trunc.method, line.max=line.max)
         } else {
-            if(missnull(max_line)) max_line = 1
-            xaxis_labels(at = at_labels, labels = aliasCase, trunc = trunc, trunc.method = trunc.method, max_line=max_line)
+            if(missnull(line.max)) line.max = 1 + 1
+            xaxis_labels(at = at_labels, labels = aliasCase, trunc = trunc, trunc.method = trunc.method, line.max=line.max)
         }
 
     }
@@ -3011,8 +3137,15 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         # now the outliers
         if(outlier){
             for(j in 1:n_case){
-                quoi_case = quoi[case == case_unik[j]]
-                y = x[moderator == moderator_unik[i] & case == case_unik[j]]
+                if(CASE_FACTOR){
+                    # values have been unclassed
+                    quoi_case = quoi[case == j]
+                    y = x[moderator == moderator_unik[i] & case == j]
+                } else {
+                    quoi_case = quoi[case == case_unik[j]]
+                    y = x[moderator == moderator_unik[i] & case == case_unik[j]]
+                }
+
                 qui_outlier = y > quoi_case$max_whisker | y <  quoi_case$min_whisker
                 if(any(qui_outlier)){
                     points(rep(quoi_case$x, sum(qui_outlier)), y[qui_outlier], pch=pch)
