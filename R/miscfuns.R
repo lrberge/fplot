@@ -2082,19 +2082,31 @@ extract_pipe = function(fml){
 
     FML = Formula::Formula(fml)
     n_fml = length(FML)
+    n_lhs = n_fml[1]
     n_rhs = n_fml[2]
 
-    if(n_rhs == 1){
-        fml_new = formula(FML, lhs = n_fml[1], rhs = 1)
-        pipe = NULL
-    } else if(n_rhs == 2){
-        fml_new = formula(FML, lhs = 1, rhs = 1)
-        pipe = as.expression(formula(FML, lhs = 0, rhs = 2)[[2]])
-    } else {
-        stop("fml must be at *most* a two part formula (currently it is ", n_rhs, " parts).")
+    if(n_lhs == 0){
+        # If no LHS, fine, but we recreate a two sided formula
+        FML = Formula::Formula(update(FML, 1~.))
+        n_lhs = 1
     }
 
-    list(fml=fml_new, pipe=pipe)
+    if(n_rhs == 1){
+        fml_new = formula(FML, lhs = n_lhs, rhs = 1)
+        lhs_fml = ~x1
+        lhs_fml[[2]] = formula(FML, lhs = n_lhs, rhs = 0)[[2]]
+        pipe = pipe_fml = NULL
+    } else if(n_rhs == 2){
+        fml_new = formula(FML, lhs = 1, rhs = 1)
+        lhs_fml = pipe_fml = ~x1
+        lhs_fml[[2]] = formula(FML, lhs = n_lhs, rhs = 0)[[2]]
+        pipe = as.expression(formula(FML, lhs = 0, rhs = 2)[[2]])
+        pipe_fml[[2]] = formula(FML, lhs = 0, rhs = 2)[[2]]
+    } else {
+        stop_up("Argument 'fml' must be at *most* a two part formula (currently it is ", n_rhs, " parts).")
+    }
+
+    list(fml = fml_new, lhs_fml = lhs_fml, pipe = pipe, pipe_fml = pipe_fml)
 }
 
 sunique = function(x){
