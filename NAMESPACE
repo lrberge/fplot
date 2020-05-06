@@ -3,7 +3,7 @@ useDynLib(fplot, .registration = TRUE)
 
 # Main plotting functions
 export(plot_distr, plot_lines, plot_box)
-export(setFplot_dict, getFplot_dict)
+export(setFplot_dict, getFplot_dict, setFplot_distr)
 
 # Export figures
 export(setFplot_page, pdf_fit, png_fit, bmp_fit, tiff_fit, jpeg_fit, fit.off)
@@ -20,10 +20,10 @@ importFrom("graphics", "abline", "axis", "barplot", "box", "grid",
              "legend", "lines", "par", "plot", "points", "polygon",
              "rect", "segments", "strheight", "strwidth", "text",
              "title")
-importFrom("stats", "lm", "median", "quantile", "sd", "formula", "na.omit", "var")
+importFrom("stats", "lm", "median", "quantile", "sd", "formula", "na.omit", "var", "as.formula", "terms", "update")
 importFrom("utils", "head", "tail")
 importFrom("Formula", "Formula")
-importFrom("grDevices", "pdf", "png", "jpeg", "bmp", "tiff")
+importFrom("grDevices", "pdf", "png", "jpeg", "bmp", "tiff", "dev.off")
 
 
 
