@@ -42,7 +42,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, include = FALSE}
 # We conditionnaly run the code pieces
 IS_FIXEST = TRUE
 msg = function() NULL
@@ -51,17 +51,25 @@ if(!requireNamespace("fixest", quietly = TRUE)){
 	message("This vignette uses a data set from the package 'fixest', which is not currently available. Examples relating to this data set are removed.")
 	msg = function() message("Package 'fixest' not available: result not reported.")
 }
+library(fplot)
 ```
 
 `fplot` plots of distributions, automatically adjusting the parameters for the user. The syntax uses formulas, allowing conditional/weighted distributions with minimum efforts. The many arguments are automatically adjusted to provide the most meaningful (and hopefully beautiful!) graphs depending on the data at hand.
 
-Although the core of the package concerns distributions, `fplot` also offers functions to plot trends (possibly conditional), aggregate barplots and conditional boxplots. 
+Although the core of the package concerns distributions, `fplot` also offers functions to plot trends (possibly conditional) and conditional boxplots. 
+
+Since the main purpose of this package is to provide graphs ready for publications, you can globally relabel all the variables to be displayed with `setFplot_dict`. In this vignette this is done once: 
+
+```{r}
+setFplot_dict(c(Origin = "Exporting Country", Destination = "Importing Country", Euros = "Exports Value in €", jnl_top_25p = "Pub. in Top 25% journal", jnl_top_5p = "Publications in Top 5% journal", journal = "Journal", institution = "U.S. Institution", Petal.Length = "Petal Length"))
+```
+
 
 # Distributions
 
 The function `plot_distr` plots distributions. The syntax of the function `plot_distr` is as follows:
 
-`plot_distr(variable ~ moderator | weight, data)`
+`plot_distr(weight(s) ~ variable | moderator, data)`
 
 This function is extremely versatile: its default behavior totally depends on the data it deals with. 
 
@@ -94,33 +102,41 @@ plot_distr(us_pub_econ$institution)
 
 ```
 
-What can we remark? First only the first 15 most important institutions are plotted. Indeed, since the institution variable is a categorical data, plotting all the 444 different would have just cluttered the graph and nothing could have been visible. We can increase the number of bars plotted with argument `maxBins`.
+What can we remark? First only the first 15 most important institutions are plotted. Indeed, since the institution variable is a categorical data, plotting all the 444 different would have just cluttered the graph and nothing could have been visible. We can increase the number of bars plotted with argument `nbins`.
 
-Although only the first are plotted, we still have information on the institutions left with the last (broken) bar reporting the number of publications that are left. We can avoid displaying this column with the argument `addOther = FALSE`.
+Although only the first are plotted, we still have information on the institutions left with the last (broken) bar reporting the number of publications that are left. We can avoid displaying this column with the argument `other = FALSE`.
 
-We can also notice that not only the graph of the distribution is shown, but the number of observations is reported on the top of each bar to have a quick insight of the total numbers. Further, the size of the numbers always fit the width of the bars. The argument `onTop` manages the information displayed on the top of the bars: it can be numbers (`onTop = "nb"`), fractions (`onTop = "frac"`), or nothing (`onTop = "none"`). The default depends on the type of data. 
+We can also notice that not only the graph of the distribution is shown, but the number of observations is reported on the top of each bar to have a quick insight of the total numbers. Further, the size of the numbers always fit the width of the bars. The argument `top` manages the information displayed on the top of the bars: it can be numbers (`top = "nb"`), fractions (`top = "frac"`), or nothing (`top = "none"`). The default depends on the type of data. 
 
-Finally, the labels in the x-axis: i) all appear and ii) are truncated meaningfully. Since the institution variable is categorical, there is no way to deduce which institution each bar represent if it is not displayed explicitly. They are further truncated at 20 characters (argument `trunc`) and the truncation method tries to keep the most information from the labels (`trunc.method = "auto"`). But there are other truncation methods, like trimming the right (resp. the middle) of the label with `trunc.method = "trimRight"` (resp. `trunc.method = "trimMid"`). To display horizontal labels instead, you can use `labels.tilted = FALSE`.
+Finally, the labels in the x-axis: i) all appear and ii) are truncated meaningfully. Since the institution variable is categorical, there is no way to deduce which institution each bar represent if it is not displayed explicitly. They are further truncated at 20 characters (argument `trunc`) and the truncation method tries to keep the most information from the labels (`trunc.method = "auto"`). But there are other truncation methods, like trimming the right (resp. the middle) of the label with `trunc.method = "right"` (resp. `trunc.method = "mid"`). To display horizontal labels instead, you can use `labels.tilted = FALSE`.
 
 Now let's weight the production of the institutions by the quality of the journals:
 
 ```{r, fig.width=7}
-plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ)
+plot_distr(jnl_top_5p ~ institution, us_pub_econ)
 
 ```
 
-We used a formula to add the weight. Note that since there is no moderator, we replaced it by `1`. Notice that now Stanford ranks 3rd (it was 14th when not weighting by quality).
+We added the weight directly in the left-hand-side of the formula. Notice that now Harvard ranks 1st (it was 3rd when not weighting by quality).
+
+We can add several weights at the same time:
+```{r, fig.width=7}
+plot_distr(1 + jnl_top_25p + jnl_top_5p ~ institution, us_pub_econ)
+
+```
+
+As we can see, the more we weight by quality, the more the distribution is skewed towards the top institutions.
 
 Now we illustrate the conditional graphs by asking the question of what are the journals in which the 3 most productive institutions publish.
 
 ```{r, fig.width=7}
-plot_distr(journal ~ institution, us_pub_econ)
+plot_distr(~ journal | institution, us_pub_econ)
 
 ```
 
 What happened? In the x-axis, the journals are displayed since they are the "variable", and since we added the institution as a moderator, the data is broken down across each institution. But not all the 444 institutions are shown: by default only the three moderator values (here institutions) that appear the most are reported. When there is an automatic selection, a message is also prompted. The user can increase the number of moderator values reported with the argument `mod.select`, or provide the specific values to be shown.
 
-The 7 most important journals are displayed for each institution and the scale corresponds to the share of the journal within the institution. Instead of displaying the within share, the total share could have been displayed with the option `mod.method = "splitTotal"`.
+The 7 most important journals are displayed for each institution and the scale corresponds to the share of the journal within the institution. Instead of displaying the within share, the total share could have been displayed with the option `total = TRUE`.
 
 Here the numbers on the top of the bars come handy to provide comparisons across institutions. Importantly, because the journal names are long, it would have been impossible to display them in a standard way. As we can see, they are first truncated (meaningfully) and then tilted. in the end, the graph is fully informative.
 
@@ -128,19 +144,17 @@ By default, when the data is split, the bar containing the "other" information i
 
 ```{r, fig.width=7}
 # Previous graph + "other" column
-plot_distr(journal ~ institution, us_pub_econ, addOther = TRUE)
+plot_distr(~ journal | institution, us_pub_econ, other = TRUE)
 
 ```
 
-One last thing, what would happen if we add a x-axis label given that the full space is already taken by the journal labels? Let's try.
+If you wish to select other moderator values, you can use `mod.select` with regular expressions. Let's have a look at three Massachusetts institutions:
 
 ```{r, fig.width=7}
-# Previous graph + "other" column
-plot_distr(journal ~ institution, us_pub_econ, xlab = "Journal")
+plot_distr(~ journal | institution, us_pub_econ, mod.select = "harvard|boston.+uni|mass.+inst")
 
 ```
 
-Everything fits! The tilt of the labels is increased and their size is made smaller to accomodate the x-axis label.
 
 ## Numeric data
 
@@ -175,17 +189,17 @@ if(IS_FIXEST){
 }
 ```
 
-Three main things can be remarked. First, the data has been automatically set to logarithmic form beforehand in order to offer a better display. This behavior can be changed with the argument `toLog`. Second, the first column contains all the leftovers that are lower than 1,097 -- this allows to focus on the part of the graph where there is the most variation. This is why the graph does not start from 0 but rather is focused on the mode of the distribution. Thanks to this first column, there is no loss of information while ensuring greater readability. Finally, the numeric scale is formatted for an easy reading.
+Three main things can be remarked. First, the data has been automatically set to logarithmic form beforehand in order to offer a better display. This behavior can be changed with the argument `log`. Second, the first column contains all the leftovers that are lower than 1,097 -- this allows to focus on the part of the graph where there is the most variation. This is why the graph does not start from 0 but rather is focused on the mode of the distribution. Thanks to this first column, there is no loss of information while ensuring greater readability. Finally, the numeric scale is formatted for an easy reading.
 
 Now let's look at the distribution of French and German exports:
 
 ```{r, eval = FALSE, echo = TRUE}
-plot_distr(Euros~Origin, trade, mod.select = c("DE", "FR"))
+plot_distr(~ Euros | Origin, trade, mod.select = c("DE", "FR"))
 ```
 
 ```{r, echo = FALSE, eval = TRUE, fig.width=7}
 if(IS_FIXEST){
-  plot_distr(Euros~Origin, trade, mod.select = c("DE", "FR"))
+  plot_distr(~ Euros | Origin, trade, mod.select = c("DE", "FR"))
 } else {
   msg()
 }
@@ -202,7 +216,7 @@ plot_distr(iris$Petal.Length)
 For "well distributed" continuous data, it looks very much like a regular histogram, but a bit nicer. Note that the bin size is always "discrete" to allow easy reading. Now we can also split the data by species:
 
 ```{r}
-plot_distr(Petal.Length ~ Species, iris)
+plot_distr(~ Petal.Length | Species, iris)
 ```
 
 Note that the full widths of the bins are reported in dashed lines, so that the user does not confuse the size of the total bin with the size of the bin for one single species.
@@ -210,7 +224,7 @@ Note that the full widths of the bins are reported in dashed lines, so that the 
 Instead of displaying the three species on the same axis, we could also choose to split the data:
 
 ```{r}
-plot_distr(Petal.Length ~ Species, iris, mod.method = "splitWithin")
+plot_distr(~ Petal.Length | Species, iris, mod.method = "split")
 ```
 
 The full distribution of the three species are now separated.
@@ -220,7 +234,7 @@ The full distribution of the three species are now separated.
 Another way to display moderators is by stacking their values. Let's see the sepal length distribution by iris species:
 
 ```{r}
-plot_distr(Sepal.Length ~ Species, iris, mod.method = "stack")
+plot_distr(~ Sepal.Length | Species, iris, mod.method = "stack")
 ```
 
 ## Cumulative distribution
@@ -228,10 +242,10 @@ plot_distr(Sepal.Length ~ Species, iris, mod.method = "stack")
 To display the umulative distribution, simply use the argument `cumul = TRUE`. Let's look at the cumulative distribution of the top 5% publications:
 
 ```{r}
-plot_distr(institution ~ 1|jnl_top_5p, us_pub_econ, cumul = TRUE)
+plot_distr(jnl_top_5p ~ institution, us_pub_econ, cumul = TRUE)
 ```
 
-Just 10 institutions (the small black tick in between bars means 10) account for 33% of all top 5% publications.
+Just 10 institutions (the thick black line appears every five values) account for 33% of all top 5% publications.
 
 # Trends
 
@@ -300,22 +314,9 @@ Now the outliers are reported, to avoid this behavior, we can use the argument `
 plot_box(nb_pub_top_5 ~ year | isTop5, base_pub, outlier = FALSE)
 ```
 
-
-# Utilities
-
-## Relabeling
-
-The package `fplot` offers a tool to rename the variables permanently to have more meaningful graphic labels costlessly. Let's use the example on U.S. publications where we relabel the variable `institution` and `jnl_top_5p` with the function `setFplot_dict`:
-
+You can also plot several variables at once. Let's take an example using iris data:
 ```{r}
-setFplot_dict(c(institution = "U.S. institution", 
-                jnl_top_5p = "Publications in Top 5% Journals"))
-```
-
-Now, for any `fplot` graph using any of these two variables, when these variable names should appear, their new label would appear instead:
-
-```{r}
-plot_distr(institution ~ 1 | jnl_top_5p, us_pub_econ, maxBins = 10)
+plot_box(. ~ Species, iris)
 ```
 
 
