@@ -3,10 +3,102 @@
 
 \title{News for \R Package \pkg{fplot}}
 
-\section{Changes in version 0.X.X}{
-    \subsection{Minor user visible changes.}{
+\section{Changes in version 1.0.0 (2020-05-06)}{
+
+    \subsection{New set of functions: The chore of exporting graphs is over!}{
         \itemize{
-            \item
+            \item A new set of functions has been created to easily export figures that should fit in a document.
+            \item The five functions are \code{pdf_fit}, \code{png_fit}, \code{jpeg_fit}, \code{tiff_fit} and \code{bmp_fit}.
+            \item First, if needed, you set the geometry of your document with \code{setFplot_page}. Defaults to US-letter and *normal* margins => this is used to deduce the size the figures will take in the document.
+            \item When using \code{pdf_fit}, instead of providing the height and width of the figure in absolute terms, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
+            \item Use \code{fit.off} instead of \code{dev.off} to close the device and you will get the exported graph displayed in the viewer pane! No need to open your file to see whether the export is proper, you have it automatically done!
+        }
+    }
+
+
+    \subsection{New function: setting default values for \code{plot_distr}}{
+        \itemize{
+            \item New function \code{setFplot_distr} to set most default values of the function \code{plot_distr}.
+        }
+    }
+
+
+    \subsection{User visible changes in \code{plot_distr}}{
+        \itemize{
+            \item MAJOR CHANGE NOT RETRO COMPATIBLE: complete overhaul of the formula. Now the main argument 'fml' is of the form \code{weights ~ var | moderator} (before it was \code{var ~ moderator | weights}). Allows to use one-sided formulas.
+            \item Argument \code{tick_5} becomes \code{at_5} and can take three values: FALSE, "roman" or "line". It is used to inform on the index of the bars by adding a small Roman number under every 5 bars (\code{at_5 = "roman"}), or drawing a thick axis line every 5 bars (\code{at_5 = "line"}). The default depends on the types of the data.
+            \item When fractions are displayed on top of the bars, very low numbers are now trucated (avoids having to display too small numbers).
+            \item The name of the moderator is now displayed in the yaxis when appropriate for within distributions.
+            \item Legend titles are now always displayed by default.
+            \item You can display the distribution for several weights at the same time.
+            \item Argument \code{mod.method} has been revamped. It's meaning has been split: \code{mod.method} takes values in "side", "split" or "stack" and two new arguments \code{within} and \code{total} have been created to define whether the distribution should be within each moderator or over the total distribution.
+            \item The argument \code{trunc.method} now takes the values "auto", "right" and "mid" (instead of "auto", "trimRight" and "trimMid").
+            \item The size of the bottom and left margins are now automatically adjusted so the text always fit.
+            \item Argument \code{mod.select} now supports regular expressions.
+            \item New argument \code{mod.NA} which display the distribution of missing values.
+        }
+    }
+
+    \subsection{User visible changes in \code{plot_lines}}{
+        \itemize{
+            \item You can display the trend for several variables at the same time => they will be treated as moderators.
+            \item One sided formulas are accepted.
+            \item Argument \code{mod.select} now supports regular expressions.
+            \item New argument \code{mod.NA} which display the distribution of missing values.
+        }
+    }
+
+    \subsection{User visible changes in \code{plot_box}}{
+        \itemize{
+            \item You can display several variables at once (long overdue!).
+        }
+    }
+
+    \subsection{Error-handling}{
+        \itemize{
+            \item Better error-handling with dreamerr's functions.
+        }
+    }
+
+    \subsection{Bug correction}{
+        \itemize{
+            \item[plot_lines] Bug when plotting frequencies with moderators.
+            \item[plot_box] Bug regarding the display of the outliers when the cases are of type factor.
+            \item[plot_distr] Bug when the variable was of type logical.
+            \item[fplot] Bug when the moderator was loigical.
+        }
+    }
+
+
+    \subsection{Arguments: name change}{
+        \itemize{
+            \item max_line => line.max
+            \item tick_5 => at_5 (and is much better implemented)
+            \item maxFirst => sorted
+            \item onTop => top
+            \item addOther => other
+            \item maxBins => nbins
+            \item toLog => log
+        }
+    }
+}
+
+\section{Changes in version 0.2.1 (2020-02-12)}{
+
+    \subsection{User visible changes}{
+        \itemize{
+            \item Better adjustment of the legend height.
+        }
+    }
+
+    \subsection{Bug fixes}{
+        \itemize{
+            \item[plot_distr] Bug when the weight contained NAs. Now fixed.
+        }
+    }
+    \subsection{Other}{
+        \itemize{
+            \item Package \code{fixest} is removed from help files and called conditionnaly in the vignette.
         }
     }
 }
