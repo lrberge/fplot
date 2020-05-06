@@ -8,6 +8,93 @@
 # roxygen2::roxygenise(roclets = "rd")
 
 
+
+#' Sets the defaults of plot_distr
+#'
+#' The default values of most arguments of \code{\link[fplot]{plot_distr}} can be set with \code{setFplot_distr}.
+#'
+#' @inheritParams plot_distr
+#'
+#' @param reset Logical scalar, default is \code{FALSE}. Whether the defaults should be reset.
+#'
+#' @seealso
+#' \code{\link[fplot]{plot_distr}}, \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{fit.off}}.
+#'
+#' @examples
+#'
+#' # Changing the default color set for plot_distr only
+#' my_col = c("#36688D", "#F3CD05", "#F49F05", "#F18904", "#BDA589")
+#'
+#' setFplot_distr(col = my_col, mod.method = "split", border = NA)
+#'
+#' plot_distr(~ Petal.Length | Species, iris)
+#'
+#' # Back to normal
+#' setFplot_distr(reset = TRUE)
+#'
+#' plot_distr(~ Petal.Length | Species, iris)
+#'
+#'
+#'
+setFplot_distr = function(sorted, log, top, yaxis.num, col, border = "black", mod.method, within, total, at_5, labels.tilted, other, cumul = FALSE, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", reset = FALSE){
+    # Function to set the defaults of plot_distr
+    fm_distr = formals(plot_distr)
+    arg_list = names(fm_distr)
+    # arg_no_default = c("fml", "data", "moderator", "weight", "nbins", "bin.size", "legend_options", "yaxis.show", "mod.select", "plot", "sep", "...")
+    # m = fm_distr[!names(fm_distr) %in% arg_no_default]
+    # cat(gsub(" = ,", ",", paste0(names(m), " = ", sapply(m, deparse), collapse = ", ")))
+
+
+    check_arg("logical scalar", sorted, log, yaxis.num, within, total, labels.tilted, other, cumul)
+    check_arg("logical scalar", centered, int.categorical, reset)
+
+    check_arg_plus(top, "match(frac, nb, none, FALSE)")
+    if(!missing(top) && top == "FALSE") top = "none"
+
+    check_arg(col, "vector")
+    check_arg(border, "NULL NA | vector(character, integer) NA OK")
+
+    check_arg_plus(mod.method, "match(side, split, stack)")
+    check_arg_plus(at_5, "match(roman, line, FALSE)")
+
+    check_arg(weight.fun, "function arg(1,)")
+
+    check_arg(dict, "null named character vector | logical scalar")
+    check_arg(mod.title, "scalar(character, logical)")
+
+    check_arg(labels.angle, "numeric scalar GE{10} LE{90}")
+    check_arg(cex.axis, "numeric scalar GT{0}")
+    check_arg(trunc, "integer scalar GT{5}")
+    check_arg_plus(trunc.method, "match(auto, mid, right)")
+
+    # Getting the existing defaults
+    opts = getOption("fplot_distr")
+
+    if(is.null(opts)){
+        opts = list()
+    } else if(!is.list(opts)){
+        warning("Wrong formatting of option 'fplot_distr', all options are reset.")
+        opts = list()
+    } else if(reset){
+        opts = list()
+    }
+
+    # Saving the default values
+    mc = match.call()
+    args_default = intersect(names(mc), arg_list)
+
+    # NOTA: we don't allow delayed evaluation => all arguments must have hard values
+    for(v in args_default){
+        opts[[v]] = eval(as.name(v))
+    }
+
+    options(fplot_distr = opts)
+
+}
+
+
+
+
 #' Plot distributions, possibly conditional
 #'
 #' This function plots distributions of items (a bit like an histogram) which can be easily conditioned over.
@@ -16,8 +103,8 @@
 #' @param data A data.frame: data set containing the variables in the formula.
 #' @param moderator Optional, only if argument \code{fml} is a vector. A vector of moderators.
 #' @param weight Optional, only if argument \code{fml} is a vector. A vector of (positive) weights.
-#' @param maxFirst Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.
-#' @param toLog Logical, only used when the data is numeric. If \code{TRUE}, then the data is put to logarithm beforehand. By default numeric values are put to log if the log variation exceeds 3.
+#' @param sorted Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.
+#' @param log Logical, only used when the data is numeric. If \code{TRUE}, then the data is put to logarithm beforehand. By default numeric values are put to log if the log variation exceeds 3.
 #' @param col A vector of colors, default is close to paired. You can also use \dQuote{set1} or \dQuote{paired}.
 #' @param border Outer color of the bars. Defaults is \code{"black"}. Use \code{NA} to remove the borders.
 #' @param nbins Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.
@@ -25,16 +112,17 @@
 #' @param legend_options A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.
 #' @param yaxis.show Whether the y-axis should be displayed, default is \code{TRUE}.
 #' @param yaxis.num Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).
-#' @param mod.select Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 5. Alternatively, you can put an integer between 1 and 5.
+#' @param mod.select Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 5. Alternatively, you can put an integer between 1 and 5. This argument also accepts regular expressions.
+#' @param mod.NA Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator contains \code{NA} values, all \code{NA} values from the moderator will be treated as a regular case: allows to display the distribution for missing values.
 #' @param mod.method A character scalar: either i) \dQuote{split}, the default for categorical data, ii) \dQuote{side}, the default for data in logarithmic form or numeric data, or iii) \dQuote{stack}. This is only used when there is more than one moderator. If \code{"split"}: there is one separate histogram for each moderator case. If \code{"side"}: moderators are represented side by side for each value of the variable. If \code{"stack"}: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population. You can use the other arguments \code{within} and \code{total} to say whether the distributions should be within each moderator or over the total distribution.
 #' @param within Logical, default is missing. Whether the distributions should be scaled to reflect the distribution within each moderator value. By default it is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.
 #' @param total Logical, default is missing. Whether the distributions should be scaled to reflect the total distribution (and not the distribution within each moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.
 #' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).
 #' @param labels.angle Only if the labels of the x-axis are tilted. The angle of the tilt.
-#' @param addOther Logical. Should there be a last column counting for the observations not displayed? Default is \code{TRUE} except when the data is split.
+#' @param other Logical. Should there be a last column counting for the observations not displayed? Default is \code{TRUE} except when the data is split.
 #' @param plot Logical, default is \code{TRUE}. If \code{FALSE} nothing is plotted, only the data is returned.
 #' @param sep Positive number. The separation space between the bars. The scale depends on the type of graph.
-#' @param centered Logical, default is \code{TRUE}. For numeric data only and when \code{maxFirst=FALSE}, whether the histogram should be centered on the mode.
+#' @param centered Logical, default is \code{TRUE}. For numeric data only and when \code{sorted=FALSE}, whether the histogram should be centered on the mode.
 #' @param weight.fun A function, by default it is \code{sum}. Aggregate function to be applied to the weight with respect to variable and the moderator. See examples.
 #' @param at_5 Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting categorical variables, adds a small Roman number under every 5 bars (\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}). Helps to get the rank of the bars. The default depends on the type of data -- Not implemented when there is a moderator.
 #' @param dict A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.
@@ -44,10 +132,16 @@
 #' @param trunc If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.
 #' @param trunc.method If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".
 #' @param cumul Logical, default is \code{FALSE}. If \code{TRUE}, then the cumulative distribution is plotted.
-#' @param onTop What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.
+#' @param top What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.
 #' @param ... Other elements to be passed to plot.
 #'
+#' @details
+#' Most default values can be modified with the function \code{\link[fplot]{setFplot_distr}}.
+#'
 #' @author Laurent Berge
+#'
+#' @seealso
+#' To plot temporal evolutions: \code{\link[fplot]{plot_lines}}. For boxplot: \code{\link[fplot]{plot_box}}. To export graphs: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, \code{\link[fplot]{fit.off}}.
 #'
 #'
 #' @examples
@@ -86,7 +180,7 @@
 #'
 #' # 3') Same graph as before with "other" column, 5 institutions
 #' plot_distr(~ journal | institution, us_pub_econ,
-#'            mod.select = top5_instit, addOther = TRUE)
+#'            mod.select = top5_instit, other = TRUE)
 #'
 #' #
 #' # Example with continuous data
@@ -106,7 +200,7 @@
 #'
 #'
 #'
-plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.size, legend_options=list(), onTop, yaxis.show=TRUE, yaxis.num, col, border = "black", mod.method, within, total, mod.select, at_5, labels.tilted, addOther, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size, legend_options=list(), top, yaxis.show=TRUE, yaxis.num, col, border = "black", mod.method, within, total, mod.select, mod.NA = FALSE, at_5, labels.tilted, other, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # DT VARS
@@ -123,43 +217,72 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     # - mod.method, equal to "side", "split", "stack"
     # - within and total: TRUE/FALSE
     # - all values are missing
-    if(!missing(mod.method)){
-        check_arg_plus(mod.method, "match(side, split, stack)")
-    }
+    check_arg_plus(mod.method, "match(side, split, stack)")
 
-
-    if(!missnull(onTop)){
-        if(isFALSE(onTop)){
-            onTop = "none"
-        } else if(length(onTop) == 1 && is.character(onTop) && onTop == ""){
-            onTop = "none"
-        } else {
-            check_arg_plus(onTop, "match(frac, nb, none)")
-        }
-
-    }
+    check_arg_plus(top, "null match(frac, nb, none, FALSE)")
+    if(!missnull(top) && top == "FALSE") top = "none"
 
     check_arg(moderator, "null vector na ok")
     check_arg(weight, "null numeric vector na ok")
 
     check_arg(sep, "null numeric scalar GE{0}")
     check_arg(nbins, "null integer scalar GT{0}")
-    check_arg(col, "vector(integer, character)")
+    check_arg(col, "vector(integer, character) NA OK")
     check_arg(bin.size, "null numeric scalar GT{0}")
     check_arg(dict, "null named character vector | logical scalar")
     check_arg(mod.title, "scalar(character, logical)")
     check_arg(labels.angle, "numeric scalar")
 
-    check_arg("null logical scalar", maxFirst, toLog, labels.tilted, plot, centered)
-    check_arg("logical scalar", yaxis.show, yaxis.num, int.categorical, cumul, within, total)
+    check_arg("null logical scalar", sorted, log, labels.tilted, plot, centered, other)
+    check_arg("logical scalar", yaxis.show, yaxis.num, int.categorical, cumul, within, total, mod.NA)
 
     mc = match.call()
 
+    # Argument whose names have changed
+
     dots = list(...)
-    if("maxBins" %in% names(dots)){
-        warning("Argument 'maxBins' has been renamed. Please use 'nbins' instead.")
-        nbins = dots$maxBins
+    args_deprec = c("maxBins", "addOther", "onTop", "maxFirst", "toLog")
+    if(any(args_deprec %in% names(dots))){
+        if("maxBins" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_maxBins"))){
+                warning("Argument 'maxBins' has been renamed. Please use 'nbins' instead.")
+                options(fplot_warn_maxBins = TRUE)
+            }
+            nbins = dots$maxBins
+        }
+        if("addOther" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_addOther"))){
+                warning("Argument 'addOther' has been renamed. Please use 'other' instead.")
+                options(fplot_warn_addOther = TRUE)
+            }
+            other = dots$addOther
+        }
+        if("onTop" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_onTop"))){
+                warning("Argument 'onTop' has been renamed. Please use 'top' instead.")
+                options(fplot_warn_onTop = TRUE)
+            }
+            top = dots$onTop
+        }
+        if("maxFirst" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_maxFirst"))){
+                warning("Argument 'maxFirst' has been renamed. Please use 'sorted' instead.")
+                options(fplot_warn_maxFirst = TRUE)
+            }
+            sorted = dots$maxFirst
+        }
+        if("toLog" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_toLog"))){
+                warning("Argument 'toLog' has been renamed. Please use 'log' instead.")
+                options(fplot_warn_toLog = TRUE)
+            }
+            log = dots$toLog
+        }
     }
+
+    set_defaults("fplot_distr")
+
+    validate_dots(valid_args = c(args_deprec, names(par), "ann"), stop = TRUE)
 
     #
     # Extracting x and the moderator ####
@@ -197,6 +320,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
         x = eval(fml[[3]], data)
         moderator = eval(info$pipe, data)
         weight = extract_df(lhs_fml, data)
+
+
+        if(length(x) == 1 || length(all.vars(fml[[3]])) == 0){
+            stop("The formula must be of the type 'weight(s) ~ variable | moderator', and there must always be the 'variable' element, which is currently missing.")
+        }
 
         if(info$lhs_fml == ~1){
             weight = rep(1, length(x))
@@ -312,11 +440,24 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     quiNA_x = is.na(x)
     quiNA_mod = is.na(moderator)
     quiNA_weight = is.na(weight)
-    quiNA = quiNA_x | quiNA_mod | quiNA_weight
-    if(any(quiNA)){
+    if(mod.NA){
+        quiNA = quiNA_x | quiNA_weight
+        total_NA = sum(quiNA | quiNA_mod)
+        if(is.factor(moderator)){
+            moderator = addNA(moderator)
+        } else {
+            # The following will coerce moderator into character
+            moderator[is.na(moderator)] = "NA"
+        }
+    } else {
+        quiNA = quiNA_x | quiNA_mod | quiNA_weight
+        total_NA = sum(quiNA)
+    }
+
+    if(total_NA > 0){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_weight))
         msg_na = paste0(c("x: ", "moderator: ", "weight: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
+        message("NOTE: ", total_NA, " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         weight = weight[!quiNA]
@@ -333,13 +474,18 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     # Dealing with the moderator
     if(is.factor(moderator)){
         moderator_unik = levels(moderator[drop = TRUE])
+        if(anyNA(moderator_unik)){
+            # This is such a pain in the neck...
+            moderator_unik[is.na(moderator_unik)] = "NA"
+            moderator = factor(unclass(moderator), labels = moderator_unik)
+        }
     } else {
         moderator_unik = sunique(moderator)
     }
 
     if(cumul){
-        if(!missing(addOther) && addOther == TRUE) message("Argument addOther = TRUE is ignored since the cumulative distribution is asked for.")
-        addOther = FALSE
+        if(!missnull(other) && other == TRUE) message("Argument 'other = TRUE' is ignored since the cumulative distribution is asked for.")
+        other = FALSE
     }
 
     moderator_cases = length(moderator_unik)
@@ -369,20 +515,45 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
                 stop("Argument 'mod.select' does not have a valid value: if it is an integer, its value must lie between 1 and 5.")
             }
         } else {
-            # mode.select must contain moderator values
+            # mod.select must contain moderator values
 
             # 1) checking the problems
             mod_pblm = setdiff(mod.select, moderator_unik)
             if(length(mod_pblm) > 0){
+                # We recreate mod.select
 
                 if(length(mod_pblm) != length(mod.select) && any(quiNA)){
                     # means some are OK
-                    suggestion = paste0(" Maybe because ", ifsingle(mod_pblm, "it has", "they have"), " only NA values?")
+                    suggestion = " Maybe because it has only NA values?"
                 } else {
-                    suggestion = " It must consist of a vector of moderator values only."
+                    suggestion = " It must be either a moderator value, or a regular expression to select moderator values."
                 }
 
-                stop("In the argument 'mod.select', the value", enumerate_items(mod_pblm, "s.is"), " not in the moderator variable.", suggestion)
+                # Maybe they're regular expressions => we keep the order desired by the user
+                mod.ok = c()
+                for(r in mod.select){
+                    if(r %in% moderator_unik){
+                        mod.ok = c(mod.ok, r)
+                    } else {
+                        qui = grepl(r, moderator_unik)
+                        n_qui = sum(qui)
+                        if(n_qui == 0){
+                            stop("In the argument 'mod.select', the value ", r, " could not be found in the moderator variable.", suggestion)
+                        } else if(n_qui > 5){
+                            stop("In the argument 'mod.select', the value ", r, " leads to more than 5 moderator values to be selected (e.g. ", enumerate_items(moderator_unik[qui], nmax = 10), ".")
+                        }
+
+                        mod.ok = c(mod.ok, moderator_unik[qui])
+                    }
+                }
+
+                mod.ok = unique(mod.ok)
+                if(length(mod.ok) > 5){
+                    stop("Argument mod.select leads to ", length(mod.ok), " moderator values to be selected. But the maximum is 5.")
+                }
+
+                mod.select = mod.ok
+
             }
 
             # 2) selection
@@ -417,6 +588,15 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
                 USE_MOD = isLegend = FALSE
             }
 
+        }
+
+        if(mod.NA){
+            if(missing(mod.select)){
+                do_recreate = FALSE
+            } else {
+                mod.select = unique(c(mod.select, "NA"))
+                do_recreate = TRUE
+            }
         }
 
         if(do_recreate){
@@ -467,34 +647,34 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     # Finding out whether log or not
     isNum = is.numeric(x) && !USE_WEIGHT # no sense to weight "real" numeric data
 
-    # Default of toLog and maxFirst
+    # Default of log and sorted
     delayLogChecking = FALSE
-    if(missnull(toLog)){
+    if(missnull(log)){
         if(!isNum || any(x < 0)){
-            toLog = FALSE
+            log = FALSE
         } else {
-            toLog = FALSE
-            if(diff(range(log(x[x>0]))) >= 3 && max(x) > 100){
+            log = FALSE
+            if(diff(range(base::log(x[x>0]))) >= 3 && max(x) > 100){
                 delayLogChecking = TRUE
             }
         }
-    } else if(toLog && !isNum){
-        warning("Since 'x' is not numeric, argument 'toLog' is ignored.")
-        toLog = FALSE
+    } else if(log && !isNum){
+        warning("Since 'x' is not numeric, argument 'log' is ignored.")
+        log = FALSE
     }
 
     isInteger = NA
-    if(missnull(maxFirst)){
+    if(missnull(sorted)){
         if(!isNum){
-            maxFirst = TRUE
-        } else if(toLog){
-            maxFirst = FALSE
+            sorted = TRUE
+        } else if(log){
+            sorted = FALSE
         } else {
             isInteger = all(x %% 1 == 0)
             if(isInteger){
-                maxFirst = FALSE
+                sorted = FALSE
             } else {
-                maxFirst = FALSE
+                sorted = FALSE
             }
         }
     }
@@ -513,9 +693,9 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
         }
     }
 
-    if(toLog){
+    if(log){
         # Regle: la valeur d'une colonne est: superieur ou egal a la valeur gauche et strictement inferieurs a la valeur droite
-        x = pmax(floor(log(x + 1e-6)), -1)
+        x = pmax(floor(base::log(x + 1e-6)), -1)
     }
 
     #
@@ -525,14 +705,14 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     numAxis = FALSE
     binned_data = FALSE
     maxBins_old = nbins # used with delayLogChecking
-    if(isNum && !toLog){
+    if(isNum && !log){
         if(!missnull(bin.size)){
             if(!missing(int.categorical) && int.categorical && all(x %% 1 == 0)){
                 isInteger = TRUE
             } else {
                 x = (x %/% bin.size) * bin.size
                 binned_data = TRUE
-                if(!maxFirst){
+                if(!sorted){
                     numAxis = TRUE
                     if(IS_MAXBIN_USER == FALSE){
                         # Since it's a numeric axis, we put a LOT of bins
@@ -560,7 +740,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
             if(goNum){
 
-                if(!maxFirst){
+                if(!sorted){
                     numAxis = TRUE
                 }
 
@@ -582,11 +762,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
                     if(delayLogChecking){
                         # Would it be better looking in logarithmic form?
-                        x_ln = pmax(floor(log(x + 1e-6)), -1)
+                        x_ln = pmax(floor(base::log(x + 1e-6)), -1)
                         tx_ln = ttable(x_ln)
                         if(sum(tx_ln/sum(tx_ln) > 0.05) >= 5){
                             # nber of signif bins greater than 5
-                            toLog = TRUE
+                            log = TRUE
                             x = x_ln
                             numAxis = FALSE
                             binned_data = FALSE
@@ -596,7 +776,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
                     }
                 }
 
-                if(!toLog){
+                if(!log){
                     if(sum(tx/sum(tx) > 0.01) < 6){
                         # Condition: nber of bins with more than 1% is lower than 6
                         # More complex binning:
@@ -656,7 +836,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
     # Splitting decision
     if(missnull(mod.method)){
-        if(toLog || numAxis){
+        if(log || numAxis){
             mod.method = "side"
         } else {
             mod.method = "split"
@@ -700,13 +880,13 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
         # We don't add the other column only when the data is split
         # and it is not a numeric axis or log axis
-        if(missnull(addOther) && !toLog && !numAxis){
-            addOther = FALSE
+        if(missnull(other) && !log && !numAxis){
+            other = FALSE
         }
     }
 
-    if(missnull(addOther)){
-        addOther = TRUE
+    if(missnull(other)){
+        other = TRUE
     }
 
     # yaxis.num
@@ -817,7 +997,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
         }
 
         # We balance the panel for log data
-        if(toLog && maxFirst == FALSE){
+        if(log && sorted == FALSE){
             x_all = min(data_freq$x):max(data_freq$x)
             data_all = data.table(expand.grid(x = x_all, moderator = moderator_unik))
             tmp = merge(data_all, data_freq, all.x = TRUE, by = c("x", "moderator"))
@@ -828,7 +1008,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
 
         # The sorting
-        if(maxFirst){
+        if(sorted){
 
             if(USE_MOD){
                 data_freq[, "total_x" := list(sum(value)), by = x]
@@ -859,7 +1039,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             data_freq[, x_nb := nb_new]
             data_freq[, nb_new := NULL]
 
-            if(addOther && maxFirst == FALSE && any(data_freq$x_nb <= 0)){
+            if(other && sorted == FALSE && any(data_freq$x_nb <= 0)){
                 if(!any(data_freq$x_nb < 0)){
                     # we just add that bin
                     data_freq[, x_nb := x_nb + 1]
@@ -890,7 +1070,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
                     # Other text => depends on the type of values
                     data_freq[x_nb == 0, "isOther" := TRUE]
-                    if(toLog){
+                    if(log){
                         x_first = ceiling(exp(data_freq[x_nb == 1, x][1]))
                         otherTextLeft = substitute(phantom()<x_val, list(x_val = formatAxisValue(x_first)))
                         data_freq[x_nb == 0, "otherValue" := paste("<", formatAxisValue(x_first))]
@@ -917,11 +1097,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
         }
 
         # The "other" column
-        if(addOther && max(data_freq$x_nb) == nbins + 1){
+        if(other && max(data_freq$x_nb) == nbins + 1){
             # we just add the bin
             nbins = nbins + 1
             data_freq = data_freq[x_nb <= nbins]
-        } else if(addOther && any(data_freq$x_nb > nbins)){
+        } else if(other && any(data_freq$x_nb > nbins)){
             # we create the other colum as the sum of the rest
             ADD_OTHER = TRUE
             data_other = data_freq[x_nb > nbins]
@@ -948,11 +1128,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
             # Other text => depends on the type of values
             data_freq[x_nb == nbins + 1, "isOther" := TRUE]
-            if(!isNum || maxFirst){
+            if(!isNum || sorted){
                 otherText = "Other"
                 data_freq[x_nb == nbins + 1, "otherValue" := "Other"]
             } else {
-                if(toLog){
+                if(log){
                     x_last = round(exp(data_freq[x_nb == nbins, x] + 1))
                     otherText = substitute(phantom()>x_val, list(x_val = formatAxisValue(x_last)))
                     data_freq[x_nb == nbins + 1, "otherValue" := paste(">", formatAxisValue(x_last))]
@@ -1055,10 +1235,11 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             # we apply plot_distr to subsets
 
             qui = moderator == moderator_unik[i]
+
             if(USE_WEIGHT){
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], maxFirst = maxFirst, nbins = nbins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], sorted = sorted, nbins = nbins, log = FALSE, other = other, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
             } else {
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], maxFirst = maxFirst, nbins = nbins, toLog = FALSE, addOther = addOther, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], sorted = sorted, nbins = nbins, log = FALSE, other = other, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
             }
 
             # updating the information
@@ -1101,7 +1282,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             info_all[, ytop := share]
         }
 
-        if(binned_data && addOther){
+        if(binned_data && other){
             # we format the data properly
             info_all$x = formatAxisValue(info_all$x)
         }
@@ -1175,28 +1356,28 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
     # Plot preparation
 
-    # default for onTop
-    if(missnull(onTop)){
+    # default for top
+    if(missnull(top)){
         if(cumul){
-            onTop = "frac"
+            top = "frac"
         } else if(numAxis){
             if(any(data_freq$isOther)){
-                onTop = "frac"
+                top = "frac"
             } else {
-                onTop = "none"
+                top = "none"
             }
         } else if(moderator_cases > 1 && mod.method == "split"){
             # when neck to neck => much easier to compare shares
             # otherwise it is confusing
-            onTop = "frac"
+            top = "frac"
         } else {
             # if coef of variation of x is low => better information is the number
             values = data_freq[share_top <= share, ytop]
             cv = sd(values) / mean(values)
             if(cv > 0.7){
-                onTop = "frac"
+                top = "frac"
             } else {
-                onTop = "nb"
+                top = "nb"
             }
         }
     }
@@ -1213,7 +1394,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
         }
 
         hauteur_caractere_top = 0
-        if(onTop != "none"){
+        if(top != "none"){
 
             # We create the information to display top
 
@@ -1227,7 +1408,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
 
             # We find the optimal cex for the top numbers
-            if(onTop == "nb"){
+            if(top == "nb"){
                 top.value2display = formatAxisValue(info_top$value)
             } else {
                 top.value2display = paste0(mysignif(info_top$share_top, d = 2, r = 0), "%")
@@ -1275,7 +1456,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             # If DO_STACK==TRUE: the "other" columns have another width
             if(DO_STACK == TRUE && nrow(info_top_other) > 0){
 
-                if(onTop == "nb"){
+                if(top == "nb"){
                     top.value2display_other = formatAxisValue(info_top_other$value)
                 } else {
                     top.value2display_other = paste0(mysignif(info_top_other$share_top, d = 2, r = 0), "%")
@@ -1367,7 +1548,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     # Update of checkForTilting
     if(checkForTilting){
         # Only for the standard case
-        checkForTilting = !numAxis & !toLog
+        checkForTilting = !numAxis & !log
     }
 
     # if(checkForTilting){
@@ -1437,7 +1618,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
     mleft = find_margins_left(ylab, y_labels, ylab.resize = ylab.resize)
     # finding the bottom margin is a pain in the neck!!!
-    mbot = find_margins_bottom(xlab = xlab, sub = sub, data_freq = data_freq, toLog = toLog, isNum = isNum, numLabel = numLabel, numAxis = numAxis, nbins = nbins, DO_SPLIT = DO_SPLIT, ADD_OTHER = ADD_OTHER, ADD_OTHER_LEFT = ADD_OTHER_LEFT, maxFirst = maxFirst, labels.tilted = labels.tilted, delayLabelsTilted = delayLabelsTilted, checkForTilting = checkForTilting, checkNotTilted = checkNotTilted, noSub = noSub, binned_data = binned_data, line.max = line.max, trunc = trunc, trunc.method = trunc.method, cex.axis = cex.axis, labels.angle = labels.angle, at_5 = at_5, xlim = xlim)
+    mbot = find_margins_bottom(xlab = xlab, sub = sub, data_freq = data_freq, log = log, isNum = isNum, numLabel = numLabel, numAxis = numAxis, nbins = nbins, DO_SPLIT = DO_SPLIT, ADD_OTHER = ADD_OTHER, ADD_OTHER_LEFT = ADD_OTHER_LEFT, sorted = sorted, labels.tilted = labels.tilted, delayLabelsTilted = delayLabelsTilted, checkForTilting = checkForTilting, checkNotTilted = checkNotTilted, noSub = noSub, binned_data = binned_data, line.max = line.max, trunc = trunc, trunc.method = trunc.method, cex.axis = cex.axis, labels.angle = labels.angle, at_5 = at_5, xlim = xlim)
 
     if(mleft$total_width > par("mai")[2] || mbot$total_height > par("mai")[1]){
         new_mai = par("mai")
@@ -1486,7 +1667,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
     at_info = data_freq[, list(mid_point = (max(xright) + min(xleft)) / 2), by = list(x_nb, x)]
     myat = at_info$mid_point
 
-    if(toLog){
+    if(log){
 
         if(DO_SPLIT){
 
@@ -1496,7 +1677,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             exp_value = ceiling(exp(x_all))
             exp_value[x_all == -1] = 0
 
-            if(maxFirst){
+            if(sorted){
 
                 if(delayLabelsTilted){
                     # better display
@@ -1579,7 +1760,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             if(any(data_freq$isOther)){
                 data_freq_other = data_freq[isOther == TRUE]
 
-                if(maxFirst){
+                if(sorted){
                     text2show = rep("Other", nrow(data_freq_other))
                     my_font = 1
                 } else {
@@ -1590,7 +1771,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
                 myat = data_freq_other[, (xleft + xright)/2]
 
-                if(maxFirst && labels.tilted){
+                if(sorted && labels.tilted){
                     xaxis_biased(at = myat, line.max = line.max, labels = text2show, angle = info_tilt$angle, cex = info_tilt$cex)
                 } else {
                     axis(1, at = myat, labels = text2show, lwd = 0, line = -0.8, font = my_font)
@@ -1687,7 +1868,8 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
             x_show = x_show[x_show >= real_range[1] & x_show <= real_range[2]]
             current_range = c(min(x_sub$xleft), max(x_sub$xright))
             x_show_current = to01(x_show, real_range) * diff(current_range) + min(current_range)
-            axis(1, x_show_current, formatAxisValue(x_show))
+            axis(1, x_show_current, formatAxisValue(x_show), lwd = 0, lwd.ticks = 1)
+            axis(1, current_range, NA, lwd = 1, lwd.ticks = 0)
         }
 
         # We add the bin information
@@ -1899,7 +2081,7 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
                     if(at_5 == "roman"){
                         axis(1, at = at_info[i, mid_point], lwd = 0, labels = roman_dict[as.character(i)], line = -1.3, cex.axis = 0.6)
                     } else {
-                        axis(1, at = data_freq[i, .(xleft, xright)], lwd = 3, lwd.ticks = 0, labels = NA)
+                        axis(1, at = data_freq[i, list(xleft, xright)], lwd = 3, lwd.ticks = 0, labels = NA)
                     }
                 }
 
@@ -1978,14 +2160,14 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 
     # On top of the bars:
 
-    if(onTop != "none"){
+    if(top != "none"){
 
         qui = strwidth(top.value2display, units = "in", cex = top.cex) <= unitary_width_top*1.5 | nchar(top.value2display) <= 3
 
         # we don't display the 0s only
         qui = qui & info_top$value > 0
 
-        # if(top.cex < 0.95 && onTop == "frac"){
+        # if(top.cex < 0.95 && top == "frac"){
         #     # we don't display the small numbers
         #     max_height = max(info_top$ytop)
         #     qui = qui & (info_top$ytop > max_height*0.05 | info_top$share_top >= 1)
@@ -2035,15 +2217,17 @@ plot_distr = function(fml, data, moderator, weight, maxFirst, toLog, nbins, bin.
 #'
 #' @examples
 #'
-#' df = iris
-#' df$period = sample(1:4, 150, TRUE)
 #'
-#' plot_lines(Petal.Length ~ period|Species, df)
+#' data(airquality)
 #'
-#' plot_lines(Petal.Length ~ Species, df)
+#' plot_lines(Ozone ~ Day, airquality)
+#'
+#' plot_lines(Ozone ~ Day | Month, airquality)
+#'
+#' plot_lines(Ozone ~ Month | cut(Day, 8), airquality)
 #'
 #'
-plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = NULL, mod.title = TRUE, ...){
+plot_lines = function(fml, data, time, moderator, mod.select, mod.NA = TRUE, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = NULL, mod.title = TRUE, ...){
     # This functions plots the means of x wrt the id
     # we can also add a moderator
 
@@ -2062,6 +2246,8 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
     fml_in = fml
 
     check_arg(smoothing_window, "integer scalar GE{0}")
+
+    check_arg(mod.NA, "logical scalar")
 
     check_arg(dict, "null named character vector | logical scalar")
 
@@ -2231,22 +2417,29 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
     time_name = dict_apply(time_name, dict)
     moderator_name = dict_apply(moderator_name, dict)
 
-    n_moderator = length(unique(moderator))
-    if(is.factor(moderator)){
-        moderator_unik = levels(moderator[drop = TRUE])
-    } else {
-        moderator_unik = sunique(as.character(moderator))
-    }
-
     # Dropping NAs
     quiNA_x = is.na(x)
     quiNA_time = is.na(time)
     quiNA_mod = is.na(moderator)
-    quiNA = quiNA_x | quiNA_time | quiNA_mod
-    if(any(quiNA)){
+
+    if(mod.NA){
+        quiNA = quiNA_x | quiNA_time
+        total_NA = sum(quiNA | quiNA_mod)
+        if(is.factor(moderator)){
+            moderator = addNA(moderator)
+        } else {
+            # The following will coerce moderator into character
+            moderator[is.na(moderator)] = "NA"
+        }
+    } else {
+        quiNA = quiNA_x | quiNA_time | quiNA_mod
+        total_NA = sum(quiNA)
+    }
+
+    if(total_NA > 0){
         nb_na = c(sum(quiNA_x), sum(quiNA_mod), sum(quiNA_time))
         msg_na = paste0(c("x: ", "moderator: ", "time: "), nb_na)
-        message("NOTE: ", sum(quiNA), " observations with NAs (", enumerate_items(msg_na[nb_na>0], "s.is"), ")")
+        message("NOTE: ", total_NA, " observations with NAs (", enumerate_items(msg_na[nb_na>0]), ")")
         x = x[!quiNA]
         moderator = moderator[!quiNA]
         time = time[!quiNA]
@@ -2267,6 +2460,18 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
             stop("The function in argument 'fun' MUST be an aggregating function: that is returning something of length 1. This is not the case currently.")
         }
 
+    }
+
+    n_moderator = length(unique(moderator))
+    if(is.factor(moderator)){
+        moderator_unik = levels(moderator[drop = TRUE])
+        if(anyNA(moderator_unik)){
+            # This is such a pain in the neck...
+            moderator_unik[is.na(moderator_unik)] = "NA"
+            moderator = factor(unclass(moderator), labels = moderator_unik)
+        }
+    } else {
+        moderator_unik = sunique(as.character(moderator))
     }
 
     if(n_moderator == 1){
@@ -2302,15 +2507,40 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
             # 1) checking the problems
             mod_pblm = setdiff(mod.select, moderator_unik)
             if(length(mod_pblm) > 0){
+                # We recreate mod.select
 
                 if(length(mod_pblm) != length(mod.select) && any(quiNA)){
                     # means some are OK
-                    suggestion = paste0(" Maybe because ", ifsingle(mod_pblm, "it has", "they have"), " only NA values?")
+                    suggestion = " Maybe because it has only NA values?"
                 } else {
-                    suggestion = " It must consist of a vector of moderator values only."
+                    suggestion = " It must be either a moderator value, or a regular expression to select moderator values."
                 }
 
-                stop("In the argument 'mod.select', the value", enumerate_items(mod_pblm, "s.is"), " not in the moderator variable.", suggestion)
+                # Maybe they're regular expressions => we keep the order desired by the user
+                mod.ok = c()
+                for(r in mod.select){
+                    if(r %in% moderator_unik){
+                        mod.ok = c(mod.ok, r)
+                    } else {
+                        qui = grepl(r, moderator_unik)
+                        n_qui = sum(qui)
+                        if(n_qui == 0){
+                            stop("In the argument 'mod.select', the value ", r, " could not be found in the moderator variable.", suggestion)
+                        } else if(n_qui > 10){
+                            stop("In the argument 'mod.select', the value ", r, " leads to more than 10 moderator values to be selected (e.g. ", enumerate_items(moderator_unik[qui], nmax = 15), ".")
+                        }
+
+                        mod.ok = c(mod.ok, moderator_unik[qui])
+                    }
+                }
+
+                mod.ok = unique(mod.ok)
+                if(length(mod.ok) > 10){
+                    stop("Argument mod.select leads to ", length(mod.ok), " moderator values to be selected. But the maximum is 10.")
+                }
+
+                mod.select = mod.ok
+
             }
 
             # 2) selection
@@ -2346,6 +2576,15 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
                 isLegend = FALSE
             }
 
+        }
+
+        if(mod.NA){
+            if(missing(mod.select)){
+                do_recreate = FALSE
+            } else {
+                mod.select = unique(c(mod.select, "NA"))
+                do_recreate = TRUE
+            }
         }
 
         if(do_recreate){
@@ -2404,7 +2643,7 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
 
         info_legend = legendFit(legend = moderator_unik, title = mod.title, plot = FALSE)
         legend_height = info_legend$total_height
-        ylim[2] = ylim[2] + legend_height / par("pin")[2] * diff(ylim)
+        ylim[2] = ylim[2] + (legend_height + 0.25) / par("pin")[2] * diff(ylim)
     }
 
     listDefault(dots, "ylim", ylim)
@@ -2578,9 +2817,8 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
 #' This function allows to draw a boxplot, with possibly separating different moderators.
 #'
 #' @inheritParams plot_distr
-#' @inheritParams plot_bar
 #'
-#' @param fml A formula of the type: \code{var ~ case | moderator}. Note that if a formula is provided then the argument \sQuote{data} must be provided.
+#' @param fml A numeric vector or a formula of the type: \code{vars ~ moderator_1 | moderator_2}. Note that if a formula is provided then the argument \sQuote{data} must be provided. You can plot several variables, if you don't want a moderator, use 1 instead: e.g. \code{plot_box(Petal.Width +Petal.Length ~ 1, iris)}. You can plot all numeric variables from a data set using \code{"."}: \code{plot_box(. ~ 1, iris)}.
 #' @param data A data.frame/data.table containing the relevant information.
 #' @param case When argument fml is a vector, this argument can receive a vector of cases.
 #' @param moderator When argument fml is a vector, this argument can receive a vector of moderators.
@@ -2610,12 +2848,29 @@ plot_lines = function(fml, data, time, moderator, mod.select, smoothing_window =
 #'
 #' @examples
 #'
-#' m = iris
-#' m$period = sample(1:4, 150, TRUE)
+#' # Simple iris boxplot
 #'
-#' plot_box(Petal.Length ~ period|Species, m)
+#' # All numeric variables
+#' plot_box(. ~ 1, iris)
 #'
-plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density = -1, lty = 1, pch = 18, addLegend = TRUE,  legend_options = list(), lwd=2, outlier, dict = NULL, dict_case, dict_moderator, order_case, order_moderator, addMean, mean.col = "darkred", mean.pch = 18, mean.cex = 2, mod.title, labels.tilted, trunc = 20, trunc.method = "auto", line.max, ...){
+#' # All numeric variable / splitting by species
+#' plot_box(. ~ Species, iris)
+#'
+#' # idem but with renaming
+#' plot_box(. ~ Species, iris, dict = c(Species="Iris species",
+#'          setosa="SETOSA", Petal.Width="Width (Petal)"))
+#'
+#' # Now using two moderators
+#' base = iris
+#' base$period = sample(1:4, 150, TRUE)
+#'
+#' plot_box(Petal.Length ~ period | Species, base)
+#'
+#'
+#'
+#'
+#'
+plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density = -1, lty = 1, pch = 18, addLegend = TRUE,  legend_options = list(), lwd=2, outlier, dict = NULL, dict_case, dict_moderator, order_case, order_moderator, addMean, mean.col = "darkred", mean.pch = 18, mean.cex = 2, mod.title = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, ...){
 
     # DT VARS USED
     case_nb = moderator_nb = span = q3 = q1 = min_whisker = y_min = max_whisker = y_max = NULL
@@ -2629,7 +2884,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     check_arg("logical scalar", addLegend, outlier, addMean, labels.tilted)
     check_arg(order_moderator, order_case, "character vector", .message = "Argument '__ARG__' must be a vector of regular expressions.")
 
-    check_arg(mod.title, "character scalar")
+    check_arg(mod.title, "scalar(character, logical)")
     check_arg(trunc, "integer scalar GE{5}")
 
     check_arg(dict, "null named character vector | logical scalar")
@@ -2641,38 +2896,101 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     moderator_name = ""
     if("formula" %in% class(fml_in)){
 
-        if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data)), "."), "")
+        # if(missing(data) || !is.data.frame(data)){
+        #     postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data)), "."), "")
+        #
+        #     stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
+        # }
+        #
+        # vars = all.vars(fml_in)
+        # if(any(!vars %in% names(data))){
+        #     stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse_long(mc$data), ").")
+        # }
+        #
+        # # Creation of x and the condition
+        # if(!length(fml_in) == 3){
+        #     stop("The formula must be of the type 'var ~ case' or 'var ~ case | moderator'.")
+        # }
 
-            stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
-        }
+        check_arg(data, "data.frame mbt", .message = "If you provide a formula, a data.frame must be given in the argument 'data'.")
 
-        vars = all.vars(fml_in)
+        # we check the variables data are there
+        check_arg(fml, "ts formula left(1) right(,2)", .message = "Argument 'fml' must be a formula of the type variables ~ moderator_1 | moderator_2 ('moderator_1' [you can replace it by 1] and 'moderator_2' are optional).")
+
+        # "." is a special variable
+        vars = setdiff(all.vars(fml_in), ".")
         if(any(!vars %in% names(data))){
             stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse_long(mc$data), ").")
         }
 
-        # Creation of x and the condition
-        if(!length(fml_in) == 3){
-            stop("The formula must be of the type 'var ~ case' or 'var ~ case | moderator'.")
-        }
-
+        info = extract_pipe(fml_in)
         fml = extract_pipe(fml_in)$fml
         pipe = extract_pipe(fml_in)$pipe
 
-        x = eval(fml[[2]], data)
+        if(deparse(fml[[2]]) == "."){
+            x_all = data
+            qui_num = sapply(x_all, function(z) is.numeric(z) || is.logical(z))
+            if(!any(qui_num)){
+                stop("Only numeric variables can be displayed, and none were found in the data set.")
+            }
+            x_all = x_all[qui_num]
+        } else {
+            # x = eval(fml[[2]], data)
+            x_all = extract_df(info$lhs_fml, data)
+            qui_num = sapply(x_all, function(z) is.numeric(z) || is.logical(z))
+            if(any(!qui_num)){
+                stop("Only numeric variable can be displayed, the variable", enumerate_items(names(x_all), "s.quote.is"), " not numeric.")
+            }
+        }
+
         case = eval(fml[[3]], data)
         moderator = eval(pipe, data)
 
+        mod_is_set = FALSE
+        if(length(x_all) == 1){
+            x = x_all[[1]]
+            x_name = names(x_all)
+
+            if(length(case) > 1){
+                case_name = deparse(fml[[3]])
+            }
+
+        } else {
+            if(is.data.frame(x_all)){
+                n = nrow(x_all)
+                K = ncol(x_all)
+            } else {
+                n = length(x_all[[1]])
+                K = length(x_all)
+            }
+
+            if(length(case) == 1){
+                # No case => the variables become the case
+                case = rep(names(x_all), each = n)
+            } else if(length(moderator) > 1){
+                stop("When plotting multiple variables, you cannot use a second moderator. This is possible only when plotting kust one variable.")
+            } else {
+                # case: the variables // moderator: the cases
+                mod_is_set = TRUE
+                moderator_name = deparse(fml[[3]])
+                moderator = rep(case, K)
+                case = rep(names(x_all), each = n)
+            }
+
+            x = unlist(x_all)
+            x_name = ""
+            case_name = ""
+        }
+
         if(is.null(moderator)){
             moderator = rep(1, length(x))
-        } else {
+        } else if(mod_is_set == FALSE){
             moderator_name = gsub("^.*\\| *", "", deparse(fml_in[[3]]))
         }
 
         # other info
-        x_name = deparse(fml[[2]])
-        case_name = deparse(fml[[3]])
+        # x_name = deparse(fml[[2]])
+        # case_name = deparse(fml[[3]])
 
     } else {
         if(missing(case)){
@@ -2770,7 +3088,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         }
     }
 
-    aliasCase = case_unik
+    aliasCase = dict_apply(case_unik, dict)
     if(!missing(dict_case) && !is.null(dict_case)){
         if(!is.character(dict_case) || is.null(names(dict_case))) stop("the arg. 'dict_case' must be a named character vector.")
 
@@ -2791,7 +3109,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         moderator_unik = sunique(moderator)
     }
 
-    aliasModerator = moderator_unik
+    aliasModerator = dict_apply(moderator_unik, dict)
     if(!missing(dict_moderator) && !is.null(dict_moderator)){
         if(!is.character(dict_moderator)|| is.null(names(dict_moderator))) stop("The argument 'dict_moderator' must be a named character vector.")
 
@@ -2828,18 +3146,23 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     }
 
     # mod.title
-    if(isLegend){
-        if(missing(mod.title)){
-            if(mod_num_logical){
-                mod.title = moderator_name
-            } else {
-                mod.title = NULL
-            }
-        } else if(isTRUE(mod.title)){
-            mod.title = moderator_name
-        } else if(isFALSE(mod.title)){
-            mod.title = NULL
-        }
+    # if(isLegend){
+    #     if(missing(mod.title)){
+    #         if(mod_num_logical){
+    #             mod.title = moderator_name
+    #         } else {
+    #             mod.title = NULL
+    #         }
+    #     } else if(isTRUE(mod.title)){
+    #         mod.title = moderator_name
+    #     } else if(isFALSE(mod.title)){
+    #         mod.title = NULL
+    #     }
+    # }
+    if(isTRUE(mod.title)){
+        mod.title = moderator_name
+    } else if(isFALSE(mod.title)){
+        mod.title = NULL
     }
 
 
@@ -2870,7 +3193,9 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         ylim = c(min(base_agg$min_whisker), max(base_agg$max_whisker))
     }
 
+    ymax = Inf
     if(isLegend){
+        ymax = ylim[2]
         info_legend = legendFit(legend = aliasModerator, plot = FALSE, title = mod.title)
         # hauteur_caractere = strheight("W", "in", cex = info_legend$cex)
         # ylim[2] = ylim[2] + 2.5*hauteur_caractere / par("pin")[2] * diff(ylim)
@@ -2927,7 +3252,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
 
     }
 
-    hgrid()
+    hgrid(ymax = ymax)
 
     #
     # The plot_line
