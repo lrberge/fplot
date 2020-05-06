@@ -24,7 +24,7 @@
 #'
 #' data(airquality)
 #' setFplot_dict(c(Ozone = "Ozone (ppb)"))
-#' plot_distr(Month~1|Ozone, airquality, weight.fun = mean)
+#' plot_distr(Ozone ~ Month, airquality, weight.fun = mean)
 #'
 setFplot_dict = function(dict){
 
@@ -76,6 +76,7 @@ getFplot_dict = function(){
 #'
 #' @param page What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.
 #' @param margins The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in **inches**. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.
+#' @param units The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.
 #'
 #' @seealso
 #' Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}. The function closing the connection and showing the obtained graph in the viewer: \code{\link[fplot]{fit.off}}.
@@ -111,21 +112,23 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
 
     # Later => add default for width, height, w2h etc
 
-    check_arg_plus(page, "match(us, a4) | vector character len(1) | vector numeric len(,2) GT{0}")
+    check_arg_plus(page, "match(us, a4, beamer) | vector character len(1) | vector numeric len(,2) GT{0}")
     check_arg(units, "charin(tw, pw, in, cm, px)")
     check_arg(pt, "numeric scalar GT{0}")
     check_arg(w2h, "numeric scalar GT{0}")
 
     if(length(page) == 1){
         if(is.numeric(page)){
-            page = rep(page, 2)
+            page_dim = rep(page, 2)
         } else if(page == "us"){
             page_dim = c(8.5, 11)
         } else if(page == "a4"){
             page_dim = c(8.3, 11.7)
-        } else {
+        }  else {
             page_dim = get_dimensions(page, 2)
         }
+    } else {
+        page_dim = page
     }
 
     check_arg_plus(margins, "match(normal, thin, FALSE, F, 0) | vector character len(1) | vector numeric len(,2) GE{0} | vector numeric len(4) GE{0}")
@@ -541,7 +544,7 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
         }
 
         if(is.numeric(x)){
-            res = switch (unit.default, "tw" = x * page_dim_net, "pw" = x * page_dim, "in" = x, "cm" = x/2.54, "px" = x/96)
+            res = switch(unit.default, "tw" = x * page_dim_net, "pw" = x * page_dim, "in" = x, "cm" = x/2.54, "px" = x/96)
 
             return(res)
         }
@@ -564,12 +567,13 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 
     m = strsplit(gsub("[[:alpha:]%]", "", x), ",|;|/")[[1]]
     m = trimws(m)
-    m = m[nchar(m) > 0]
+    # m = m[nchar(m) > 0]
+    m = m[!grepl("^ *$", m) > 0]
 
-    len_valid = switch(n_out, "1" = 1, "2" = 1:2, "4" = c(1, 2, 4))
+    len_valid = switch(as.character(n_out), "1" = 1, "2" = 1:2, "4" = c(1, 2, 4))
 
     if(!length(m) %in% len_valid){
-        stop_up("Problem in parsing the dimensions of argument '", arg_name, "'. Please see the help on how to form it.")
+        stop_up("Problem in parsing the dimensions of argument '", arg_name, "': the number of elements is not valid. Please see the help on how to form it.")
     }
 
     m = tryCatch(as.numeric(m), warning = "problem")
@@ -580,9 +584,9 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
     if(n_out == 1){
         res = m
     } else if(n_out == 2){
-        res = switch(length(m), "1" = c(m, 1.61*m), "2" = m)
+        res = switch(as.character(length(m)), "1" = c(m, 1.61*m), "2" = m)
     } else if(n_out == 4){
-        res = switch(length(m), "1" = rep(m, 4), "2" = rep(m, 2), "4" = m)
+        res = switch(as.character(length(m)), "1" = rep(m, 4), "2" = rep(m, 2), "4" = m)
     }
 
     if(unit == "cm"){
@@ -751,6 +755,7 @@ truncate_string = function(x, trunc = 20, method = "auto"){
 legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = "auto", plot = TRUE, title = NULL, title_out = FALSE, ...){
     # units in inch to avoid the need of having a graph already plotted
     # (you cannot use par("usr) when there is no graph plotted)
+    # title_out: veut dire que le titre peut aller au dela de la plotting box
 
     # the title
     check_arg_plus(title, "null character scalar conv")
@@ -764,7 +769,7 @@ legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = 
     if(!ADD_TITLE){
         do_adj = -1
     } else if(!title_out){
-        do_adj = 1
+        do_adj = 1.9
     }
     # do_adj = ADD_TITLE && !title_out
 
@@ -1084,8 +1089,8 @@ abplot <- function(x, y, where="default", signifCode = c("***" = 0.001, "**" = 0
             y = y[-qui]
         }
 
-        x = log(x)
-        y = log(y)
+        x = base::log(x)
+        y = base::log(y)
     }
 
     dots$x = x
@@ -1322,7 +1327,7 @@ drawRectangle = function(xbl, ybl, xtr, ytr, prop=1, coul=1:100, sep=0.02, ...){
 }
 
 
-myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog = FALSE, use_xaxis, inCol = "#386CB0", outCol = "white",  ...){
+myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log = FALSE, use_xaxis, inCol = "#386CB0", outCol = "white",  ...){
     # personalized histogram
 
     if(doubleTable){
@@ -1331,8 +1336,8 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
         tx = round(x)
     }
 
-    if(toLog){
-        tx = floor(log(tx + 1e-6))
+    if(log){
+        tx = floor(base::log(tx + 1e-6))
     }
 
     if(length(unique(tx)) > 500){
@@ -1350,7 +1355,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
 
     ttx = ttable(tx)
 
-    if(overMax & !toLog) names(ttx)[length(ttx)] = paste0(maxValue,"+")
+    if(overMax & !log) names(ttx)[length(ttx)] = paste0(maxValue,"+")
 
     # New version
     dots = list(...)
@@ -1361,8 +1366,8 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
 
     useAxis = FALSE
     if(!missing(use_xaxis)){
-        if(!all(c("toLog", "all_names") %in% names(use_xaxis))) stop("You must give a myHist object in argument use_xaxis.")
-        if(xor(toLog, use_xaxis$toLog)) stop("The 'log' status must be identical to the one in use_xaxis.")
+        if(!all(c("log", "all_names") %in% names(use_xaxis))) stop("You must give a myHist object in argument use_xaxis.")
+        if(xor(log, use_xaxis$log)) stop("The 'log' status must be identical to the one in use_xaxis.")
         # dots$xlim = use_xaxis$xlim
         useAxis = FALSE
 
@@ -1395,7 +1400,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
     barplot(ttx_share, add = TRUE, axes = FALSE, ylim=ylim, axisnames = FALSE, col = inCol, border=outCol)
     axis(2, at=y_points, labels = paste0(y_points, "%"), las = 2)
 
-    if(toLog){
+    if(log){
         labels = round(exp(as.numeric(names(ttx_share))))[-1]
 
         axis(1, at = (info[-1] + info[-length(info)])/ 2, lwd = 0, lwd.ticks = 1, labels = labels)
@@ -1408,11 +1413,11 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, toLog
 
     text(info, ttx_share, label = addCommas(ttx), pos = 3, cex = cex.text)
 
-    invisible(list(toLog=toLog, all_names = names(ttx_share)))
+    invisible(list(log=log, all_names = names(ttx_share)))
 }
 
 
-myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", line.max, ...){
+myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, top = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", line.max, ...){
     # This function draws a nice barplot
 
     # We get whether the labels from x are numeric
@@ -1468,7 +1473,7 @@ myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=F
         ylim = c(0, max(x_share))
 
         hauteur_top = 0
-        if(onTop != "none"){
+        if(top != "none"){
             hauteur_top = strheight("W", "in")
         }
 
@@ -1532,9 +1537,9 @@ myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=F
     }
 
     # The stuff to be displayed on top of the bars
-    if(onTop == "nb"){
+    if(top == "nb"){
         text(info, x_share, label = addCommas(x), pos = 3, cex = cex.text)
-    } else if(onTop == "frac"){
+    } else if(top == "frac"){
         text(info, x_share, label = addCommas(x_share), pos = 3, cex = cex.text)
     }
 
@@ -1734,8 +1739,8 @@ abplot <- function(x, y, where="default", signifCode = c("***" = 0.001, "**" = 0
             y = y[-qui]
         }
 
-        x = log(x)
-        y = log(y)
+        x = base::log(x)
+        y = base::log(y)
     }
 
     dots$x = x
@@ -1782,21 +1787,24 @@ find_margins_left = function(ylab, y_labels, ylab.resize){
 
     # First: we resize
     if(ylab.resize){
-        width_ok_in = par("pin")[2] - sum(par("mai")[c(1, 3)])
+        width_ok_in = par("pin")[2]
         current_width_in = strwidth(ylab, units = "in")
         if(current_width_in > width_ok_in){
             new_msg = list()
             unit_w = strwidth(" ", units = "in")
             msg_split = strsplit(ylab, " ")[[1]]
 
-            while(TRUE){
+            n_return = 0
+
+            while(n_return < 2){
+                n_return = n_return + 1
                 all_w = strwidth(msg_split, units = "in")
                 cum_w = cumsum(all_w + unit_w) - unit_w
-                qui = which.max(cum_w > width_ok_in) - 1
+                qui = max(which.max(cum_w > width_ok_in) - 1, 1)
                 new_msg[[length(new_msg) + 1]] = paste(msg_split[1:qui], collapse = " ")
                 msg_split = msg_split[-(1:qui)]
 
-                if(sum(strwidth(msg_split, units = "in") + unit_w) - unit_w < width_ok_in){
+                if(sum(strwidth(msg_split, units = "in") + unit_w) - unit_w < width_ok_in || n_return == 2){
                     new_msg[[length(new_msg) + 1]] = paste(msg_split, collapse = " ")
                     break
                 }
@@ -1823,7 +1831,7 @@ find_margins_left = function(ylab, y_labels, ylab.resize){
     list(ylab = ylab, ylab.line = ylab.line, total_width = total_width)
 }
 
-find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, numAxis, nbins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, maxFirst, labels.tilted, delayLabelsTilted, checkForTilting, checkNotTilted, noSub, binned_data, line.max, trunc, trunc.method, cex.axis, labels.angle, at_5, xlim){
+find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAxis, nbins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, sorted, labels.tilted, delayLabelsTilted, checkForTilting, checkNotTilted, noSub, binned_data, line.max, trunc, trunc.method, cex.axis, labels.angle, at_5, xlim){
     # This function finds the size of the margin needed to display all the x-axis labels + xlab + sub
     # This is highly complex because the decision on how to show the x-axis labels
     # depend on many things in plot_distr.
@@ -1841,13 +1849,15 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
     # eg sometimes I add ticks manuall, sometimes I add labels sequentially in a loop, etc...
     #
 
+    xright = xleft = x_nb = x = isOther = x_num = mid_point = NULL
+
     at_info = data_freq[, list(mid_point = (max(xright) + min(xleft)) / 2), by = list(x_nb, x)]
     myat = at_info$mid_point
 
     LINE_MIN_TILTED = 0
     nlines = 0
 
-    if(toLog){
+    if(log){
 
         if(DO_SPLIT){
 
@@ -1857,7 +1867,7 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
             exp_value = ceiling(exp(x_all))
             exp_value[x_all == -1] = 0
 
-            if(maxFirst){
+            if(sorted){
 
                 if(delayLabelsTilted){
                     # better display
@@ -2139,169 +2149,29 @@ find_margins_bottom = function(xlab, sub, data_freq, toLog, isNum, numLabel, num
 }
 
 
-margins_find = function(xlab, sub, x_labels, ylab, y_labels){
-    if(horiz){
-        # we make the labels fit into the margin
-
-        xlab.line = 3
-        sub.line = 4
-
-        # Algorithm:
-        # - if lab.cex is provided:
-        #  => we fit the labels into the margin // we extend the margin until it fits
-        # - if lab.cex is NOT provided:
-        #  => we extend the margin so that the label fit. If the margin exceeds lab.max.mar% of the plot space, we reduce the cex
-        #   etc, until it fits. If it still does not fit => we extend the margin until it fits.
-        #
-
-        nlines = group.height + 2
-        # The last 2 means 1 line on each side of the label
-
-        if(lab.cex > lab.min.cex){
-            # No algorithm
-            lab.width_in = max(strwidth(x_labels, units = "in", cex = lab.cex))
-        } else {
-            # Algorithm
-
-            max_mar_width_in = par("pin")[1] * lab.max.mar
-
-            while(nlines * line_height + lab.width_in > max_mar_width_in && lab.cex > lab.min.cex){
-                lab.cex = 0.95 * lab.cex
-                lab.width_in = max(strwidth(x_labels, units = "in", cex = lab.cex))
-            }
-
-            # Final step => if we go too far, we etend the margin, even beyond max_mar_width_in
-            if(lab.cex < lab.min.cex){
-                lab.cex = lab.min.cex
-                lab.width_in = max(strwidth(x_labels, units = "in", cex = lab.cex))
-            }
-
-        }
-
-        group.baseline = 2 + lab.width_in / line_height
-
-        nlines = nlines + lab.width_in / line_height
-
-        ylab.line = nlines
-
-        if(ylab != ""){
-            nlines = nlines + ceiling(strheight(ylab, units = "in") / line_height)
-        }
-
-        total_width = nlines * line_height
-
-        if(total_width > par("mai")[2]){
-            new_mai = par("mai")
-            new_mai[2] = total_width + 0.05
-            op = par(mai = new_mai)
-            on.exit(par(op))
-        }
-
-    } else {
-        # We adjust the margin only if there are groups and they
-        # don't fit in the original margin
-        # or if there is a xlab and groups at the same time
-
-        ylab.line = 3
-
-        LINE_MIN_TILTED = 0.25
-        LINE_MAX_TILTED = 3
-
-        if(lab.fit == "auto"){
-            # We want to display ALL labels
-            in_to_usr = diff(my_xlim) / par("pin")[1]
-
-            w_all = strwidth(x_labels, cex = lab.cex, units = "in") * in_to_usr
-            em = strwidth("M", units = "in") * in_to_usr
-            is_collided = ((w_all[-1] + w_all[-length(w_all)]) / 2 + em) > 1
-
-            while(any(is_collided) && lab.cex > lab.min.cex){
-                lab.cex = 0.95 * lab.cex
-                w_all = strwidth(x_labels, cex = lab.cex, units = "in") * in_to_usr
-                is_collided = ((w_all[-1] + w_all[-length(w_all)]) / 2 + em) > 1
-            }
-
-            # switch to multi lines
-            if(any(is_collided) || lab.cex < lab.min.cex){
-                lab.info = xaxis_labels(at = x_at, labels = x_labels, line.max = 1, minCex = lab.min.cex, trunc = Inf, only.params = TRUE)
-
-                if(lab.info$failed){
-                    # switch to tilted
-                    lab.fit = "tilted"
-                    lab.info = xaxis_biased(at = x_at, labels = x_labels, line.min = LINE_MIN_TILTED, line.max = LINE_MAX_TILTED, cex = seq(lab.cex, lab.min.cex, length.out = 4), trunc = Inf, only.params = TRUE)
-                    lab.cex = lab.info$cex
-                    nlines = lab.info$height_line + LINE_MIN_TILTED
-
-                } else {
-                    lab.fit = "multi"
-                    nlines = lab.info$height_line
-                    lab.cex = lab.info$cex
-                }
-
-            } else {
-                lab.fit = "simple"
-                nlines = 2 * lab.cex
-            }
-        } else if(lab.fit == "multi"){
-            lab.info = xaxis_labels(at = x_at, labels = x_labels, line.max = 1, minCex = lab.min.cex, trunc = Inf, only.params = TRUE)
-            lab.cex = lab.info$cex
-            nlines = lab.info$height_line
-
-            if(length(unique(lab.info$line)) == 1){
-                lab.fit = "simple"
-                nlines = 2 * lab.cex
-            }
-
-        } else if(lab.fit == "tilted"){
-            lab.info = xaxis_biased(at = x_at, labels = x_labels, line.min = LINE_MIN_TILTED, line.max = LINE_MAX_TILTED, cex = seq(lab.cex, lab.min.cex, length.out = 4), trunc = Inf, only.params = TRUE)
-            lab.cex = lab.info$cex
-            nlines = lab.info$height_line + LINE_MIN_TILTED
-
-        } else if(lab.fit == "simple"){
-            nlines = 2 * lab.cex
-        }
-
-        # browser()
-
-        if(IS_GROUP){
-            # tcl was set before
-            group.baseline = nlines + 1 - 0.75 + tcl
-
-            nlines = nlines + group.height
-
-            xlab.line = nlines
-        } else {
-            xlab.line = 3
-        }
-
-        if(xlab != ""){
-            xlab.line = xlab.line + ceiling(strheight(xlab, units = "in") / line_height) - 1
-        }
-
-        sub.line = xlab.line + 1
-
-        if(sub != ""){
-            nlines = sub.line + 1
-        } else if(xlab != ""){
-            nlines = sub.line
-        }
-
-        total_height = nlines * line_height
-
-        if(total_height > par("mai")[1]){
-            new_mai = par("mai")
-            new_mai[1] = total_height + 0.05
-            op = par(mai = new_mai)
-            on.exit(par(op))
-        }
-
-    }
-}
-
-
 ####
 #### Utilities ####
 ####
+
+set_defaults = function(opts_name){
+
+    opts = getOption(opts_name)
+    if(is.null(opts) || length(opts) == 0){
+        return(NULL)
+    }
+
+    sysOrigin = sys.parent()
+    mc = match.call(definition = sys.function(sysOrigin), call = sys.call(sysOrigin), expand.dots = FALSE)
+    args_in = names(mc)
+
+    for(v in names(opts)){
+        if(!v %in% args_in){
+            assign(v, opts[[v]], parent.frame())
+        }
+    }
+
+
+}
 
 
 char2num = function(x, addItem = FALSE){
@@ -2731,7 +2601,7 @@ isVector = function(x){
 #### DEPRECATED ####
 ####
 
-plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, nbins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, onTop = "nb", showOther = TRUE, inCol = "#386CB0", border = "white", xlab, ylab, ...){
+plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, nbins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, top = "nb", showOther = TRUE, inCol = "#386CB0", border = "white", xlab, ylab, ...){
     # this function formats a bit the data and sends it to myBarplot
 
     # Old params
@@ -2892,7 +2762,7 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
         ylab = x_name
     }
 
-    myBarplot(x = res, order=order, nbins=nbins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, line.max=line.max, hgrid = hgrid, onTop = onTop, showOther = showOther, inCol = inCol, outCol = border, xlab = xlab, ylab = ylab, ...)
+    myBarplot(x = res, order=order, nbins=nbins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, line.max=line.max, hgrid = hgrid, top = top, showOther = showOther, inCol = inCol, outCol = border, xlab = xlab, ylab = ylab, ...)
 
     invisible(base_agg)
 }
