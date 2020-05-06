@@ -4,12 +4,24 @@
 \alias{setFplot_page}
 \title{Sets the target page size for figure exporting}
 \usage{
-setFplot_page(page = "us", margins = "normal", units = "tw")
+setFplot_page(
+  page = "us",
+  margins = "normal",
+  units = "tw",
+  pt = 10,
+  w2h = 1.75
+)
 }
 \arguments{
 \item{page}{What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.}
 
 \item{margins}{The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in **inches**. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.}
+
+\item{units}{The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.}
+
+\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 11. This means that all text appearing in the plot with \code{cex = 1} will appear with 11pt-sized fonts in your document (most likely an article).}
+
+\item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
 }
 \description{
 Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain the desired point size for the plotting text. The function \code{setFplot_page} sets the target page size (once and for all). This is important for the accuracy of the export, although the default values should be working well most of the time.

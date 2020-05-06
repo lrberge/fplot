@@ -28,6 +28,7 @@ tiff_fit(
   w2h = 1.75,
   h2w,
   sideways = FALSE,
+  res = 300,
   antialias = "cleartype",
   ...
 )
@@ -40,6 +41,7 @@ jpeg_fit(
   w2h = 1.75,
   h2w,
   sideways = FALSE,
+  res = 300,
   antialias = "cleartype",
   ...
 )
@@ -52,6 +54,7 @@ bmp_fit(
   w2h = 1.75,
   h2w,
   sideways = FALSE,
+  res = 300,
   antialias = "cleartype",
   ...
 )

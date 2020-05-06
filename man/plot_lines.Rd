@@ -10,6 +10,7 @@ plot_lines(
   time,
   moderator,
   mod.select,
+  mod.NA = TRUE,
   smoothing_window = 0,
   fun,
   col = "set1",
@@ -18,7 +19,7 @@ plot_lines(
   legend_options = list(),
   pt.cex = 2,
   lwd = 2,
-  dict = getFplot_dict(),
+  dict = NULL,
   mod.title = TRUE,
   ...
 )
@@ -33,6 +34,8 @@ plot_lines(
 \item{moderator}{Only if argument \sQuote{fml} is a vector. It should be a vector of conditional values to average over. This is an optional parameter.}
 
 \item{mod.select}{Which moderators to select. By default the top 5 moderators in terms of frequency (or in terms of the value of fun in case of identical frequencies) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 10. Alternatively, you can put an integer between 1 and 10.}
+
+\item{mod.NA}{Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator contains \code{NA} values, all \code{NA} values from the moderator will be treated as a regular case: allows to display the distribution for missing values.}
 
 \item{smoothing_window}{Default is 0. The number of time periods to average over. Note that if it is provided the new value for each period is the average of the current period and the \code{smoothing_window} time periods before and after.}
 
@@ -61,12 +64,14 @@ The typical use of this function is to represents trends of average along some c
 }
 \examples{
 
-df = iris
-df$period = sample(1:4, 150, TRUE)
 
-plot_lines(Petal.Length ~ period|Species, df)
+data(airquality)
 
-plot_lines(Petal.Length ~ Species, df)
+plot_lines(Ozone ~ Day, airquality)
+
+plot_lines(Ozone ~ Day | Month, airquality)
+
+plot_lines(Ozone ~ Month | cut(Day, 8), airquality)
 
 
 }

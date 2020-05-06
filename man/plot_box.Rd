@@ -18,6 +18,7 @@ plot_box(
   legend_options = list(),
   lwd = 2,
   outlier,
+  dict = NULL,
   dict_case,
   dict_moderator,
   order_case,
@@ -26,17 +27,16 @@ plot_box(
   mean.col = "darkred",
   mean.pch = 18,
   mean.cex = 2,
-  mod.title,
+  mod.title = TRUE,
   labels.tilted,
   trunc = 20,
   trunc.method = "auto",
   line.max,
-  dict = getFplot_dict(),
   ...
 )
 }
 \arguments{
-\item{fml}{A formula of the type: \code{var ~ case | moderator}. Note that if a formula is provided then the argument \sQuote{data} must be provided.}
+\item{fml}{A numeric vector or a formula of the type: \code{vars ~ moderator_1 | moderator_2}. Note that if a formula is provided then the argument \sQuote{data} must be provided. You can plot several variables, if you don't want a moderator, use 1 instead: e.g. \code{plot_box(Petal.Width +Petal.Length ~ 1, iris)}. You can plot all numeric variables from a data set using \code{"."}: \code{plot_box(. ~ 1, iris)}.}
 
 \item{data}{A data.frame/data.table containing the relevant information.}
 
@@ -61,6 +61,8 @@ plot_box(
 \item{lwd}{The width of the lines making the boxes. Default is 2.}
 
 \item{outlier}{Default is \code{TRUE}. Should the outliers be displayed?}
+
+\item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
 \item{dict_case}{A named character vector. If provided, it changes the values of the variable \sQuote{case} to the ones contained in the vector \code{dict_case}. Example: I want to change my variable named "a" to "Australia" and "b" to "Brazil", then I used \code{dict=c(a="Australia",b="Brazil")}.}
 
@@ -88,8 +90,6 @@ plot_box(
 
 \item{line.max}{Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.}
 
-\item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
-
 \item{...}{Other parameters to be passed to \code{plot}.}
 }
 \value{
@@ -100,10 +100,27 @@ This function allows to draw a boxplot, with possibly separating different moder
 }
 \examples{
 
-m = iris
-m$period = sample(1:4, 150, TRUE)
+# Simple iris boxplot
 
-plot_box(Petal.Length ~ period|Species, m)
+# All numeric variables
+plot_box(. ~ 1, iris)
+
+# All numeric variable / splitting by species
+plot_box(. ~ Species, iris)
+
+# idem but with renaming
+plot_box(. ~ Species, iris, dict = c(Species="Iris species",
+         setosa="SETOSA", Petal.Width="Width (Petal)"))
+
+# Now using two moderators
+base = iris
+base$period = sample(1:4, 150, TRUE)
+
+plot_box(Petal.Length ~ period | Species, base)
+
+
+
+
 
 }
 \author{

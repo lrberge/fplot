@@ -23,7 +23,7 @@ Sets/gets the default dictionary used to rename the axes/moderator variables in 
 
 data(airquality)
 setFplot_dict(c(Ozone = "Ozone (ppb)"))
-plot_distr(Month~1|Ozone, airquality, weight.fun = mean)
+plot_distr(Ozone ~ Month, airquality, weight.fun = mean)
 
 }
 \author{
