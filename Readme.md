@@ -12,7 +12,7 @@ The data sets used are `us_pub_econ` (from `fplot`) relating to publications in 
 
 One aim of `fplot`is to easily export graphs, it therefore includes a tool to relabel the variable names *globally* (once and for all!). The following line is run before plotting the graphs:
 
-`setFplot_dict(c(Origin = "Exporting Country", Destination = "Importing Country", Euros = "Exports Value in €", jnl_top_5p = "Publications in Top 5% journal", journal = "Journal", institution = "U.S. Institution", Petal.Length = "Petal Length"))` 
+`setFplot_dict(c(Origin = "Exporting Country", Destination = "Importing Country", Euros = "Exports Value in €", jnl_top_25p = "Pub. in Top 25% journal", jnl_top_5p = "Publications in Top 5% journal", journal = "Journal", institution = "U.S. Institution", Petal.Length = "Petal Length"))` 
 
 The code to run the plots are in the titles of the graphs. You'll notice that the same command line can result in a various set of graphs. 
 
