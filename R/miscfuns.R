@@ -77,6 +77,7 @@ getFplot_dict = function(){
 #' @param page What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.
 #' @param margins The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in **inches**. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.
 #' @param units The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.
+#' @param reset Logical, default is \code{FALSE}. Whether arguments should be reset to default before applying modifications.
 #'
 #' @seealso
 #' Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}. The function closing the connection and showing the obtained graph in the viewer: \code{\link[fplot]{fit.off}}.
@@ -101,7 +102,10 @@ getFplot_dict = function(){
 #' setFplot_page(margins = c(2, 2.5) / 2.54) # cm to in
 #' setFplot_page(margins = c(2, 2.5, 2, 2.5) / 2.54)
 #'
-setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10, w2h = 1.75){
+setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10, w2h = 1.75, reset = FALSE){
+
+    arg_list = c("units", "pt", "w2h")
+    # page and margins => different behavior
 
     # page => us / a4 / a3 / a2 / a1 // => to be implemented later
     # or: w, h (vector or character)
@@ -116,6 +120,7 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
     check_arg(units, "charin(tw, pw, in, cm, px)")
     check_arg(pt, "numeric scalar GT{0}")
     check_arg(w2h, "numeric scalar GT{0}")
+    check_arg(reset, "logical scalar")
 
     if(length(page) == 1){
         if(is.numeric(page)){
@@ -153,9 +158,44 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
         mar = margins
     }
 
-    page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
+    # page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
 
-    options(fplot_img_opts = list(page_dim = page_dim, page_dim_net = page_dim_net, units = units, pt = pt, w2h = w2h))
+    opts = getOption("fplot_img_opts")
+    if(is.null(opts) || reset){
+        opts = list()
+    } else if(!is.list(opts)){
+        warning("Wrong formatting of option 'fplot_img_opts', all options are reset.")
+        opts = list()
+    }
+
+    mc = match.call()
+    args2set = unique(c(intersect(names(mc), arg_list), setdiff(arg_list, names(opts))))
+
+    # NOTA: we don't allow delayed evaluation => all arguments must have hard values
+    for(v in args2set){
+        opts[[v]] = eval(as.name(v))
+    }
+
+    # Setting the pages dimensions
+    if("margins" %in% names(mc) || !"margins" %in% names(opts)){
+        # If user provided or no default
+        opts$mar = mar
+    } else {
+        # else: default
+        mar = opts$mar
+    }
+
+    if("page" %in% names(mc) || !"page_dim" %in% names(opts)){
+        # if user provided page or no default
+        opts$page_dim = page_dim
+    } else {
+        # page size = default
+        page_dim = opts$page_dim
+    }
+
+    opts$page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
+
+    options(fplot_img_opts = opts)
 
 }
 
@@ -481,9 +521,12 @@ fit.off = function(){
     my_viewer = getOption("viewer")
 
     if(is.null(my_viewer)){
-        if(is.null(getOption("fplot_img_warn_viewer"))){
-            warning("The function 'fit.off' only works with RStudio's viewer--which wasn't found. This message won't be repeated.")
-            options(fplot_img_warn_viewer = TRUE)
+        # => this setup to avoid repeating the warnings when running the examples
+        old_time = getOption("fplot_img_warn_viewer")
+        new_time = Sys.time()
+        if(is.null(old_time) || difftime(new_time, old_time, units = "min") > 1){
+            warning("The function 'fit.off' only works with RStudio's viewer--which wasn't found.")
+            options(fplot_img_warn_viewer = new_time)
         }
     } else if(!is.null(path)){
         # We copy the image and show in the viewer
@@ -534,22 +577,22 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
         if(missing(x)) return(NULL)
 
         if(arg_name == "width"){
-            page_dim_net = page_dim_net[1]
-            page_dim = page_dim[1]
+            tw = page_dim_net[1]
+            pw = page_dim[1]
         } else if(arg_name == "height"){
-            page_dim_net = page_dim_net[2]
-            page_dim = page_dim[2]
+            tw = page_dim_net[2]
+            pw = page_dim[2]
         } else {
             stop_up("Internal error: please contact the package author.")
         }
 
         if(is.numeric(x)){
-            res = switch(unit.default, "tw" = x * page_dim_net, "pw" = x * page_dim, "in" = x, "cm" = x/2.54, "px" = x/96)
+            res = switch(unit.default, "tw" = x * tw, "pw" = x * pw, "in" = x, "cm" = x/2.54, "px" = x/96)
 
             return(res)
         }
 
-        valid_units = c("tw", "pw", "in", "cm", "px", "%")
+        valid_units = c("tw", "pw", "th", "ph", "in", "cm", "px", "%")
     } else {
         valid_units = c("in", "cm", "px")
     }
@@ -601,10 +644,11 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
                 stop_up("You can define '", arg_name, "' as percentage only when the default unit is 'tw' (text width) or 'pw' (page width), which can be set in setFplot_page().")
             }
 
-            res = switch (unit.default, "tw" = res/100 * page_dim_net, "pw" = res/100 * page_dim)
+            res = switch(unit.default, "tw" = res/100 * page_dim_net, "pw" = res/100 * page_dim)
 
-        } else if(unit %in% c("tw", "pw")){
-            res = switch (unit, "tw" = res * page_dim_net, "pw" = res * page_dim)
+        } else if(unit %in% c("tw", "pw", "th", "ph")){
+            res = switch(unit, "tw" = res * page_dim_net[1], "pw" = res * page_dim[1],
+                         , "th" = res * page_dim_net[2], "ph" = res * page_dim[2])
         }
     }
 

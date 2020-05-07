@@ -1,0 +1,88 @@
+---
+title: "Exporting graphs"
+author: "Laurent Berge"
+date: "07/05/2020"
+output: html_document
+vignette: >
+  %\VignetteIndexEntry{Exporting graphs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## Exporting graphs with `fplot`
+
+Exporting a graph is often a chore, especially if you want to have the best looking graphs in your publications. One common problem is that it is usually dificult to predict how the text contained in the graph will look once in its final location (i.e. in your document). You may end up with text looking either too big or too small.
+
+`fplot` provides a set of functions with a different philosophy from existing export functions: instead of giving the target size of the figure, just give the desired point size of the text. The graph will be created such that once it's in your final document, the size of the text in the graph will be equal to the desired point size. So, no more graph with too large or too tiny fonts!
+
+Now I detail a simple example.
+
+## Example
+
+You can export any kind of graph with the functions `pdf_fit`, `png_fit`, etc, which are the `fplot` versions of `pdf`, `png`, etc. But first things first, you need to provide the size the image will take in your final document. 
+
+By default, the target location of the graph is a *US letter* page with "normal" margins (i.e. 2.5cm left and right, 2cm top and bottom). You can change it globally with the function `setFplot_page`. Let's change it to A4 and one inch margins on all sides:
+
+```{r}
+library(fplot)
+setFplot_page(page = "a4", margins = 1)
+```
+
+Now let's go for the first export:
+
+```{r, eval = FALSE}
+pdf_fit("first_export.pdf")
+plot(1, 1, type = "n", ann = FALSE)
+text(1, 1, "This text will be displayed in 10pt.")
+fit.off()
+```
+
+You can notice that in the end of the export, `fit.off` is used in lieu of `dev.off`. This function does the same thing as `dev.off` but also displays the exported graph in the Viewer pane of RStudio (provided you use it). This way you can directly see how the exported graph looks.
+
+What about the geometry of the graph? By default the width of the plot is 100% of the text width. You can change it with the `width` argument: e.g. `width = 0.5`, `width = "50%"`, `width = "10cm"`, etc.
+
+The width to height ratio can be modified with the `w2h` argument (or you can use `h2w` for the inverse ratio). The default is `w2h = 1.75`.
+
+Finally the default point size is `pt = 10`. If embedded in an A4 page with 1 inch margins on both sides, the text of the following graph would be in 10pt:
+
+![Figure 1: Text in 10pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_10pt.png)
+
+If you increase the pt size that's what you would get:
+
+```{r, eval = FALSE}
+pdf_fit("second_export.pdf", pt = 12)
+plot(1, 1, type = "n", ann = FALSE)
+text(1, 1, "This text will be displayed in 12pt.")
+fit.off()
+```
+
+
+![Figure 2: Text in 12pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt.png)
+
+Now any text is larger, and since there is text in the margins, the plotting region becomes smaller.
+
+With this way of exporting, you need to worry only on two things: 1) the final text size of the graph (and you should be worried about it anyway) that you can provide explicitely, and 2) the width to height ratio of the graph. 
+
+
+Last example: let's create the same graph as before but which would take the total height of the page. Just use the argument `height = 1` (`height = 100%` or `height = 1th` [th: text height] would also work):
+
+```{r, eval = FALSE}
+pdf_fit("third_export.pdf", pt = 12, height = 1)
+plot(1, 1, type = "n", ann = FALSE)
+text(1, 1, "This text will be displayed in 12pt.")
+fit.off()
+```
+
+![Figure 3: Text in 12pt, total page height.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_tall.png)
+
+
+
+
+
+
+
+

@@ -2849,6 +2849,7 @@ plot_lines = function(fml, data, time, moderator, mod.select, mod.NA = TRUE, smo
 #' @examples
 #'
 #' # Simple iris boxplot
+#' plot(1:10)
 #'
 #' # All numeric variables
 #' plot_box(. ~ 1, iris)

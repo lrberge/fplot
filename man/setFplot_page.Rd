@@ -9,7 +9,8 @@ setFplot_page(
   margins = "normal",
   units = "tw",
   pt = 10,
-  w2h = 1.75
+  w2h = 1.75,
+  reset = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ setFplot_page(
 \item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 11. This means that all text appearing in the plot with \code{cex = 1} will appear with 11pt-sized fonts in your document (most likely an article).}
 
 \item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
+
+\item{reset}{Logical, default is \code{FALSE}. Whether arguments should be reset to default before applying modifications.}
 }
 \description{
 Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain the desired point size for the plotting text. The function \code{setFplot_page} sets the target page size (once and for all). This is important for the accuracy of the export, although the default values should be working well most of the time.

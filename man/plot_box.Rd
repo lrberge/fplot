@@ -101,6 +101,7 @@ This function allows to draw a boxplot, with possibly separating different moder
 \examples{
 
 # Simple iris boxplot
+plot(1:10)
 
 # All numeric variables
 plot_box(. ~ 1, iris)
