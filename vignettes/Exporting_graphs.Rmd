@@ -49,7 +49,7 @@ The width to height ratio can be modified with the `w2h` argument (or you can us
 
 Finally the default point size is `pt = 10`. If embedded in an A4 page with 1 inch margins on both sides, the text of the following graph would be in 10pt:
 
-![Figure 1: Text in 10pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_10pt.png)
+![Figure 1: Text in 10pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_10pt.png?raw=true)
 
 If you increase the pt size that's what you would get:
 
@@ -61,14 +61,14 @@ fit.off()
 ```
 
 
-![Figure 2: Text in 12pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt.png)
+![Figure 2: Text in 12pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt.png?raw=true)
 
 Now any text is larger, and since there is text in the margins, the plotting region becomes smaller.
 
 With this way of exporting, you need to worry only on two things: 1) the final text size of the graph (and you should be worried about it anyway) that you can provide explicitely, and 2) the width to height ratio of the graph. 
 
 
-Last example: let's create the same graph as before but which would take the total height of the page. Just use the argument `height = 1` (`height = 100%` or `height = 1th` [th: text height] would also work):
+To create the same graph as before but which would take the total height of the page, just use the argument `height = 1` (`height = 100%` or `height = 1th` [th: text height] would also work):
 
 ```{r, eval = FALSE}
 pdf_fit("third_export.pdf", pt = 12, height = 1)
@@ -77,11 +77,20 @@ text(1, 1, "This text will be displayed in 12pt.")
 fit.off()
 ```
 
-![Figure 3: Text in 12pt, total page height.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_tall.png)
+![Figure 3: Text in 12pt, total page height.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_tall.png?raw=true)
 
+Finally if you use `sideways = TRUE`, the settings become `width = 1th` (100% text height) and `height = 0.9tw` (90% text width), i.e. the graph would take the full page except a 10% space for the graph legend. 
 
+```{r, eval = FALSE}
+# You can also set the point size globally
+setFplot_page(pt = 12) 
+pdf_fit("fourth_export.pdf", sideways = TRUE)
+plot(1, 1, type = "n", ann = FALSE)
+text(1, 1, "This text will be displayed in 12pt.")
+fit.off()
+```
 
-
+![Figure 4: Text in 12pt, sideways.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_sideways.png?raw=true)
 
 
 
