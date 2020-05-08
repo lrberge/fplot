@@ -17,13 +17,15 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 Exporting a graph is often a chore, especially if you want to have the best looking graphs in your publications. One common problem is that it is usually difficult to predict how the text contained in the graph will look once in its final location (i.e. in your document). You may end up with text looking either too big or too small.
 
-`fplot` provides a set of tools to simplify graph exportation. This is achieved thanks to a different philosophy from existing export functions: instead of giving the target size of the figure (width/height), just give the desired point size of the text. The graph will be created such that once it's in your final document, the size of the text in the graph will be equal to the desired point size. So, no more graph with too large or too tiny fonts!
+`fplot` provides a set of tools to simplify graph exportation. This is achieved thanks to a different philosophy from existing export functions: instead of giving the target size of the figure (width/height), just give the desired point size of the text. The graph will be created such that once it's in your final document, the size of the text in the graph will be equal to the desired point size. 
 
-Now I detail a simple example.
+In essence, it's a reparametrization of existing export functions. Below a simple example is detailed.
 
 ## Example
 
-You can export any kind of graph with the functions `pdf_fit`, `png_fit`, etc, which are the `fplot` versions of `pdf`, `png`, etc. But first things first, you need to provide the size the image will take in your final document. 
+You can export any kind of graph with the functions `pdf_fit`, `png_fit`, etc, which are the `fplot` versions of `pdf`, `png`, etc. 
+
+But first things first, you need to provide the size the image will take in your final document. 
 
 By default, the target location of the graph is a *US letter* page with "normal" margins (i.e. 2.5cm left and right, 2cm top and bottom). You can change it globally with the function `setFplot_page`. Let's change it to A4 and one inch margins on all sides:
 
@@ -79,7 +81,7 @@ fit.off()
 
 ![Figure 3: Text in 12pt, total page height.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_tall.png?raw=true)
 
-Finally if you use `sideways = TRUE`, the settings become `width = 1th` (100% text height) and `height = 0.9tw` (90% text width), i.e. the graph would take the full page except a 10% space for the graph legend. 
+Finally if you use `sideways = TRUE`, the settings become `width = 1th` (100% text height) and `height = 0.9tw` (90% text width), i.e. the graph would take the full page except a 10% space left for the graph legend. 
 
 ```{r, eval = FALSE}
 # You can also set the point size globally
