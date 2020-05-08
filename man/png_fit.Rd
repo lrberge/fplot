@@ -62,15 +62,15 @@ bmp_fit(
 \arguments{
 \item{file}{The name of the file to which export the pdf figure.}
 
-\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 11. This means that all text appearing in the plot with \code{cex = 1} will appear with 11pt-sized fonts in your document (most likely an article).}
+\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.}
 
-\item{width}{The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}.}
+\item{width}{The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
 
-\item{height}{Numeric between 0 and 1. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{"90\%"}.}
+\item{height}{Numeric between 0 and 1 or character scalar. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
 
 \item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
 
-\item{h2w}{Numeric scalar, default is missing. Used to determine the width of the figure based on the height. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall.}
+\item{h2w}{Numeric scalar, default is missing. Used to determine the aspectr ratio of the figure.}
 
 \item{sideways}{Logical, defaults to \code{FALSE}. If the figure will be placed in landscape in the final document, then \code{sideways} should be equal to \code{TRUE}. If TRUE, then the argument \code{width} now refers to the height of the text, and the argument \code{height} to its width.}
 
@@ -91,12 +91,6 @@ This is an alternative to \code{\link[grDevices]{png}} and others. It makes it e
 
 \item \code{bmp_fit}: BMP export with guaranteed text size
 }}
-
-\section{Setting the width and height}{
-
-
-As you will remark, you cannot set the width or the height in absolute terms using inches or any other measure (px, cm, etc). This is in purpose: the aim of this function is to get a figure ready to be inserted in a document. Therefore the width and height are always expressed relatively to the size available in the document (i.e. the dimensions of the bofy of the text). The page size in turned is set once and for all with the function \code{\link[fplot]{setFplot_page}}.
-}
 
 \section{Setting the page size}{
 

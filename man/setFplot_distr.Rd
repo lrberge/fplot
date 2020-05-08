@@ -2,6 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{setFplot_distr}
 \alias{setFplot_distr}
+\alias{getFplot_distr}
 \title{Sets the defaults of plot_distr}
 \usage{
 setFplot_distr(
@@ -29,6 +30,8 @@ setFplot_distr(
   trunc.method = "auto",
   reset = FALSE
 )
+
+getFplot_distr()
 }
 \arguments{
 \item{sorted}{Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.}

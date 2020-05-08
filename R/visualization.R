@@ -92,6 +92,17 @@ setFplot_distr = function(sorted, log, top, yaxis.num, col, border = "black", mo
 
 }
 
+#' @rdname setFplot_distr
+getFplot_distr = function(){
+    opts = getOption("fplot_distr")
+    if(!is.list(opts)){
+        warning("Wrong formatting of option 'fplot_distr', all options are reset.")
+        opts = list()
+        options(fplot_distr = opts)
+    }
+    opts
+}
+
 
 
 

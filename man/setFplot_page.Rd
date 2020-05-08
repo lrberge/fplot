@@ -2,6 +2,7 @@
 % Please edit documentation in R/miscfuns.R
 \name{setFplot_page}
 \alias{setFplot_page}
+\alias{getFplot_page}
 \title{Sets the target page size for figure exporting}
 \usage{
 setFplot_page(
@@ -12,6 +13,8 @@ setFplot_page(
   w2h = 1.75,
   reset = FALSE
 )
+
+getFplot_page()
 }
 \arguments{
 \item{page}{What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.}
@@ -20,7 +23,7 @@ setFplot_page(
 
 \item{units}{The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.}
 
-\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 11. This means that all text appearing in the plot with \code{cex = 1} will appear with 11pt-sized fonts in your document (most likely an article).}
+\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.}
 
 \item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
 
