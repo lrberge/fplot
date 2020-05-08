@@ -228,10 +228,12 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     # - mod.method, equal to "side", "split", "stack"
     # - within and total: TRUE/FALSE
     # - all values are missing
-    check_arg_plus(mod.method, "match(side, split, stack)")
+    check_arg_plus(mod.method, "null match(side, split, stack)")
 
     check_arg_plus(top, "null match(frac, nb, none, FALSE)")
     if(!missnull(top) && top == "FALSE") top = "none"
+
+    check_arg_plus(at_5, "NULL match(roman, lines, FALSE)")
 
     check_arg(moderator, "null vector na ok")
     check_arg(weight, "null numeric vector na ok")
@@ -244,8 +246,8 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     check_arg(mod.title, "scalar(character, logical)")
     check_arg(labels.angle, "numeric scalar")
 
-    check_arg("null logical scalar", sorted, log, labels.tilted, plot, centered, other)
-    check_arg("logical scalar", yaxis.show, yaxis.num, int.categorical, cumul, within, total, mod.NA)
+    check_arg("null logical scalar", sorted, log, labels.tilted, centered, other, within, total, int.categorical)
+    check_arg("logical scalar", yaxis.show, yaxis.num, cumul, mod.NA, plot)
 
     mc = match.call()
 
@@ -293,7 +295,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
     set_defaults("fplot_distr")
 
-    validate_dots(valid_args = c(args_deprec, names(par), "ann"), stop = TRUE)
+    validate_dots(valid_args = c(args_deprec, names(par()), formalArgs(plot.default)), stop = TRUE)
 
     #
     # Extracting x and the moderator ####
@@ -696,7 +698,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         bin_fit_all = c(20, 11, 8, 6, 5)
         bin_max_all = c(15, 9, 7, 5, 4)
 
-        nb = ifelse(!missing(mod.method) && mod.method == "stack", 1, moderator_cases)
+        nb = ifelse(!missnull(mod.method) && mod.method == "stack", 1, moderator_cases)
 
         nbins = bin_fit_all[nb]
         if(length(unique(x)) > nbins){
@@ -718,7 +720,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     maxBins_old = nbins # used with delayLogChecking
     if(isNum && !log){
         if(!missnull(bin.size)){
-            if(!missing(int.categorical) && int.categorical && all(x %% 1 == 0)){
+            if(!missnull(int.categorical) && int.categorical && all(x %% 1 == 0)){
                 isInteger = TRUE
             } else {
                 x = (x %/% bin.size) * bin.size
@@ -739,7 +741,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
             }
 
             goNum = TRUE
-            if(!missing(int.categorical)){
+            if(!missnull(int.categorical)){
                 # we force integers as categorical
                 if(int.categorical == TRUE) goNum = FALSE
                 # if int.categorical == FALSE, then we force it as numeric
@@ -862,7 +864,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         within = !total
     } else if(!missnull(within) && within && mod.method == "stack"){
         stop("You cannot use within=TRUE when mod.method='stack'.")
-    } else {
+    } else if(missnull(within)){
         within = TRUE
     }
 
@@ -1186,9 +1188,6 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
             tmp[, c("x", "isOther", "otherValue") := NULL]
 
             # Merging additional info
-            # x_unik_all = unique(data_freq$x)
-            # x_nb_unik_all = unique(data_freq$x_nb)
-            # tmp$x[is.na(tmp$x)] = x_unik_all[dict2number(x_nb_unik_all, tmp$x_nb[is.na(tmp$x)])]
             base2merge = unique(data_freq[, list(x, x_nb, isOther, otherValue)])
             quoi = merge(tmp, base2merge, by = "x_nb")
             tmp = quoi[order(x_nb, moderator)]
@@ -1222,14 +1221,17 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
         if(X_FACTOR){
             # we reintroduce the values of x
+            # Beware: "Other" can be either 0 (when side/split) // or NA (without moderator)
 
-            # beware x == 0 means Other!!!
-            x_value = rep("Other", nrow(data_freq))
-            qui_ok = data_freq$x != 0
+            x_value = rep(NA, nrow(data_freq))
+            if(anyNA(data_freq$x)){
+                qui_ok = !is.na(data_freq$x)
+            } else {
+                qui_ok = !data_freq$x == 0
+            }
+
             x_value[qui_ok] = x_fact_names[data_freq$x[qui_ok]]
-            x_value[!qui_ok] = NA
             data_freq[, x := x_value]
-            # data_freq[, x := x_fact_names[x]]
         }
 
     } else if(DO_SPLIT == TRUE){
@@ -1613,6 +1615,8 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         } else {
             y_labels = paste0(y_points, "%")
         }
+    } else {
+        y_labels = ""
     }
 
     if("ylab" %in% names(dots)){
@@ -1917,15 +1921,26 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
         myBox(1)
 
+        axis_at = axis(1, lwd = 0, labels = NA)
         if(ADD_OTHER){
             # the axis without last tick
-            axis_at = axis(1, lwd = 0, labels = NA)
-            axis(1, axis_at[1:(length(axis_at) - 1)])
+            at = axis_at[1:(length(axis_at) - 1)]
+
+            if(abs(bin.size) > 1e4){
+                axis(1, at, formatAxisValue(at))
+            } else {
+                axis(1, at)
+            }
+
 
             # the "other" text
             axis(1, at = at_info[x_nb == nbins + 1, mid_point], line = -1, labels = otherText, lwd = 0)
         } else {
-            axis(1)
+            if(abs(bin.size) > 1e4){
+                axis(1, axis_at, formatAxisValue(axis_at))
+            } else {
+                axis(1, axis_at)
+            }
         }
 
         if(ADD_OTHER_LEFT){
@@ -1958,14 +1973,9 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         if(checkNotTilted){
             # If very short labels => we don't tilt them // allows to reintroduce xlab
 
-            # axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
-            # # if we reduce the labels => we tilt them
-            # labels.tilted = axis_info$cex < 1 || any(axis_info$line != -1)
-            if(sum(strwidth(myLabels, cex = 0.8)) < diff(par("usr")[1:2])){
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE)
+            if(length(unique(axis_info$line)) == 1){
                 labels.tilted = FALSE
-                # if(noXlab){
-                #     title(xlab = x_name)
-                # }
             } else {
                 labels.tilted = TRUE
             }
@@ -1999,7 +2009,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         } else {
             if(checkForTilting){
                 # If normal axis does not fit => tilt
-                axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
+                axis_info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE)
                 if(axis_info$failed){
                     labels.tilted = TRUE
                 } else {
@@ -2057,7 +2067,8 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
         if(checkForTilting){
             # If normal axis does not fit => tilt
-            axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE)
+
             if(axis_info$failed){
                 labels.tilted = TRUE
             } else {
@@ -2068,7 +2079,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         }
 
         # We also add ticks every 5/10 bins to help counting
-        if(missing(at_5)){
+        if(missnull(at_5)){
             at_5 = ifelse(max(at_info$x_nb) > 10, TRUE, FALSE)
             if(at_5) {
                 at_5 = ifelse(labels.tilted, "line", "roman")
@@ -2084,7 +2095,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
         if(at_5 != "FALSE"){
             qui = which(at_info$x_nb %% 5 == 0)
-            qui = qui[qui != nrow(at_info)]
+            # qui = qui[qui != nrow(at_info)]
 
             if(length(at_info)){
                 # quoi data_freq[qui]
@@ -2101,9 +2112,9 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         }
 
         if(labels.tilted){
-            info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, line.min = 0.35 * (at_5 == "roman"))
+            info_axis = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, line.min = 0.45 * (at_5 == "roman"))
         } else {
-            info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.min = 0.15 * (at_5 == "roman"))
+            info_axis = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.min = 0.25 * (at_5 == "roman"))
         }
 
     }

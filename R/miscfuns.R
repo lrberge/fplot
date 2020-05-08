@@ -284,9 +284,9 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 
     mc = match.call()
 
-    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    pdf(file, width = export_dim$export_width, height = export_dim$export_height, ...)
+    pdf(file, width = opts$export_width, height = opts$export_height, pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "pdf")
 
@@ -300,9 +300,8 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 #' @inheritParams pdf_fit
 #' @inheritSection pdf_fit Setting the page size
 #'
-#' @param antialias By default, equal to \code{"cleartype"}. See details in \code{\link[grDevices]{png}}.
 #' @param res Numeric, the resolution in ppi. Default is 300.
-#' @param ... Other arguments to be passed to \code{\link[grDevices]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices]{jpeg}}, or \code{\link[grDevices]{tiff}}.
+#' @param ... Other arguments to be passed to \code{\link[grDevices]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices]{jpeg}}, or \code{\link[grDevices]{tiff}}. For example: \code{antialias}, \code{bg}, etc.
 #'
 #'
 #' @examples
@@ -338,66 +337,46 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 #' text(1, 1, "This text will be displayed in 8pt\nif the graph is 50% of the text width.")
 #' fit.off()
 #'
-png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
+png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, ...){
 
     mc = match.call(expand.dots = TRUE)
-    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    problems = intersect(c("filename", "units"), names(mc))
-    if(length(problems) > 0){
-        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
-    }
-
-    png(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    png(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "png")
 }
 
 
-#' @describeIn png_fit TIFF export with guaranteed text size
-tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
+#' @rdname png_fit
+tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, ...){
 
     mc = match.call(expand.dots = TRUE)
-    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    problems = intersect(c("filename", "units"), names(mc))
-    if(length(problems) > 0){
-        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
-    }
-
-    tiff(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    tiff(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "tiff")
 }
 
-#' @describeIn png_fit JPEG export with guaranteed text size
-jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
+#' @rdname png_fit
+jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, ...){
 
     mc = match.call(expand.dots = TRUE)
-    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    problems = intersect(c("filename", "units"), names(mc))
-    if(length(problems) > 0){
-        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
-    }
-
-    jpeg(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    jpeg(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "jpeg")
 }
 
-#' @describeIn png_fit BMP export with guaranteed text size
-bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, antialias = "cleartype", ...){
+#' @rdname png_fit
+bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, res = 300, ...){
 
     mc = match.call(expand.dots = TRUE)
-    export_dim = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    problems = intersect(c("filename", "units"), names(mc))
-    if(length(problems) > 0){
-        stop("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
-    }
-
-    bmp(file, width = export_dim$export_width, height = export_dim$export_height, res = res, antialias = antialias, units = "in", ...)
+    bmp(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "bmp")
 }
@@ -410,6 +389,15 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
     check_arg(w2h, h2w, "numeric scalar GT{0}")
     check_arg(width, height, "scalar(numeric, character) GT{0}")
     check_arg(sideways, "logical scalar")
+
+    # We check the call for forbidden elements
+    problems = intersect(c("filename", "units", "pointsize"), names(mc))
+    if(length(problems) > 0){
+        if(identical(problems, "pointsize")){
+            stop_up("You cannot use the argument 'pointsize', use argument 'pt' instead.")
+        }
+        stop_up("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
+    }
 
     # if(!missing(width) && !missing(w2h) && !missing(height)){
 
@@ -468,13 +456,17 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
         height_relative = 1 / w2h
     }
 
-    # We find the optimal pdf output size
-    char_size_pt = par("cin")[2] * 72
+    # # We find the optimal pdf output size
+    # char_size_pt = par("cin")[2] * 72
+    #
+    # export_width = char_size_pt / pt * width_in
+    # export_height =  height_relative * export_width
 
-    export_width = char_size_pt / pt * width_in
-    export_height =  height_relative * export_width
+    # Using directly the argument pointsize is more reliable
+    export_width = width_in
+    export_height = height_relative * export_width
 
-    list(export_width = export_width, export_height = export_height)
+    list(export_width = export_width, export_height = export_height, pt = pt)
 }
 
 
@@ -1973,7 +1965,7 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
                 # Tilted labels not implemented for this axis
                 if(delayLabelsTilted){
 
-                    axis_info = xaxis_labels(at = myat, labels = exp_value_format, only.params = TRUE, xlim = xlim)
+                    axis_info = xaxis_labels(at = myat, labels = exp_value_format, trunc = trunc, trunc.method = trunc.method, only.params = TRUE, xlim = xlim)
                     if(length(unique(axis_info$line)) == 1){
                         labels.tilted = FALSE
                     } else {
@@ -2084,7 +2076,7 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
             # axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE)
             # # if we reduce the labels => we tilt them
             # labels.tilted = axis_info$cex < 1 || any(axis_info$line != -1)
-            axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE, xlim = xlim)
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE, xlim = xlim)
             if(length(unique(axis_info$line)) == 1){
                 labels.tilted = FALSE
             } else {
@@ -2118,7 +2110,7 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
         } else {
             if(checkForTilting){
                 # If normal axis does not fit => tilt
-                axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE, xlim = xlim)
+                axis_info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE, xlim = xlim)
                 if(axis_info$failed){
                     labels.tilted = TRUE
                 } else {
@@ -2148,7 +2140,8 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
 
         if(checkForTilting){
             # If normal axis does not fit => tilt
-            axis_info = xaxis_labels(at = myAt, labels = myLabels, only.params = TRUE, xlim = xlim)
+            axis_info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, only.params = TRUE, xlim = xlim)
+
             if(axis_info$failed){
                 labels.tilted = TRUE
             } else {
@@ -2157,7 +2150,7 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
         }
 
         # We also add ticks every 5/10 bins to help counting
-        if(missing(at_5)){
+        if(missnull(at_5)){
             at_5 = ifelse(max(at_info$x_nb) > 10, TRUE, FALSE)
             if(at_5) {
                 at_5 = ifelse(labels.tilted, "line", "roman")
@@ -2167,11 +2160,13 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
         }
 
         if(labels.tilted){
-            lab.info = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, line.min = 0.35 * (at_5 == "roman"), only.params = TRUE)
-            nlines = nlines + lab.info$height_line + LINE_MIN_TILTED
+            lmin = 0.45 * (at_5 == "roman")
+            lab.info = xaxis_biased(at = myAt, labels = myLabels, angle=labels.angle, cex = cex.axis, trunc = trunc, trunc.method = trunc.method, line.max = line.max, line.min = lmin, only.params = TRUE)
+            nlines = nlines + lab.info$height_line + LINE_MIN_TILTED + lmin
         } else {
-            lab.info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.min = 0.15 * (at_5 == "roman"), only.params = TRUE, xlim = xlim)
-            nlines = nlines + lab.info$height_line
+            lmin = 0.25 * (at_5 == "roman")
+            lab.info = xaxis_labels(at = myAt, labels = myLabels, trunc = trunc, trunc.method = trunc.method, line.min = lmin, only.params = TRUE, xlim = xlim)
+            nlines = nlines + lab.info$height_line + lmin
         }
 
     }
@@ -2310,9 +2305,9 @@ dict_apply = function(x, dict){
             if(!is.null(dict)){
                 dict_origin[names(dict)] = as.vector(dict)
             }
-        }
 
-        dict = dict_origin
+            dict = dict_origin
+        }
     }
 
     if(is.null(dict)){

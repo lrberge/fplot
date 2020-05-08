@@ -50,7 +50,7 @@ xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8, ad
 
     # We compute the space that is left to display the label
     if(!missing(xlim)){
-        largeur = diff(xlim)
+        largeur = diff(xlim) * 1.1
         half_plotSpace_in = (myAt[1] - xlim[1]) / largeur * par("pin")[1]
         total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
     } else {
@@ -60,6 +60,7 @@ xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8, ad
         # 2nd using the margin
         total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
     }
+
 
 
     # If it is too large, we reduce it:

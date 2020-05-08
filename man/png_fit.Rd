@@ -16,7 +16,6 @@ png_fit(
   h2w,
   sideways = FALSE,
   res = 300,
-  antialias = "cleartype",
   ...
 )
 
@@ -29,7 +28,6 @@ tiff_fit(
   h2w,
   sideways = FALSE,
   res = 300,
-  antialias = "cleartype",
   ...
 )
 
@@ -42,7 +40,6 @@ jpeg_fit(
   h2w,
   sideways = FALSE,
   res = 300,
-  antialias = "cleartype",
   ...
 )
 
@@ -55,7 +52,6 @@ bmp_fit(
   h2w,
   sideways = FALSE,
   res = 300,
-  antialias = "cleartype",
   ...
 )
 }
@@ -76,22 +72,11 @@ bmp_fit(
 
 \item{res}{Numeric, the resolution in ppi. Default is 300.}
 
-\item{antialias}{By default, equal to \code{"cleartype"}. See details in \code{\link[grDevices]{png}}.}
-
-\item{...}{Other arguments to be passed to \code{\link[grDevices]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices]{jpeg}}, or \code{\link[grDevices]{tiff}}.}
+\item{...}{Other arguments to be passed to \code{\link[grDevices]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices]{jpeg}}, or \code{\link[grDevices]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
 }
 \description{
 This is an alternative to \code{\link[grDevices]{png}} and others. It makes it easy to export figures that should end up in documents. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
 }
-\section{Functions}{
-\itemize{
-\item \code{tiff_fit}: TIFF export with guaranteed text size
-
-\item \code{jpeg_fit}: JPEG export with guaranteed text size
-
-\item \code{bmp_fit}: BMP export with guaranteed text size
-}}
-
 \section{Setting the page size}{
 
 
