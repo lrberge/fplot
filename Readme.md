@@ -8,7 +8,7 @@ The problem when it comes to distributions is that we often face a variety of da
 
 This brief description shows a gallery of `fplot` possibilities. For a more detailed introduction, please see the [walk-through](https://cran.r-project.org/package=fplot/vignettes/fplot_walkthrough.html).
 
-The data sets used are `us_pub_econ` (from `fplot`) relating to publications in economics from US institutions, `trade` (from package `fixest`) relating to trade value between countrise for some products in the European Union, and the `iris` data set (from base `R`).
+The data sets used are `us_pub_econ` (from `fplot`) relating to publications in economics from US institutions, `trade` (from package `fixest`) relating to trade value between countries for some products in the European Union, and the `iris` data set (from base `R`).
 
 One aim of `fplot`is to easily export graphs, it therefore includes a tool to relabel the variable names *globally* (once and for all). The following line is run before plotting the graphs:
 

@@ -15,9 +15,9 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 ## Exporting graphs with `fplot`
 
-Exporting a graph is often a chore, especially if you want to have the best looking graphs in your publications. One common problem is that it is usually dificult to predict how the text contained in the graph will look once in its final location (i.e. in your document). You may end up with text looking either too big or too small.
+Exporting a graph is often a chore, especially if you want to have the best looking graphs in your publications. One common problem is that it is usually difficult to predict how the text contained in the graph will look once in its final location (i.e. in your document). You may end up with text looking either too big or too small.
 
-`fplot` provides a set of functions with a different philosophy from existing export functions: instead of giving the target size of the figure, just give the desired point size of the text. The graph will be created such that once it's in your final document, the size of the text in the graph will be equal to the desired point size. So, no more graph with too large or too tiny fonts!
+`fplot` provides a set of tools to simplify graph exportation. This is achieved thanks to a different philosophy from existing export functions: instead of giving the target size of the figure (width/height), just give the desired point size of the text. The graph will be created such that once it's in your final document, the size of the text in the graph will be equal to the desired point size. So, no more graph with too large or too tiny fonts!
 
 Now I detail a simple example.
 
@@ -43,11 +43,11 @@ fit.off()
 
 You can notice that in the end of the export, `fit.off` is used in lieu of `dev.off`. This function does the same thing as `dev.off` but also displays the exported graph in the Viewer pane of RStudio (provided you use it). This way you can directly see how the exported graph looks.
 
-What about the geometry of the graph? By default the width of the plot is 100% of the text width. You can change it with the `width` argument: e.g. `width = 0.5`, `width = "50%"`, `width = "10cm"`, etc.
+What about the geometry of the graph? By default the width of the plot is 100% of the text width. You can change it with the `width` argument: e.g. using relative widths `width = 0.5` (50% of the text width), `width = "50%"` (idem), or absolute widths `width = "10cm"`, `width = "5in"`, etc.
 
-The width to height ratio can be modified with the `w2h` argument (or you can use `h2w` for the inverse ratio). The default is `w2h = 1.75`.
+The width to height ratio can be modified with the `w2h` argument (or you can use `h2w` for the inverse ratio). The default is `w2h = 1.75` (close to the Golden ratio).
 
-Finally the default point size is `pt = 10`. If embedded in an A4 page with 1 inch margins on both sides, the text of the following graph would be in 10pt:
+Finally the default point size is `pt = 10`. If embedded in an A4 page with 1 inch margins on both sides, the text of the previously exported graph would be in 10pt:
 
 ![Figure 1: Text in 10pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_10pt.png?raw=true)
 
@@ -65,7 +65,7 @@ fit.off()
 
 Now any text is larger, and since there is text in the margins, the plotting region becomes smaller.
 
-With this way of exporting, you need to worry only on two things: 1) the final text size of the graph (and you should be worried about it anyway) that you can provide explicitely, and 2) the width to height ratio of the graph. 
+With this way of exporting, you need to worry only on two things: 1) the final text size of the graph (and you should be worried about it anyway) that you can provide explicitly, and 2) the width to height ratio of the graph. 
 
 
 To create the same graph as before but which would take the total height of the page, just use the argument `height = 1` (`height = 100%` or `height = 1th` [th: text height] would also work):

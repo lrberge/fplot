@@ -88,7 +88,7 @@ This data corresponds to publications from U.S. institution in the field of econ
 tab = head(us_pub_econ)
 # Following line to be run when pdf output only
 if ("pdf_document" %in% rmarkdown::all_output_formats(knitr::current_input())){
-  tab = as.data.table(lapply(tab, fplot:::truncate_string, method = "trimMid", trunc = 16))
+  tab = as.data.table(lapply(tab, fplot:::truncate_string, method = "mid", trunc = 16))
 }
 knitr::kable(tab)
 ```
@@ -239,7 +239,7 @@ plot_distr(~ Sepal.Length | Species, iris, mod.method = "stack")
 
 ## Cumulative distribution
 
-To display the umulative distribution, simply use the argument `cumul = TRUE`. Let's look at the cumulative distribution of the top 5% publications:
+To display the cumulative distribution, simply use the argument `cumul = TRUE`. Let's look at the cumulative distribution of the top 5% publications:
 
 ```{r}
 plot_distr(jnl_top_5p ~ institution, us_pub_econ, cumul = TRUE)
