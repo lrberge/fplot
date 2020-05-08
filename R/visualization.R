@@ -295,7 +295,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
     set_defaults("fplot_distr")
 
-    validate_dots(valid_args = c(args_deprec, names(par()), formalArgs(plot.default)), stop = TRUE)
+    # validate_dots(valid_args = c(args_deprec, names(par()), formalArgs(plot.default)), stop = TRUE)
 
     #
     # Extracting x and the moderator ####
