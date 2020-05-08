@@ -21,46 +21,46 @@ setFplot_dict(c(Origin = "Exporting Country", Destination = "Importing Country",
 
 The code to run the plots are in the titles of the graphs. You'll notice that the same command line can result in a set of different graphs. 
 
-![Figure 1: Distribution of US institutions production (by number of publications in economics).](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_pub.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_pub.png?raw=true)
 
-![Figure 2: Distribution of exportation volumes.](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_trade.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_trade.png?raw=true)
 
-![Figure 3: Distribution of petal length.](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_iris.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_iris.png?raw=true)
 
-![Figure 4: Conditional distribution of US institutions by journal.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_1.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_1.png?raw=true)
 
-![Figure 5: Conditional distribution of US institutions by journal, for Cell, Nature and Science.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_2.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_2.png?raw=true)
 
-![Figure 6: Conditional distribution of US institutions by journal, for Cell, Nature and Science -- different layout.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_3_bis.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_3_bis.png?raw=true)
 
-![Figure 7: Conditional distribution of exportation value by exporting country.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_1.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_1.png?raw=true)
 
-![Figure 8: Conditional distribution of exportation value by exporting country -- different layout.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_2.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_2.png?raw=true)
 
-![Figure 9: Conditional distribution of petal length by species.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_1.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_1.png?raw=true)
 
-![Figure 10: Conditional distribution of petal length by species -- different layout.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_2.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_2.png?raw=true)
 
-![Figure 10: Conditional distribution of petal length by species -- Stacked.](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_3.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_3.png?raw=true)
 
-![Figure 11: Distribution of US institutions production, weighted by journal quality.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_pub_1.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_pub_1.png?raw=true)
 
-![Figure 12: Distribution of US institutions for different measures of production.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_pub_2.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_pub_2.png?raw=true)
 
-![Figure 13: Distribution of exporting value by exporting country.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_1.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_1.png?raw=true)
 
-![Figure 14: Distribution of exporting value by exporting country -- export value on top of the bars.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_2.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_2.png?raw=true)
 
-![Figure 15: Distribution of exporting value by importing country, the sample is split by the top exporters.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_1.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_1.png?raw=true)
 
-![Figure 16: Distribution of exporting value by importing country, the sample is split by the top exporters -- bar for the "other" group.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_2.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_2.png?raw=true)
 
-![Figure 17: Conditional production of US institution, conditional on year, stacked.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_pub.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_pub.png?raw=true)
 
-![Figure 18: Distribution of exporting value by importing country, the sample is split by the top exporters -- Stacked.](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_trade.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_trade.png?raw=true)
 
-![Figure 19: Cumulative distribution of publications in top 5% journals.](https://github.com/lrberge/fplot/blob/master/vignettes/images/cumul_pub.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/cumul_pub.png?raw=true)
 
-![Figure 19: Cumulative distribution of exportations by value.](https://github.com/lrberge/fplot/blob/master/vignettes/images/cumul_trade.png)
+![](https://github.com/lrberge/fplot/blob/master/vignettes/images/cumul_trade.png?raw=true)
 
 
