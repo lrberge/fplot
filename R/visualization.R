@@ -60,7 +60,6 @@ setFplot_distr = function(sorted, log, top, yaxis.num, col, border = "black", mo
     check_arg(weight.fun, "function arg(1,)")
 
     check_arg(dict, "null named character vector | logical scalar")
-    check_arg(mod.title, "scalar(character, logical)")
 
     check_arg(labels.angle, "numeric scalar GE{10} LE{90}")
     check_arg(cex.axis, "numeric scalar GT{0}")
@@ -243,7 +242,6 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     check_arg(col, "vector(integer, character) NA OK")
     check_arg(bin.size, "null numeric scalar GT{0}")
     check_arg(dict, "null named character vector | logical scalar")
-    check_arg(mod.title, "scalar(character, logical)")
     check_arg(labels.angle, "numeric scalar")
 
     check_arg("null logical scalar", sorted, log, labels.tilted, centered, other, within, total, int.categorical)
@@ -2907,7 +2905,6 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     check_arg("logical scalar", addLegend, outlier, addMean, labels.tilted)
     check_arg(order_moderator, order_case, "character vector", .message = "Argument '__ARG__' must be a vector of regular expressions.")
 
-    check_arg(mod.title, "scalar(character, logical)")
     check_arg(trunc, "integer scalar GE{5}")
 
     check_arg(dict, "null named character vector | logical scalar")
@@ -2916,7 +2913,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     # Extracting the information
     #
 
-    moderator_name = ""
+    moderator_name = case_name = ""
     if("formula" %in% class(fml_in)){
 
         # if(missing(data) || !is.data.frame(data)){
@@ -2950,13 +2947,24 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         fml = extract_pipe(fml_in)$fml
         pipe = extract_pipe(fml_in)$pipe
 
+        case = eval(fml[[3]], data)
+        moderator = eval(pipe, data)
+
         if(deparse(fml[[2]]) == "."){
             x_all = data
             qui_num = sapply(x_all, function(z) is.numeric(z) || is.logical(z))
+
+            if(length(case) > 1){
+                # There is a case variable => we drop it from the variables
+                case_name = deparse(fml[[3]])
+                qui_num = qui_num & !names(x_all) == case_name
+            }
+
             if(!any(qui_num)){
                 stop("Only numeric variables can be displayed, and none were found in the data set.")
             }
-            x_all = x_all[qui_num]
+
+            x_all = x_all[, ..qui_num]
         } else {
             # x = eval(fml[[2]], data)
             x_all = extract_df(info$lhs_fml, data)
@@ -2966,9 +2974,6 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
             }
         }
 
-        case = eval(fml[[3]], data)
-        moderator = eval(pipe, data)
-
         mod_is_set = FALSE
         if(length(x_all) == 1){
             x = x_all[[1]]
@@ -2976,6 +2981,9 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
 
             if(length(case) > 1){
                 case_name = deparse(fml[[3]])
+            } else {
+                case = rep(x_name, length(x))
+                x_name = ""
             }
 
         } else {
@@ -3252,7 +3260,8 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     dots$x = dots$y = 1
 
     # xlim
-    dots$xlim = range(base_agg$x) + c(-0.5, 0.5)
+    dots$xlim = range(base_agg$x) + c(-1, 1) * ifelse(nrow(base_agg) == 1, 1, 0.5)
+
 
     do.call("plot", dots)
 

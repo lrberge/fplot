@@ -3,9 +3,18 @@
 
 \title{News for \R Package \pkg{fplot}}
 
+\section{Changes in version 1.0.1 (2020-xx-xx)}{
+    \subsection{Bug fixes}{
+        \itemize{
+            \item Bug in \code{plot_box} when a call of the form \code{plot_box(var ~ 1, base)} was used.
+            \item Bug in \code{plot_box} when a call of the form \code{plot_box(. ~ 1, base)} was used.
+        }
+    }
+}
+
 \section{Changes in version 1.0.0 (2020-05-06)}{
 
-    \subsection{New set of functions: The chore of exporting graphs is over!}{
+    \subsection{New set of functions to export graphs}{
         \itemize{
             \item A new set of functions has been created to easily export figures that should fit in a document.
             \item The five functions are \code{pdf_fit}, \code{png_fit}, \code{jpeg_fit}, \code{tiff_fit} and \code{bmp_fit}.

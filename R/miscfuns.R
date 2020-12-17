@@ -116,12 +116,14 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
 
     # Later => add default for width, height, w2h etc
 
-    check_arg_plus(page, "match(us, a4, beamer) | vector character len(1) | vector numeric len(,2) GT{0}")
+    check_arg_plus(page, "match(us, a4) | vector character len(1) | vector numeric len(,2) GT{0}")
+    # check_arg_plus(page, "match(us, a4, beamer) | vector character len(1) | vector numeric len(,2) GT{0}")
     check_arg(units, "charin(tw, pw, in, cm, px)")
     check_arg(pt, "numeric scalar GT{0}")
     check_arg(w2h, "numeric scalar GT{0}")
     check_arg(reset, "logical scalar")
 
+    is_px = FALSE
     if(length(page) == 1){
         if(is.numeric(page)){
             page_dim = rep(page, 2)
@@ -130,6 +132,7 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
         } else if(page == "a4"){
             page_dim = c(8.3, 11.7)
         }  else {
+            is_px = grepl("px", page, fixed = TRUE)
             page_dim = get_dimensions(page, 2)
         }
     } else {
@@ -188,6 +191,7 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
     if("page" %in% names(mc) || !"page_dim" %in% names(opts)){
         # if user provided page or no default
         opts$page_dim = page_dim
+        opts$is_px = is_px
     } else {
         # page size = default
         page_dim = opts$page_dim
@@ -342,7 +346,7 @@ png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    png(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
+    png(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "png")
 }
@@ -354,7 +358,7 @@ tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    tiff(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
+    tiff(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "tiff")
 }
@@ -365,7 +369,7 @@ jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    jpeg(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
+    jpeg(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "jpeg")
 }
@@ -376,7 +380,7 @@ bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    bmp(file, width = opts$export_width, height = opts$export_height, res = res, units = "in", pointsize = opts$pt, ...)
+    bmp(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
     options(fplot_img_path = file)
     options(fplot_img_fun = "bmp")
 }
@@ -390,6 +394,8 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
     check_arg(width, height, "scalar(numeric, character) GT{0}")
     check_arg(sideways, "logical scalar")
 
+    check_px = mc[[1]] != as.name("pdf_fit")
+
     # We check the call for forbidden elements
     problems = intersect(c("filename", "units", "pointsize"), names(mc))
     if(length(problems) > 0){
@@ -398,8 +404,6 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
         }
         stop_up("You cannot use the argument", enumerate_items(problems, "s.or.quote"), ".")
     }
-
-    # if(!missing(width) && !missing(w2h) && !missing(height)){
 
     is_given = function(x) x %in% names(mc) && !is.null(x)
     arg_in = sapply(c("width", "height", "w2h", "h2w"), is_given)
@@ -461,12 +465,21 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
     #
     # export_width = char_size_pt / pt * width_in
     # export_height =  height_relative * export_width
+    # pt = 12
 
     # Using directly the argument pointsize is more reliable
     export_width = width_in
     export_height = height_relative * export_width
 
-    list(export_width = export_width, export_height = export_height, pt = pt)
+    if(check_px && opts$is_px){
+        export_width = export_width * 96
+        export_height = export_height * 96
+        units = "px"
+    } else {
+        units = "in"
+    }
+
+    list(export_width = export_width, export_height = export_height, pt = pt, units = units)
 }
 
 
@@ -799,7 +812,7 @@ legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = 
     # title_out: veut dire que le titre peut aller au dela de la plotting box
 
     # the title
-    check_arg_plus(title, "null character scalar conv")
+    # check_arg_plus(title, "null character scalar conv")
     check_arg(title_out, "logical scalar")
     ADD_TITLE = FALSE
     if(length(title) == 1 && nchar(title) > 0 && grepl("[^ ]", title)){
