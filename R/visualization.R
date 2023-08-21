@@ -2964,7 +2964,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
                 stop("Only numeric variables can be displayed, and none were found in the data set.")
             }
 
-            x_all = x_all[, ..qui_num]
+            x_all = x_all[, qui_num, with = FALSE]
         } else {
             # x = eval(fml[[2]], data)
             x_all = extract_df(info$lhs_fml, data)
