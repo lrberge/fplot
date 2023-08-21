@@ -213,22 +213,47 @@ getFplot_page = function(){
     opts
 }
 
-
 #' PDF export with guaranteed text size
 #'
-#' This function is an alternative to \code{\link[grDevices]{pdf}}, it makes it easy to export figures of appropriate size that should end up in a document. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
+#' This function is an alternative to \code{\link[grDevices]{pdf}}, it makes it easy 
+#' to export figures of appropriate size that should end up in a document. Instead 
+#' of providing the height and width of the figure, you provide the fraction of the 
+#' text-width the figure should take, and the target font-size at which the plotting 
+#' text should be rendered. The size of the plotting text, once the figure is 
+#' in the final document, is guaranteed.
 #'
 #' @param file The name of the file to which export the figure.
-#' @param pt The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.
-#' @param width The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.
-#' @param height Numeric between 0 and 1 or character scalar. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.
-#' @param w2h Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.
+#' @param pt The size of the text, in pt, once the figure is inserted in your final document. 
+#' The default is 10. This means that all text appearing in the plot with `cex = 1`
+#'  will appear with 10pt-sized fonts in your document.
+#' @param width The width of the graph, expressed in percentage of the width of 
+#' the body-text of the document in which it will be inserted. Default is 1, which means 
+#' that the graph will take 100% of the text width. It can also be equal to a character 
+#' of the type `"100%"` or `"80%"`. Alternatively, the following units 
+#' are valid. Relative sizes: `"pw"` (page width), `"tw"` (text width), 
+#' `"ph"` (page height), `"th"` (text height). 
+#' Absolute sizes: `"in"`, `"cm"`, and `"px"`.
+#' @param height Numeric between 0 and 1 or character scalar. The height of the graph, 
+#' expressed in percentage of the height of the body-text of the document in which it 
+#' will be inserted. Default is missing, and the height is determined by the other 
+#' argument `w2h`. This argument should range between 0 and 1. It can also be 
+#' equal to a character of the type `"100%"` or `"80%"`. Alternatively, the 
+#' following units are valid. Relative sizes: `"pw"` (page width), `"tw"` 
+#' (text width), `"ph"` (page height), `"th"` (text height). Absolute 
+#' sizes: `"in"`, `"cm"`, and `"px"`.
+#' @param w2h Numeric scalar. Used to determine the height of the figure based on 
+#' the width. By default it is equal to `1.75` which means that the graph
+#'  will be 1.75 larger than tall. Note that when argument `sideways = TRUE`, 
+#' the default for the height becomes `90%`.
 #' @param h2w Numeric scalar, default is missing. Used to determine the aspectr ratio of the figure.
-#' @param sideways Logical, defaults to \code{FALSE}. If the figure will be placed in landscape in the final document, then \code{sideways} should be equal to \code{TRUE}. If TRUE, then the argument \code{width} now refers to the height of the text, and the argument \code{height} to its width.
+#' @param sideways Logical, defaults to `FALSE`. If the figure will be placed in 
+#' landscape in the final document, then `sideways` should be equal to `TRUE`. 
+#' If TRUE, then the argument `width` now refers to the height of the text, and the
+#'  argument `height` to its width.
 #' @param ... Other arguments to be passed to \code{\link[grDevices]{pdf}}.
 #'
 #' @details
-#' If you use \code{\link[fplot]{fit.off}} instead of \code{dev.off} to close the graph, 
+#' If you use \code{\link[fplot]{fit.off}} instead of `dev.off` to close the graph, 
 #' the resulting graph will be displayed in the viewer pane. So you don't have to open 
 #' the document to see how it looks.
 #' 
@@ -257,12 +282,17 @@ getFplot_page = function(){
 #'
 #' @section Setting the page size:
 #'
-#' You can set the page size with the function \code{\link[fplot]{setFplot_page}}, which defines the size of the page and its margins to deduce the size of the body of the text in which the figures will be inserted. By default the page is considered to be US-letter with *normal* margins (not too big nor thin).
+#' You can set the page size with the function \code{\link[fplot]{setFplot_page}}, 
+#' which defines the size of the page and its margins to deduce the size of the body 
+#' of the text in which the figures will be inserted. By default the page is considered 
+#' to be US-letter with *normal* margins (not too big nor thin).
 #'
-#' It is important to set the page size appropriately to have a final plotting-text size guaranteed once the figure is inserted in the document.
+#' It is important to set the page size appropriately to have a final plotting-text size 
+#' guaranteed once the figure is inserted in the document.
 #'
 #' @seealso
-#' To set the geometry and the defaults: \code{\link[fplot]{setFplot_page}}. To close the graph and display it on the viewer pane: \code{\link[fplot]{fit.off}}.
+#' To set the geometry and the defaults: \code{\link[fplot]{setFplot_page}}. 
+#' To close the graph and display it on the viewer pane: \code{\link[fplot]{fit.off}}.
 #'
 #' @author
 #' Laurent Berge
@@ -325,13 +355,19 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 
 #' PNG export with guaranteed text size
 #'
-#' This is an alternative to \code{\link[grDevices]{png}} and others. It makes it easy to export figures that should end up in documents. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
+#' This is an alternative to \code{\link[grDevices]{png}} and others. It makes it 
+#' easy to export figures that should end up in documents. Instead of providing the
+#'  height and width of the figure, you provide the fraction of the text-width the figure 
+#' should take, and the target font-size at which the plotting text should be rendered. 
+#' The size of the plotting text, once the figure is in the final document, is guaranteed.
 #'
 #' @inheritParams pdf_fit
 #' @inheritSection pdf_fit Setting the page size
 #'
 #' @param res Numeric, the resolution in ppi. Default is 300.
-#' @param ... Other arguments to be passed to \code{\link[grDevices:png]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.
+#' @param ... Other arguments to be passed to \code{\link[grDevices:png]{bmp}}, 
+#' \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or 
+#' \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.
 #'
 #'
 #' @examples
@@ -372,7 +408,8 @@ png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    png(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
+    png(file, width = opts$export_width, height = opts$export_height, res = res, 
+        units = opts$units, pointsize = opts$pt, ...)
     options(fplot_export_path = file)
     options(fplot_export_type = "png")
 }
@@ -384,7 +421,8 @@ tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    tiff(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
+    tiff(file, width = opts$export_width, height = opts$export_height, res = res, 
+         units = opts$units, pointsize = opts$pt, ...)
     options(fplot_export_path = file)
     options(fplot_export_type = "tiff")
 }
@@ -395,7 +433,8 @@ jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    jpeg(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
+    jpeg(file, width = opts$export_width, height = opts$export_height, res = res, 
+         units = opts$units, pointsize = opts$pt, ...)
     options(fplot_export_path = file)
     options(fplot_export_type = "jpeg")
 }
@@ -406,7 +445,8 @@ bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
     mc = match.call(expand.dots = TRUE)
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
-    bmp(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
+    bmp(file, width = opts$export_width, height = opts$export_height, res = res, 
+        units = opts$units, pointsize = opts$pt, ...)
     options(fplot_export_path = file)
     options(fplot_export_type = "bmp")
 }
@@ -434,7 +474,8 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 
     if(sum(arg_in) > 2){
         qui_pblm = c("width", "height", "w2h", "h2w")[arg_in]
-        stop_up("You cannot provide the arguments ", enumerate_items(qui_pblm, "quote"), " at the same time. It's max two at a time.")
+        stop_up("You cannot provide the arguments ", enumerate_items(qui_pblm, "quote"), 
+                " at the same time. It's max two at a time.")
     }
 
     MISS_RATIO = sum(arg_in[3:4]) == 0
@@ -510,10 +551,13 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 
 #' Closes the current plotting device and shows the result in the viewer
 #'
-#' To be used in combination with \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}} when exporting images. It performs exactly the same thing as \code{dev.off()} but additionaly shows the resulting graph in the viewer pane provided you're using RStudio.
+#' To be used in combination with \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}} 
+#' when exporting images. It performs exactly the same thing as \code{dev.off()} but additionaly 
+#' shows the resulting graph in the viewer pane provided you're using RStudio.
 #'
 #' @details
-#' To view the results of PDF exports, the function \code{pdf_convert} from package \code{pdftools} is used to convert the PDF files into images -- so you need to have installed \code{pdftools} to make it work.
+#' To view the results of PDF exports, the function \code{pdf_convert} from package \code{pdftools} 
+#' is used to convert the PDF files into images -- so you need to have installed \code{pdftools} to make it work.
 #'
 #' In PDFs, only the first page will be viewed.
 #'
@@ -522,7 +566,8 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #'
 #' @seealso
 #' The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}. 
-#' Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}}, \code{\link[fplot:pdf_fit]{jpeg_fit}}.
+#' Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}}, 
+#' \code{\link[fplot:pdf_fit]{jpeg_fit}}.
 #' 
 #' The functions [export_graph_start()] and [export_graph_end()] provide similar features.
 #'
@@ -579,7 +624,9 @@ fit.off = function(){
                 doView = FALSE
                 # Nothing is done
             } else {
-                suppressWarnings(suppressMessages(pdftools::pdf_convert(path, page = 1, filenames = target_path, verbose = FALSE)))
+                suppressWarnings(suppressMessages(pdftools::pdf_convert(path, page = 1, 
+                                                                        filenames = target_path, 
+                                                                        verbose = FALSE)))
             }
         } else {
             file.copy(path, target_path, overwrite = TRUE)
@@ -2998,8 +3045,8 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
 #' \item{year: Year of publication.}
 #' \item{institution: Institution of the authors of the publication.}
 #' \item{journal: Journal/conference name.}
-#' \item{jnl_top_25p: 0/1 variable of whether the journal belongs to the top 25\% in terms of average cites.}
-#' \item{jnl_top_5p: 0/1 variable of whether the journal belongs to the top 5\% in terms of average cites.}
+#' \item{jnl_top_25p: 0/1 variable of whether the journal belongs to the top 25% in terms of average cites.}
+#' \item{jnl_top_5p: 0/1 variable of whether the journal belongs to the top 5% in terms of average cites.}
 #'
 #' }
 #'

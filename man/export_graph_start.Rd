@@ -26,24 +26,47 @@ If the argument type is \code{NULL}, the type of file is deduced from the extens
 If your file extension is different from your file type, you need to use the
 argument \code{type}.}
 
-\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.}
+\item{pt}{The size of the text, in pt, once the figure is inserted in your final document.
+The default is 10. This means that all text appearing in the plot with \code{cex = 1}
+will appear with 10pt-sized fonts in your document.}
 
-\item{width}{The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
+\item{width}{The width of the graph, expressed in percentage of the width of
+the body-text of the document in which it will be inserted. Default is 1, which means
+that the graph will take 100\% of the text width. It can also be equal to a character
+of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units
+are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width),
+\code{"ph"} (page height), \code{"th"} (text height).
+Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
 
-\item{height}{Numeric between 0 and 1 or character scalar. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
+\item{height}{Numeric between 0 and 1 or character scalar. The height of the graph,
+expressed in percentage of the height of the body-text of the document in which it
+will be inserted. Default is missing, and the height is determined by the other
+argument \code{w2h}. This argument should range between 0 and 1. It can also be
+equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the
+following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"}
+(text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute
+sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
 
-\item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
+\item{w2h}{Numeric scalar. Used to determine the height of the figure based on
+the width. By default it is equal to \code{1.75} which means that the graph
+will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE},
+the default for the height becomes \verb{90\%}.}
 
 \item{h2w}{Numeric scalar, default is missing. Used to determine the aspectr ratio of the figure.}
 
-\item{sideways}{Logical, defaults to \code{FALSE}. If the figure will be placed in landscape in the final document, then \code{sideways} should be equal to \code{TRUE}. If TRUE, then the argument \code{width} now refers to the height of the text, and the argument \code{height} to its width.}
+\item{sideways}{Logical, defaults to \code{FALSE}. If the figure will be placed in
+landscape in the final document, then \code{sideways} should be equal to \code{TRUE}.
+If TRUE, then the argument \code{width} now refers to the height of the text, and the
+argument \code{height} to its width.}
 
 \item{res}{Numeric, the resolution in ppi. Default is 300.}
 
 \item{type}{Character scalar, default is \code{NULL}. The type of file to be created.
 If \code{NULL}, the default, then the type of file is deduced from the extension.}
 
-\item{...}{Other arguments to be passed to \code{\link[grDevices:png]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
+\item{...}{Other arguments to be passed to \code{\link[grDevices:png]{bmp}},
+\code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or
+\code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
 }
 \description{
 Exporting graphs is often painful because, even though they may look nice in
@@ -84,9 +107,13 @@ export_graph_end()
 \section{Setting the page size}{
 
 
-You can set the page size with the function \code{\link[fplot]{setFplot_page}}, which defines the size of the page and its margins to deduce the size of the body of the text in which the figures will be inserted. By default the page is considered to be US-letter with \emph{normal} margins (not too big nor thin).
+You can set the page size with the function \code{\link[fplot]{setFplot_page}},
+which defines the size of the page and its margins to deduce the size of the body
+of the text in which the figures will be inserted. By default the page is considered
+to be US-letter with \emph{normal} margins (not too big nor thin).
 
-It is important to set the page size appropriately to have a final plotting-text size guaranteed once the figure is inserted in the document.
+It is important to set the page size appropriately to have a final plotting-text size
+guaranteed once the figure is inserted in the document.
 }
 
 \examples{
@@ -106,7 +133,8 @@ export_graph_end()
 }
 \seealso{
 The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}.
-Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}}, \code{\link[fplot:pdf_fit]{jpeg_fit}}.
+Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}},
+\code{\link[fplot:pdf_fit]{jpeg_fit}}.
 
 The functions \code{\link[=export_graph_start]{export_graph_start()}} and \code{\link[=export_graph_end]{export_graph_end()}} provide similar features.
 }

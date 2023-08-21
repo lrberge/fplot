@@ -23,9 +23,14 @@ getFplot_page()
 
 \item{units}{The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.}
 
-\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.}
+\item{pt}{The size of the text, in pt, once the figure is inserted in your final document.
+The default is 10. This means that all text appearing in the plot with \code{cex = 1}
+will appear with 10pt-sized fonts in your document.}
 
-\item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
+\item{w2h}{Numeric scalar. Used to determine the height of the figure based on
+the width. By default it is equal to \code{1.75} which means that the graph
+will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE},
+the default for the height becomes \verb{90\%}.}
 
 \item{reset}{Logical, default is \code{FALSE}. Whether arguments should be reset to default before applying modifications.}
 }

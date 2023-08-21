@@ -58,31 +58,62 @@ bmp_fit(
 \arguments{
 \item{file}{The name of the file to which export the figure.}
 
-\item{pt}{The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.}
+\item{pt}{The size of the text, in pt, once the figure is inserted in your final document.
+The default is 10. This means that all text appearing in the plot with \code{cex = 1}
+will appear with 10pt-sized fonts in your document.}
 
-\item{width}{The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
+\item{width}{The width of the graph, expressed in percentage of the width of
+the body-text of the document in which it will be inserted. Default is 1, which means
+that the graph will take 100\% of the text width. It can also be equal to a character
+of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units
+are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width),
+\code{"ph"} (page height), \code{"th"} (text height).
+Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
 
-\item{height}{Numeric between 0 and 1 or character scalar. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
+\item{height}{Numeric between 0 and 1 or character scalar. The height of the graph,
+expressed in percentage of the height of the body-text of the document in which it
+will be inserted. Default is missing, and the height is determined by the other
+argument \code{w2h}. This argument should range between 0 and 1. It can also be
+equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the
+following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"}
+(text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute
+sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.}
 
-\item{w2h}{Numeric scalar. Used to determine the height of the figure based on the width. By default it is equal to \code{1.75} which means that the graph will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE}, the default for the height becomes \code{90\%}.}
+\item{w2h}{Numeric scalar. Used to determine the height of the figure based on
+the width. By default it is equal to \code{1.75} which means that the graph
+will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE},
+the default for the height becomes \verb{90\%}.}
 
 \item{h2w}{Numeric scalar, default is missing. Used to determine the aspectr ratio of the figure.}
 
-\item{sideways}{Logical, defaults to \code{FALSE}. If the figure will be placed in landscape in the final document, then \code{sideways} should be equal to \code{TRUE}. If TRUE, then the argument \code{width} now refers to the height of the text, and the argument \code{height} to its width.}
+\item{sideways}{Logical, defaults to \code{FALSE}. If the figure will be placed in
+landscape in the final document, then \code{sideways} should be equal to \code{TRUE}.
+If TRUE, then the argument \code{width} now refers to the height of the text, and the
+argument \code{height} to its width.}
 
 \item{res}{Numeric, the resolution in ppi. Default is 300.}
 
-\item{...}{Other arguments to be passed to \code{\link[grDevices:png]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
+\item{...}{Other arguments to be passed to \code{\link[grDevices:png]{bmp}},
+\code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or
+\code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
 }
 \description{
-This is an alternative to \code{\link[grDevices]{png}} and others. It makes it easy to export figures that should end up in documents. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
+This is an alternative to \code{\link[grDevices]{png}} and others. It makes it
+easy to export figures that should end up in documents. Instead of providing the
+height and width of the figure, you provide the fraction of the text-width the figure
+should take, and the target font-size at which the plotting text should be rendered.
+The size of the plotting text, once the figure is in the final document, is guaranteed.
 }
 \section{Setting the page size}{
 
 
-You can set the page size with the function \code{\link[fplot]{setFplot_page}}, which defines the size of the page and its margins to deduce the size of the body of the text in which the figures will be inserted. By default the page is considered to be US-letter with \emph{normal} margins (not too big nor thin).
+You can set the page size with the function \code{\link[fplot]{setFplot_page}},
+which defines the size of the page and its margins to deduce the size of the body
+of the text in which the figures will be inserted. By default the page is considered
+to be US-letter with \emph{normal} margins (not too big nor thin).
 
-It is important to set the page size appropriately to have a final plotting-text size guaranteed once the figure is inserted in the document.
+It is important to set the page size appropriately to have a final plotting-text size
+guaranteed once the figure is inserted in the document.
 }
 
 \examples{
