@@ -2,6 +2,7 @@
 % Please edit documentation in R/miscfuns.R
 \name{export_graph_start}
 \alias{export_graph_start}
+\alias{export_graph_end}
 \title{Graph export with garanteed text size}
 \usage{
 export_graph_start(
@@ -16,6 +17,8 @@ export_graph_start(
   type = NULL,
   ...
 )
+
+export_graph_end()
 }
 \arguments{
 \item{file}{Character scalar. The name of the file in which to save the graph.
@@ -73,6 +76,11 @@ print(my_graph)
 export_graph_end()
 }\if{html}{\out{</div>}}
 }
+\section{Functions}{
+\itemize{
+\item \code{export_graph_end()}: Ends the connection to the current export and creates the file.
+
+}}
 \section{Setting the page size}{
 
 

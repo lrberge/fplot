@@ -233,6 +233,7 @@ getFplot_page = function(){
 #' the document to see how it looks.
 #' 
 #' To export a ggplot2 graph, remember that you need to **print** it!
+#' 
 #' ```
 #' library(ggplot2)
 #' data = data.frame(x = c(1, 2, 3, 4, 5), y = c(2, 4, 6, 8, 10))
@@ -721,6 +722,7 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' 
 #' @details 
 #' To export a ggplot2 graph, remember that you need to **print** it!
+#' 
 #' ```
 #' library(ggplot2)
 #' data = data.frame(x = c(1, 2, 3, 4, 5), y = c(2, 4, 6, 8, 10))
@@ -811,7 +813,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
 }
 
 
-#' @describeIn graph_export Ends the connection to the current export and creates the file.
+#' @describeIn export_graph_start Ends the connection to the current export and creates the file.
 export_graph_end = fit.off
 
 ####
