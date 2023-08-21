@@ -2916,22 +2916,6 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     moderator_name = case_name = ""
     if("formula" %in% class(fml_in)){
 
-        # if(missing(data) || !is.data.frame(data)){
-        #     postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data)), "."), "")
-        #
-        #     stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
-        # }
-        #
-        # vars = all.vars(fml_in)
-        # if(any(!vars %in% names(data))){
-        #     stop("The variable", enumerate_items(setdiff(vars, names(data)), "s.is")," not in the data set (", deparse_long(mc$data), ").")
-        # }
-        #
-        # # Creation of x and the condition
-        # if(!length(fml_in) == 3){
-        #     stop("The formula must be of the type 'var ~ case' or 'var ~ case | moderator'.")
-        # }
-
         check_arg(data, "data.frame mbt", .message = "If you provide a formula, a data.frame must be given in the argument 'data'.")
 
         # we check the variables data are there
@@ -2944,14 +2928,14 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
         }
 
         info = extract_pipe(fml_in)
-        fml = extract_pipe(fml_in)$fml
-        pipe = extract_pipe(fml_in)$pipe
+        fml = info$fml
+        pipe = info$pipe
 
         case = eval(fml[[3]], data)
         moderator = eval(pipe, data)
 
         if(deparse(fml[[2]]) == "."){
-            x_all = data
+            x_all = as.data.frame(data)
             qui_num = sapply(x_all, function(z) is.numeric(z) || is.logical(z))
 
             if(length(case) > 1){
@@ -2964,13 +2948,13 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
                 stop("Only numeric variables can be displayed, and none were found in the data set.")
             }
 
-            x_all = x_all[, qui_num, with = FALSE]
+            x_all = x_all[, qui_num]
         } else {
-            # x = eval(fml[[2]], data)
+
             x_all = extract_df(info$lhs_fml, data)
             qui_num = sapply(x_all, function(z) is.numeric(z) || is.logical(z))
             if(any(!qui_num)){
-                stop("Only numeric variable can be displayed, the variable", enumerate_items(names(x_all), "s.quote.is"), " not numeric.")
+                stop("Only numeric variables can be displayed, the variable", enumerate_items(names(x_all), "s.quote.is"), " not numeric.")
             }
         }
 
