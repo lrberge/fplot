@@ -40,7 +40,10 @@ fit.off()
 
 }
 \seealso{
-The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}. Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, \code{\link[fplot]{jpeg_fit}}.
+The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}.
+Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}}, \code{\link[fplot:pdf_fit]{jpeg_fit}}.
+
+The functions \code{\link[=export_graph_start]{export_graph_start()}} and \code{\link[=export_graph_end]{export_graph_end()}} provide similar features.
 }
 \author{
 Laurent Berge

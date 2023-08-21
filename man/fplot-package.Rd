@@ -15,6 +15,6 @@ Two other graphical functions are provided for convenience: \code{\link[fplot]{p
 It also integrates tools to easily export graphs: \code{\link[fplot]{pdf_fit}} and \code{\link[fplot]{png_fit}}. In these functions, instead of providing the size of the graphics, you instead give the point size that the text should have in the final document--because an exported graph usually ends up in a document. You can set the size of your document with the function \code{\link[fplot]{setFplot_page}}. If you use the function \code{\link[fplot]{fit.off}} to close the connection, you will also see how the export looks like in the Viewer pane.
 }
 \author{
-\strong{Maintainer}: Laurent Berge \email{laurent.berge@uni.lu}
+\strong{Maintainer}: Laurent Berge \email{laurent.berge@u-bordeaux.fr}
 
 }

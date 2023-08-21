@@ -163,11 +163,11 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
 
     # page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
 
-    opts = getOption("fplot_img_opts")
+    opts = getOption("fplot_export_opts")
     if(is.null(opts) || reset){
         opts = list()
     } else if(!is.list(opts)){
-        warning("Wrong formatting of option 'fplot_img_opts', all options are reset.")
+        warning("Wrong formatting of option 'fplot_export_opts', all options are reset.")
         opts = list()
     }
 
@@ -199,16 +199,16 @@ setFplot_page = function(page = "us", margins = "normal", units = "tw", pt = 10,
 
     opts$page_dim_net = page_dim - c(sum(mar[c(2, 4)]), sum(mar[c(1, 3)]))
 
-    options(fplot_img_opts = opts)
+    options(fplot_export_opts = opts)
 
 }
 
 #' @rdname setFplot_page
 getFplot_page = function(){
-    opts = getOption("fplot_img_opts")
+    opts = getOption("fplot_export_opts")
     if(is.null(opts) || !is.list(opts)){
         setFplot_page()
-        opts = getOption("fplot_img_opts")
+        opts = getOption("fplot_export_opts")
     }
     opts
 }
@@ -218,7 +218,7 @@ getFplot_page = function(){
 #'
 #' This function is an alternative to \code{\link[grDevices]{pdf}}, it makes it easy to export figures of appropriate size that should end up in a document. Instead of providing the height and width of the figure, you provide the fraction of the text-width the figure should take, and the target font-size at which the plotting text should be rendered. The size of the plotting text, once the figure is in the final document, is guaranteed.
 #'
-#' @param file The name of the file to which export the pdf figure.
+#' @param file The name of the file to which export the figure.
 #' @param pt The size of the text, in pt, once the figure is inserted in your final document. The default is 10. This means that all text appearing in the plot with \code{cex = 1} will appear with 10pt-sized fonts in your document.
 #' @param width The width of the graph, expressed in percentage of the width of the body-text of the document in which it will be inserted. Default is 1, which means that the graph will take 100\% of the text width. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.
 #' @param height Numeric between 0 and 1 or character scalar. The height of the graph, expressed in percentage of the height of the body-text of the document in which it will be inserted. Default is missing, and the height is determined by the other argument \code{w2h}. This argument should range between 0 and 1. It can also be equal to a character of the type \code{"100\%"} or \code{"80\%"}. Alternatively, the following units are valid. Relative sizes: \code{"pw"} (page width), \code{"tw"} (text width), \code{"ph"} (page height), \code{"th"} (text height). Absolute sizes: \code{"in"}, \code{"cm"}, and \code{"px"}.
@@ -228,7 +228,31 @@ getFplot_page = function(){
 #' @param ... Other arguments to be passed to \code{\link[grDevices]{pdf}}.
 #'
 #' @details
-#' If you use \code{\link[fplot]{fit.off}} instead of \code{dev.off} to close the graph, the resulting graph will be displayed in the viewer pane. So you don't have to open the document to see how it looks.
+#' If you use \code{\link[fplot]{fit.off}} instead of \code{dev.off} to close the graph, 
+#' the resulting graph will be displayed in the viewer pane. So you don't have to open 
+#' the document to see how it looks.
+#' 
+#' To export a ggplot2 graph, remember that you need to **print** it!
+#' ```
+#' library(ggplot2)
+#' data = data.frame(x = c(1, 2, 3, 4, 5), y = c(2, 4, 6, 8, 10))
+#' 
+#' # NOT GOOD
+#' pdf_fit("test.pdf")
+#' ggplot(data, aes(x, y)) +
+#'   geom_point(color = "#54BF98") +
+#'   geom_line(color = "#d34661")
+#' fit.off()
+#' 
+#' # GOOD
+#' my_graph = ggplot(data, aes(x, y)) +
+#'              geom_point(color = "#54BF98") +
+#'              geom_line(color = "#d34661")
+#' 
+#' pdf_fit("test.pdf")
+#' print(my_graph)
+#' fit.off()
+#' ```
 #'
 #' @section Setting the page size:
 #'
@@ -251,8 +275,8 @@ getFplot_page = function(){
 #' # text width. If so, the size of the text in the figures
 #' # will be exact.
 #'
-#' # You need pdftools to display PDFs in the viewer pane with fit.off
-#' if(require(pdftools)){
+#' # You need pdftools and knitr to display PDFs in the viewer pane with fit.off
+#' if(require(pdftools) && require(knitr)){
 #'
 #'   tmpFile = file.path(tempdir(), "pdf_examples.pdf")
 #'
@@ -288,11 +312,12 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 
     mc = match.call()
 
-    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, 
+                    sideways = sideways, mc = mc, check_px = FALSE)
 
     pdf(file, width = opts$export_width, height = opts$export_height, pointsize = opts$pt, ...)
-    options(fplot_img_path = file)
-    options(fplot_img_fun = "pdf")
+    options(fplot_export_path = file)
+    options(fplot_export_type = "pdf")
 
 }
 
@@ -305,7 +330,7 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 #' @inheritSection pdf_fit Setting the page size
 #'
 #' @param res Numeric, the resolution in ppi. Default is 300.
-#' @param ... Other arguments to be passed to \code{\link[grDevices]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices]{jpeg}}, or \code{\link[grDevices]{tiff}}. For example: \code{antialias}, \code{bg}, etc.
+#' @param ... Other arguments to be passed to \code{\link[grDevices:png]{bmp}}, \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.
 #'
 #'
 #' @examples
@@ -347,8 +372,8 @@ png_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
     png(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
-    options(fplot_img_path = file)
-    options(fplot_img_fun = "png")
+    options(fplot_export_path = file)
+    options(fplot_export_type = "png")
 }
 
 
@@ -359,8 +384,8 @@ tiff_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
     tiff(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
-    options(fplot_img_path = file)
-    options(fplot_img_fun = "tiff")
+    options(fplot_export_path = file)
+    options(fplot_export_type = "tiff")
 }
 
 #' @rdname png_fit
@@ -370,8 +395,8 @@ jpeg_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways 
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
     jpeg(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
-    options(fplot_img_path = file)
-    options(fplot_img_fun = "jpeg")
+    options(fplot_export_path = file)
+    options(fplot_export_type = "jpeg")
 }
 
 #' @rdname png_fit
@@ -381,20 +406,18 @@ bmp_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
     opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, sideways = sideways, mc = mc)
 
     bmp(file, width = opts$export_width, height = opts$export_height, res = res, units = opts$units, pointsize = opts$pt, ...)
-    options(fplot_img_path = file)
-    options(fplot_img_fun = "bmp")
+    options(fplot_export_path = file)
+    options(fplot_export_type = "bmp")
 }
 
 # What follows is an internal function
-fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, mc){
+fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALSE, mc, check_px = TRUE){
 
     set_up(1)
     check_arg(pt, "numeric scalar GT{0}")
     check_arg(w2h, h2w, "numeric scalar GT{0}")
     check_arg(width, height, "scalar(numeric, character) GT{0}")
     check_arg(sideways, "logical scalar")
-
-    check_px = mc[[1]] != as.name("pdf_fit")
 
     # We check the call for forbidden elements
     problems = intersect(c("filename", "units", "pointsize"), names(mc))
@@ -416,11 +439,11 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
     MISS_RATIO = sum(arg_in[3:4]) == 0
 
     # The dimension of the page + default
-    opts = getOption("fplot_img_opts")
+    opts = getOption("fplot_export_opts")
     if(is.null(opts)){
         # options not initialized => init
         setFplot_page()
-        opts = getOption("fplot_img_opts")
+        opts = getOption("fplot_export_opts")
     }
     page_dim_net = opts$page_dim_net
     page_dim = opts$page_dim
@@ -497,7 +520,10 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #' Laurent Berge
 #'
 #' @seealso
-#' The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}. Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, \code{\link[fplot]{jpeg_fit}}.
+#' The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}. 
+#' Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}}, \code{\link[fplot:pdf_fit]{jpeg_fit}}.
+#' 
+#' The functions [export_graph_start()] and [export_graph_end()] provide similar features.
 #'
 #' @examples
 #'
@@ -524,7 +550,7 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #'
 #'
 fit.off = function(){
-    path = getOption("fplot_img_path")
+    path = getOption("fplot_export_path")
 
     dev.off()
 
@@ -532,47 +558,57 @@ fit.off = function(){
 
     if(is.null(my_viewer)){
         # => this setup to avoid repeating the warnings when running the examples
-        old_time = getOption("fplot_img_warn_viewer")
+        old_time = getOption("fplot_export_warn_viewer")
         new_time = Sys.time()
         if(is.null(old_time) || difftime(new_time, old_time, units = "min") > 1){
             warning("The function 'fit.off' only works with RStudio's viewer--which wasn't found.")
-            options(fplot_img_warn_viewer = new_time)
+            options(fplot_export_warn_viewer = new_time)
         }
     } else if(!is.null(path)){
         # We copy the image and show in the viewer
         tmpDir = tempdir()
-        if(is.null(getOption("fplot_img_set"))){
-            # setting up the html document
-            html_file = "<!DOCTYPE html>
-                   <html> <body>
-                   <img src = 'fplot_img_exported.PNG' alt='Exported image' width = '100%'>
-                   </body> </html>\n"
-            writeLines(html_file, file.path(tmpDir, "fplot_img_html.html"))
-            options(fplot_img_set = TRUE)
-        }
 
         doView = TRUE
-        target_path = file.path(tmpDir, "fplot_img_exported.PNG")
+        target_path = file.path(tmpDir, "fplot_export_exported.PNG")
 
-        fun = getOption("fplot_img_fun")
-        if(fun == "pdf"){
+        export_type = getOption("fplot_export_type")
+        if(export_type == "pdf"){
             if(!requireNamespace("pdftools", quietly = TRUE)){
                 warning("To preview exported PDF files in the viewer, you need to install the package 'pdftools'.")
                 doView = FALSE
                 # Nothing is done
             } else {
-                suppressMessages(pdftools::pdf_convert(path, page = 1, filenames = target_path, verbose = FALSE))
+                suppressWarnings(suppressMessages(pdftools::pdf_convert(path, page = 1, filenames = target_path, verbose = FALSE)))
             }
         } else {
             file.copy(path, target_path, overwrite = TRUE)
         }
+        
+        if(!requireNamespace("knitr", quietly = TRUE)){
+            warning("To preview exported PDF files in the viewer, you need to install the package 'knitr'.")
+            doView = FALSE
+            # Nothing is done
+        }
 
         if(doView){
-            my_viewer(file.path(tmpDir, "fplot_img_html.html"))
+            # setting up the html document
+            # embedding the image is much more robust (fixes bug in VSCode)
+            
+            html_body = paste0("
+<!DOCTYPE html>
+<html> <body>
+<img src = '", knitr::image_uri(target_path), "' alt='Exported image' width = '100%'>
+</body> </html>\n")
+
+            html_path = file.path(tmpDir, "fplot_export_html.html")
+            writeLines(html_body, html_path)
+            
+            my_viewer(html_path)
         }
 
     }
 }
+
 
 get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
     # n_out: if n_out == 1: we want the width or the height
@@ -666,6 +702,117 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
     res
 }
 
+#' Graph export with garanteed text size
+#' 
+#' Exporting graphs is often painful because, even though they may look nice in
+#' our screen, they may end up disorted and hard to read in the final document (which is where they should look nice!).
+#' This function facilitates graph exportation by taking into account the final 
+#' destination of the graph and allowing the user to use point size, an intuitive unit
+#' in written documents, as the graph scaler. Once in the final document, the text of the graph
+#' at the default size will be at the defined point size.
+#' 
+#' @inheritParams png_fit
+#' @param file Character scalar. The name of the file in which to save the graph.
+#' If the argument type is `NULL`, the type of file is deduced from the extension.
+#' If your file extension is different from your file type, you need to use the 
+#' argument `type`.
+#' @param type Character scalar, default is `NULL`. The type of file to be created.
+#' If `NULL`, the default, then the type of file is deduced from the extension.
+#' 
+#' @details 
+#' To export a ggplot2 graph, remember that you need to **print** it!
+#' ```
+#' library(ggplot2)
+#' data = data.frame(x = c(1, 2, 3, 4, 5), y = c(2, 4, 6, 8, 10))
+#' 
+#' # NOT GOOD
+#' export_graph_start("test.pdf")
+#' ggplot(data, aes(x, y)) +
+#'   geom_point(color = "#54BF98") +
+#'   geom_line(color = "#d34661")
+#' export_graph_end()
+#' 
+#' # GOOD
+#' my_graph = ggplot(data, aes(x, y)) +
+#'              geom_point(color = "#54BF98") +
+#'              geom_line(color = "#d34661")
+#' 
+#' export_graph_start("test.pdf")
+#' print(my_graph)
+#' export_graph_end()
+#' ```
+#' 
+#' @inheritSection pdf_fit Setting the page size
+#' 
+#' @inherit fit.off seealso
+#' 
+#' @author 
+#' Laurent Berge
+#' 
+#' @examples 
+#' 
+#' tmpFile = file.path(tempdir(), "png_examples.pdf")
+#'
+#' # we start the exportation
+#' export_graph_start(tmpFile, pt = 8)
+#' 
+#' plot(1, 1, type = "n", ann = FALSE)
+#' text(1, 1, "This text will be displayed in 8pt.")
+#' 
+#' # the line below closes the connection and displays the 
+#' # graph in the viewer pane if appropritate
+#' export_graph_end()
+#' 
+export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, 
+                        sideways = FALSE, res = 300, type = NULL, ...){
+
+    mc = match.call()
+    
+    check_arg(file, "character scalar mbt")
+    check_arg(type, "NULL character scalar")
+    
+    if(is.null(type)){
+        if(!grepl(".", file, fixed = TRUE)){
+            stop("If argument 'type = NULL', the export type is deduced from the file extension.",
+                 "\nPROBLEM: the file name does not contain an extension.")
+        }
+        type_raw = gsub(".+\\.", "", file)
+        type = tolower(type_raw)
+        accepted_types = c("pdf", "jpg", "jpeg", "png", "tiff", "bmp")
+        if(!type %in% accepted_types){
+            stop("If argument 'type = NULL', the export type is deduced from the file extension.",
+                 "\nPROBLEM: the extension found, `", type_raw, "` is not valid.",
+                 "\nFYI: the accepted types are: ", enumerate_items(accepted_types), ".")
+        }
+    } else {
+        check_arg_plus(type, "match(pdf, jpg, jpeg, png, tiff, bmp)")
+    }
+    # here type is lowercase and an accepted extension
+    if(type == "jpg") type = "jpeg"
+
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, 
+                    sideways = sideways, mc = mc, check_px = type != "pdf")
+    
+    if(type == "pdf"){
+        pdf(file, width = opts$export_width, height = opts$export_height, pointsize = opts$pt, ...)
+    } else {
+        fun = switch(type, 
+                     "png"  = grDevices::png,
+                     "jpeg" = grDevices::jpeg,
+                     "tiff" = grDevices::tiff,
+                     "bmp"  = grDevices::bmp)
+        
+        fun(file, width = opts$export_width, height = opts$export_height, res = res, 
+            units = opts$units, pointsize = opts$pt, ...)
+    }
+    
+    options(fplot_export_path = file)
+    options(fplot_export_type = type)    
+}
+
+
+#' @describeIn graph_export Ends the connection to the current export and creates the file.
+export_graph_end = fit.off
 
 ####
 #### Main Graph. Tools ####

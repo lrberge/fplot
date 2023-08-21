@@ -7,3 +7,5 @@ src/*.so
 src/*.dll
 src-i386/
 src-x64/
+*.Rproj
+.Rproj

@@ -6,6 +6,7 @@ export(plot_distr, plot_lines, plot_box)
 
 # Export figures
 export(pdf_fit, png_fit, bmp_fit, tiff_fit, jpeg_fit, fit.off)
+export(export_graph_start, export_graph_end)
 
 # setters & getters
 exportPattern("^(s|g)etFplot")

@@ -2,15 +2,15 @@ Package: fplot
 Type: Package
 Title: Automatic Distribution Graphs Using Formulas
 Version: 1.0.1
-Authors@R: person("Laurent", "Berge", email = "laurent.berge@uni.lu", role = c("aut", "cre"))
+Authors@R: person("Laurent", "Berge", email = "laurent.berge@u-bordeaux.fr", role = c("aut", "cre"))
 Imports: stats, graphics, utils, Formula, Rcpp, grDevices, dreamerr(>= 1.1.0)
 Suggests: knitr, rmarkdown, fixest, pdftools
 LinkingTo: Rcpp
 Depends: R(>= 3.5.0), data.table
 Description: Easy way to plot regular/weighted/conditional distributions by using formulas. The core of the package concerns distribution plots which are automatic: the many options are tailored to the data at hand to offer the nicest and most meaningful graphs possible -- with no/minimum user input. Further provide functions to plot conditional trends and boxplots.
 License: GPL-3
-SystemRequirements: C++11
 VignetteBuilder: knitr
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.2.3
+Roxygen: list(markdown = TRUE)
