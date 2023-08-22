@@ -77,7 +77,7 @@
 
 <p><code>fplot</code> is an <code>R</code> package made for the easy plotting of distributions.</p>
 <p>The problem when it comes to distributions is that we often face a variety of data, each requiring a different type of layout: we don’t represent the distribution of categorical variables similarly to continuous variables, and regarding the latter heavily skewed data may require a special treatment. The aim of <code>fplot</code> is to automatically make choices for the user in order to always display meaningful (and hopefully beautiful!) graphs.</p>
-<p>This brief description shows a gallery of <code>fplot</code> possibilities. For a more detailed introduction, please see the <a href="https://cran.r-project.org/package=fplot/vignettes/fplot_walkthrough.html" class="external-link">walk-through</a>.</p>
+<p>This brief description shows a gallery of <code>fplot</code> possibilities. For a more detailed introduction, please see the <a href="https://lrberge.github.io/fplot/articles/fplot_walkthrough.html" class="external-link">walk-through</a>.</p>
 <p>The data sets used are <code>us_pub_econ</code> (from <code>fplot</code>) relating to publications in economics from US institutions, <code>trade</code> (from package <code>fixest</code>) relating to trade value between countries for some products in the European Union, and the <code>iris</code> data set (from base <code>R</code>).</p>
 <p>One aim of <code>fplot</code>is to easily export graphs, it therefore includes a tool to relabel the variable names <em>globally</em> (once and for all). The following line is run before plotting the graphs:</p>
 <pre><code><span><span class="fu"><a href="reference/setFplot_dict.html">setFplot_dict</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Origin <span class="op">=</span> <span class="st">"Exporting Country"</span>, Destination <span class="op">=</span> <span class="st">"Importing Country"</span>, Euros <span class="op">=</span> <span class="st">"Exports Value in €"</span>, </span>
@@ -141,7 +141,6 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://cran.r-project.org/package=fplot" class="external-link"><img src="https://www.r-pkg.org/badges/version/fplot" alt="CRAN status"></a></li>
 <li><a href="https://cran.r-project.org/package=fplot" class="external-link"><img src="http://www.r-pkg.org/badges/version/fplot" alt="Version"></a></li>
 <li><a href="https://ipub.com/dev-corner/apps/r-package-downloads/" class="external-link"> <img src="https://cranlogs.r-pkg.org/badges/fplot" alt="Downloads"></a></li>
 </ul>
