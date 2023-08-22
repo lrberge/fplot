@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-vignettes/images/
+vignettes/fplot_walkthrough.Rmd
 ^.github$
 ^\.Renviron$
+^docs$
 
