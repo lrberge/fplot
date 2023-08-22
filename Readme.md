@@ -1,4 +1,4 @@
-<a href="https://cran.r-project.org/web/checks/check_results_fplot.html"><img src="https://cranchecks.info/badges/flavor/release/fplot" alt="CRAN status"></a>
+<a href="https://cran.r-project.org/package=fplot"><img src="https://www.r-pkg.org/badges/version/fplot" alt="CRAN status"></a>
 <a href="https://cran.r-project.org/package=fplot"><img src="http://www.r-pkg.org/badges/version/fplot" alt="Version"> </a>
 <a href="https://ipub.com/dev-corner/apps/r-package-downloads/"> <img src="https://cranlogs.r-pkg.org/badges/fplot" alt = "Downloads"> </a>
 
