@@ -21,46 +21,46 @@ setFplot_dict(c(Origin = "Exporting Country", Destination = "Importing Country",
 
 The code to run the plots are in the titles of the graphs. You'll notice that the same command line can result in a set of different graphs. 
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_pub.png?raw=true)
+![](man/figures/regular_pub.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_trade.png?raw=true)
+![](man/figures/regular_trade.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/regular_iris.png?raw=true)
+![](man/figures/regular_iris.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_1.png?raw=true)
+![](man/figures/conditional_pub_1.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_2.png?raw=true)
+![](man/figures/conditional_pub_2.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_pub_3_bis.png?raw=true)
+![](man/figures/conditional_pub_3_bis.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_1.png?raw=true)
+![](man/figures/conditional_trade_1.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_trade_2.png?raw=true)
+![](man/figures/conditional_trade_2.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_1.png?raw=true)
+![](man/figures/conditional_iris_1.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_2.png?raw=true)
+![](man/figures/conditional_iris_2.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/conditional_iris_3.png?raw=true)
+![](man/figures/conditional_iris_3.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_pub_1.png?raw=true)
+![](man/figures/weighted_pub_1.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_pub_2.png?raw=true)
+![](man/figures/weighted_pub_2.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_1.png?raw=true)
+![](man/figures/weighted_trade_1.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_trade_2.png?raw=true)
+![](man/figures/weighted_trade_2.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_1.png?raw=true)
+![](man/figures/weighted_conditional_trade_1.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_conditional_trade_2.png?raw=true)
+![](man/figures/weighted_conditional_trade_2.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_pub.png?raw=true)
+![](man/figures/weighted_stacked_pub.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/weighted_stacked_trade.png?raw=true)
+![](man/figures/weighted_stacked_trade.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/cumul_pub.png?raw=true)
+![](man/figures/cumul_pub.png)
 
-![](https://github.com/lrberge/fplot/blob/master/vignettes/images/cumul_trade.png?raw=true)
+![](man/figures/cumul_trade.png)
 
 
