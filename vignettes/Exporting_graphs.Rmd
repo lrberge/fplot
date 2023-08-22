@@ -51,7 +51,7 @@ The width to height ratio can be modified with the `w2h` argument (or you can us
 
 Finally the default point size is `pt = 10`. If embedded in an A4 page with 1 inch margins on both sides, the text of the previously exported graph would be in 10pt:
 
-![Figure 1: Text in 10pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_10pt.png?raw=true)
+![Figure 1: Text in 10pt.](images/export_example_10pt.png)
 
 If you increase the pt size that's what you would get:
 
@@ -63,7 +63,7 @@ fit.off()
 ```
 
 
-![Figure 2: Text in 12pt.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt.png?raw=true)
+![Figure 2: Text in 12pt.](images/export_example_12pt.png)
 
 Now any text is larger, and since there is text in the margins, the plotting region becomes smaller.
 
@@ -79,7 +79,7 @@ text(1, 1, "This text will be displayed in 12pt.")
 fit.off()
 ```
 
-![Figure 3: Text in 12pt, total page height.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_tall.png?raw=true)
+![Figure 3: Text in 12pt, total page height.](images/export_example_12pt_tall.png)
 
 Finally if you use `sideways = TRUE`, the settings become `width = 1th` (100% text height) and `height = 0.9tw` (90% text width), i.e. the graph would take the full page except a 10% space left for the graph legend. 
 
@@ -92,7 +92,7 @@ text(1, 1, "This text will be displayed in 12pt.")
 fit.off()
 ```
 
-![Figure 4: Text in 12pt, sideways.](https://github.com/lrberge/fplot/blob/master/vignettes/images/export/example_12pt_sideways.png?raw=true)
+![Figure 4: Text in 12pt, sideways.](images/export_example_12pt_sideways.png)
 
 
 
