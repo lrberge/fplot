@@ -1,3 +1,5 @@
+# fplot: distribution graphs the easy way
+
 <a href="https://cran.r-project.org/package=fplot"><img src="http://www.r-pkg.org/badges/version/fplot" alt="Version"> </a>
 <a href="https://ipub.com/dev-corner/apps/r-package-downloads/"> <img src="https://cranlogs.r-pkg.org/badges/fplot" alt = "Downloads"> </a>
 
