@@ -2701,8 +2701,10 @@ dict2number = function(dict, x){
     # check
     if(length(dict) != length(unique(dict))) stop("The argument 'dict' should be a vector of UNIQUE identifiers.")
 
-    if(class(dict) != class(x)){
-        warning("'dict' and 'x' are of different types (", class(dict), " vs ", class(x), "): they are converted to character.", call. = FALSE)
+    if(!identical(class(dict), class(x))){
+        warning("'dict' and 'x' are of different types (", 
+                class(dict)[1], " vs ", class(x)[1], "): they are converted to character.", 
+                call. = FALSE)
         # we put the two in characters
         dict = as.character(dict)
         x = as.character(x)
@@ -2728,14 +2730,14 @@ rbindDS <- function(x, y){
     # The first DF can be empty
 
     if(!is.null(x)){
-        if(!"data.frame" %in% class(x)){
+        if(!inherits(x, "data.frame")){
             stop("x must be a data.frame/data.table.")
         }
     }
 
     if(length(y) == 0) return(x)
 
-    if(!"data.frame" %in% class(y) && !(checkVector(y) & !is.null(names(y)))){
+    if(!inherits(y, "data.frame") && !(checkVector(y) & !is.null(names(y)))){
         stop("If argument 'y' is a vector, it must be named!")
     }
 
@@ -2880,11 +2882,13 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
     }
 
     doAgg = TRUE
-    if("formula" %in% class(fml_in)){
+    if(inherits(fml_in, "formula")){
         # Control of the formula
 
         if(missing(data) || !is.data.frame(data)){
-            postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
+            postfix = ifelse(!is.data.frame(data), 
+                             paste0(" Currently it is of class ", enumerate_items(class(data))), 
+                             "")
 
             stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
         }

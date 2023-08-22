@@ -301,7 +301,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
     USE_WEIGHT = MOD_IS_WEIGHT = FALSE
     x_name = ylab = weight_name = moderator_name = ""
-    if("formula" %in% class(fml_in)){
+    if(inherits(fml_in, "formula")){
 
         check_arg(data, "data.frame mbt", .message = "If you provide a formula, a data.frame must be given in the argument 'data'.")
 
@@ -400,7 +400,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         # We check the vector
         if(!checkVector(x)){
 
-            if(length(class(x)) == 1 && class(x) == "table"){
+            if(inherits(x, "table")){
                 x = as.vector(x)
             } else {
                 if(length(x) == 0){
@@ -2286,16 +2286,10 @@ plot_lines = function(fml, data, time, moderator, mod.select, mod.NA = TRUE, smo
     #
 
     moderator_name = ""
-    if("formula" %in% class(fml_in)){
+    if(inherits(fml_in, "formula")){
         # Control of the formula
 
         check_arg(data, "data.frame mbt", .message = "If you provide a formula, a data.frame must be given in the argument 'data'.")
-
-        # if(missing(data) || !is.data.frame(data)){
-        #     postfix = ifelse(!is.data.frame(data), paste0(" Currently it is of class ", enumerate_items(class(data))), "")
-        #
-        #     stop("If you provide a formula, a data.frame must be given in the argument 'data'.", postfix)
-        # }
 
         vars = all.vars(fml_in)
         if(any(!vars %in% names(data))){
@@ -2474,7 +2468,7 @@ plot_lines = function(fml, data, time, moderator, mod.select, mod.NA = TRUE, smo
         }
 
         test = try(fun(head(x, 5)), silent = TRUE)
-        if("try-error" %in% class(test)){
+        if(inherits(test, "try-error")){
             stop("Evaluation of the function '", deparse_long(mc$fun), "' leads to an error\n", test)
         } else if(length(test) > 1){
             stop("The function in argument 'fun' MUST be an aggregating function: that is returning something of length 1. This is not the case currently.")
@@ -2914,7 +2908,7 @@ plot_box = function(fml, data, case, moderator, inCol, outCol = "black", density
     #
 
     moderator_name = case_name = ""
-    if("formula" %in% class(fml_in)){
+    if(inherits(fml_in, "formula")){
 
         check_arg(data, "data.frame mbt", .message = "If you provide a formula, a data.frame must be given in the argument 'data'.")
 
