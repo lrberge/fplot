@@ -4,4 +4,4 @@ vignettes/fplot_walkthrough.Rmd
 ^.github$
 ^\.Renviron$
 ^docs$
-
+^\.vscode$
