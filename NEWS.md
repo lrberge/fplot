@@ -1,5 +1,5 @@
 
-# fplot 1.0.1
+# fplot 1.1.0
 
 ## New functions
 
