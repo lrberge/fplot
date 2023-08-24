@@ -7,7 +7,7 @@ Imports: stats, graphics, utils, Formula, Rcpp, grDevices, dreamerr(>= 1.1.0)
 Suggests: knitr, rmarkdown, fixest, pdftools
 LinkingTo: Rcpp
 Depends: R(>= 3.5.0), data.table
-Description: Easy way to plot regular/weighted/conditional distributions by using formulas. The core of the package concerns distribution plots which are automatic: the many options are tailored to the data at hand to offer the nicest and most meaningful graphs possible -- with no/minimum user input. Further provide functions to plot conditional trends and box plots.
+Description: Easy way to plot regular/weighted/conditional distributions by using formulas. The core of the package concerns distribution plots which are automatic: the many options are tailored to the data at hand to offer the nicest and most meaningful graphs possible -- with no/minimum user input. Further provide functions to plot conditional trends and box plots. See <https://lrberge.github.io/fplot/> for more information.
 License: GPL-3
 VignetteBuilder: knitr
 Encoding: UTF-8
