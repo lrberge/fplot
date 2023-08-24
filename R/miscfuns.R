@@ -9,6 +9,7 @@
 #### User visible funs. ####
 ####
 
+
 #' Sets/gets the dictionary used in \code{fplot}
 #'
 #' Sets/gets the default dictionary used to rename the axes/moderator variables in the functions of the package \code{fplot}. The dictionaries are used to relabel variables (usually towards a fancier, more explicit formatting) that can be useful not to explicitly use the arguments xlab/ylab when exporting graphs. By setting the dictionary with \code{setFplot_dict}, you can avoid providing the argument \code{dict} in \code{fplot} functions.
@@ -863,9 +864,11 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
 #' @describeIn export_graph_start Ends the connection to the current export and creates the file.
 export_graph_end = fit.off
 
+
 ####
 #### Main Graph. Tools ####
 ####
+
 
 extract_df = function(fml, df){
     # fml: one sided formula
@@ -2406,6 +2409,7 @@ find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAx
 #### Utilities ####
 ####
 
+
 set_defaults = function(opts_name){
 
     opts = getOption(opts_name)
@@ -2856,6 +2860,7 @@ isVector = function(x){
 #### DEPRECATED ####
 ####
 
+
 plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, nbins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, top = "nb", showOther = TRUE, inCol = "#386CB0", border = "white", xlab, ylab, ...){
     # this function formats a bit the data and sends it to myBarplot
 
@@ -3067,8 +3072,12 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
 
 
 ####
-#### packagedown ####
+#### peculiar dev stuff ####
 ####
+
+is_r_check = function(){
+	any(grepl("_R_CHECK", names(Sys.getenv())))
+}
 
 renvir_get = function(key){
   # Get the values of envir variables
