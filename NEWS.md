@@ -16,8 +16,9 @@
 - remove warning from `pdftools::pdf_convert` popping when exporting graphs.
 - when exporting graphs, there is a preview of the exported graph. Now the image is embedded in the HTML file via URI to avoid file path issues (this led to a bug in the VSCode viewer).
 - the documentation is updated to add clear guidance for `ggplot2` graph exportation
+- improved documentation
 
-# fplot 1.0.0
+# fplot 1.0.0 (2020-05-08)
 
 ## New set of functions to export graphs
 
