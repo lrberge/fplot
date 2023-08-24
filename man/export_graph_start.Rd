@@ -68,12 +68,16 @@ If \code{NULL}, the default, then the type of file is deduced from the extension
 \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or
 \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
 }
+\value{
+These functions do not return anything in R. \code{export_graph_start} creates a
+file linked to the R graphics engine, in which subsequent plots are saved.
+\code{export_graph_end} closes the connection and the file.
+}
 \description{
-Exporting graphs is often painful because, even though they may look nice in
-our screen, they may end up disorted and hard to read in the final document (which is where they should look nice!).
 This function facilitates graph exportation by taking into account the final
-destination of the graph and allowing the user to use point size, an intuitive unit
-in written documents, as the graph scaler. Once in the final document, the text of the graph
+destination of the graph (typically a document) and allowing the user to use
+point size, an intuitive unit
+in written documents, as the graph scaler. Once located in the final document, the text of the graph
 at the default size will be at the defined point size.
 }
 \details{
@@ -98,6 +102,10 @@ export_graph_start("test.pdf")
 print(my_graph)
 export_graph_end()
 }\if{html}{\out{</div>}}
+
+When the function \code{export_graph_end()} is called, the resulting exported graph
+is displayed in the Viewer. The viewer function is found with
+\code{getOption("viewer")} and should work on RStudio and VSCode (with the R extension).
 }
 \section{Functions}{
 \itemize{

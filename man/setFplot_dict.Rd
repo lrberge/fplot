@@ -14,10 +14,28 @@ setFplot_dict(dict)
 getFplot_dict
 }
 \arguments{
-\item{dict}{A named character vector. E.g. to change my variable named "us_md" and "state" to (resp.) "$ miilion" and "U.S. state", then use \code{dict = c(us_md="$ million", state = "U.S. state")}.}
+\item{dict}{A named character vector. E.g. to change my variable named "us_md"
+and "state" to (resp.) "$ miilion" and "U.S. state", then use
+\code{dict = c(us_md="$ million", state = "U.S. state")}.}
+}
+\value{
+The function \code{setFplot_dict()} does not return anything, it only sets an option after checking
+the format of the arguments.
+
+The function \code{getFplot_dict()} returns a named vector representing the
+dictionary set in \code{setFplot_dict()}.
 }
 \description{
-Sets/gets the default dictionary used to rename the axes/moderator variables in the functions of the package \code{fplot}. The dictionaries are used to relabel variables (usually towards a fancier, more explicit formatting) that can be useful not to explicitly use the arguments xlab/ylab when exporting graphs. By setting the dictionary with \code{setFplot_dict}, you can avoid providing the argument \code{dict} in \code{fplot} functions.
+Sets/gets the default dictionary used to rename the axes/moderator variables
+in the functions of the package \code{fplot}. The dictionaries are used to relabel
+variables (usually towards a fancier, more explicit formatting) that can be useful
+not to explicitly use the arguments xlab/ylab when exporting graphs. By setting
+the dictionary with \code{setFplot_dict}, you can avoid providing the argument
+\code{dict} in \code{fplot} functions.
+}
+\details{
+This function stores a named vector in the option "fplot_dict".
+The dictionary is automatically accessed by all \code{fplot} functions.
 }
 \examples{
 

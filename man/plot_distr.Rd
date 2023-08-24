@@ -43,78 +43,145 @@ plot_distr(
 )
 }
 \arguments{
-\item{fml}{A formula or a vector. If a formula, it must be of the type: \code{weights ~ var | moderator}. If there are no moderator nor weights, you can use directly a vector, or use a one-sided formula \code{fml = ~var}. You can use multiple variables as weights, if so, you cannot use moderators at the same time. See examples.}
+\item{fml}{A formula or a vector. If a formula, it must be of the type:
+\code{weights ~ var | moderator}. If there are no moderator nor weights, you
+can use directly a vector, or use a one-sided formula \code{fml = ~var}. You
+can use multiple variables as weights, if so, you cannot use moderators at the
+same time. See examples.}
 
 \item{data}{A data.frame: data set containing the variables in the formula.}
 
-\item{moderator}{Optional, only if argument \code{fml} is a vector. A vector of moderators.}
+\item{moderator}{Optional, only if argument \code{fml} is a vector. A vector
+of moderators.}
 
-\item{weight}{Optional, only if argument \code{fml} is a vector. A vector of (positive) weights.}
+\item{weight}{Optional, only if argument \code{fml} is a vector. A vector of
+(positive) weights.}
 
-\item{sorted}{Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.}
+\item{sorted}{Logical: should the first elements displayed be the most frequent?
+By default this is the case except for numeric values put to log or to integers.}
 
-\item{log}{Logical, only used when the data is numeric. If \code{TRUE}, then the data is put to logarithm beforehand. By default numeric values are put to log if the log variation exceeds 3.}
+\item{log}{Logical, only used when the data is numeric. If \code{TRUE}, then
+the data is put to logarithm beforehand. By default numeric values are put to
+log if the log variation exceeds 3.}
 
-\item{nbins}{Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.}
+\item{nbins}{Maximum number of items displayed. The default depends on the number
+of moderator cases. When there is no moderator, the default is 15, augmented
+to 20 if there are less than 20 cases.}
 
-\item{bin.size}{Only used for numeric values. If provided, it creates bins of observations of size \code{bin.size}. It creates bins by default for numeric non-integer data.}
+\item{bin.size}{Only used for numeric values. If provided, it creates bins of
+observations of size \code{bin.size}. It creates bins by default for numeric non-integer data.}
 
-\item{legend_options}{A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.}
+\item{legend_options}{A list. Other options to be passed to \code{legend} which
+concerns the legend for the moderator.}
 
-\item{top}{What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.}
+\item{top}{What to display on the top of the bars. Can be equal to "frac" (for
+shares), "nb" or "none". The default depends on the type of the plot. To disable
+it you can also set it to \code{FALSE} or the empty string.}
 
 \item{yaxis.show}{Whether the y-axis should be displayed, default is \code{TRUE}.}
 
-\item{yaxis.num}{Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).}
+\item{yaxis.num}{Whether the y-axis should display regular numbers instead of
+frequencies in percentage points. By default it shows numbers only when the data
+is weighted with a different function than the sum. For conditionnal distributions,
+a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"},
+\code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the
+within distributions it does not make sense (because the data is rescaled for each moderator).}
 
-\item{col}{A vector of colors, default is close to paired. You can also use \dQuote{set1} or \dQuote{paired}.}
+\item{col}{A vector of colors, default is close to paired. You can also use \dQuote{set1}
+or \dQuote{paired}.}
 
-\item{border}{Outer color of the bars. Defaults is \code{"black"}. Use \code{NA} to remove the borders.}
+\item{border}{Outer color of the bars. Defaults is \code{"black"}. Use \code{NA}
+to remove the borders.}
 
-\item{mod.method}{A character scalar: either i) \dQuote{split}, the default for categorical data, ii) \dQuote{side}, the default for data in logarithmic form or numeric data, or iii) \dQuote{stack}. This is only used when there is more than one moderator. If \code{"split"}: there is one separate histogram for each moderator case. If \code{"side"}: moderators are represented side by side for each value of the variable. If \code{"stack"}: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population. You can use the other arguments \code{within} and \code{total} to say whether the distributions should be within each moderator or over the total distribution.}
+\item{mod.method}{A character scalar: either i) \dQuote{split}, the default for
+categorical data, ii) \dQuote{side}, the default for data in logarithmic form
+or numeric data, or iii) \dQuote{stack}. This is only used when there is more
+ù than one moderator. If \code{"split"}: there is one separate histogram for each
+moderator case. If \code{"side"}: moderators are represented side by side for
+each value of the variable. If \code{"stack"}: the bars of the moderators are
+stacked onto each other, the bar heights representing the distribution in the
+total population. You can use the other arguments \code{within} and \code{total}
+to say whether the distributions should be within each moderator or over the
+total distribution.}
 
-\item{within}{Logical, default is missing. Whether the distributions should be scaled to reflect the distribution within each moderator value. By default it is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.}
+\item{within}{Logical, default is missing. Whether the distributions should be
+scaled to reflect the distribution within each moderator value. By default it
+is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.}
 
-\item{total}{Logical, default is missing. Whether the distributions should be scaled to reflect the total distribution (and not the distribution within each moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.}
+\item{total}{Logical, default is missing. Whether the distributions should be
+scaled to reflect the total distribution (and not the distribution within each
+moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.}
 
-\item{mod.select}{Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 5. Alternatively, you can put an integer between 1 and 5. This argument also accepts regular expressions.}
+\item{mod.select}{Which moderators to select. By default the top 3 moderators
+in terms of frequency (or in terms of weight value if there's a weight) are displayed.
+If provided, it must be a vector of moderator values whose length cannot be greater
+than 5. Alternatively, you can put an integer between 1 and 5. This argument
+also accepts regular expressions.}
 
-\item{mod.NA}{Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator contains \code{NA} values, all \code{NA} values from the moderator will be treated as a regular case: allows to display the distribution for missing values.}
+\item{mod.NA}{Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator
+contains \code{NA} values, all \code{NA} values from the moderator will be treated
+as a regular case: allows to display the distribution for missing values.}
 
-\item{at_5}{Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting categorical variables, adds a small Roman number under every 5 bars (\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}). Helps to get the rank of the bars. The default depends on the type of data -- Not implemented when there is a moderator.}
+\item{at_5}{Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting
+categorical variables, adds a small Roman number under every 5 bars
+(\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}).
+Helps to get the rank of the bars. The default depends on the type of data --
+Not implemented when there is a moderator.}
 
-\item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
+\item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE}
+except when the data is split by moderators (see \code{mod.method}).}
 
-\item{other}{Logical. Should there be a last column counting for the observations not displayed? Default is \code{TRUE} except when the data is split.}
+\item{other}{Logical. Should there be a last column counting for the observations
+not displayed? Default is \code{TRUE} except when the data is split.}
 
-\item{cumul}{Logical, default is \code{FALSE}. If \code{TRUE}, then the cumulative distribution is plotted.}
+\item{cumul}{Logical, default is \code{FALSE}. If \code{TRUE}, then the cumulative
+distribution is plotted.}
 
-\item{plot}{Logical, default is \code{TRUE}. If \code{FALSE} nothing is plotted, only the data is returned.}
+\item{plot}{Logical, default is \code{TRUE}. If \code{FALSE} nothing is plotted,
+only the data is returned.}
 
-\item{sep}{Positive number. The separation space between the bars. The scale depends on the type of graph.}
+\item{sep}{Positive number. The separation space between the bars. The scale
+depends on the type of graph.}
 
-\item{centered}{Logical, default is \code{TRUE}. For numeric data only and when \code{sorted=FALSE}, whether the histogram should be centered on the mode.}
+\item{centered}{Logical, default is \code{TRUE}. For numeric data only and when
+\code{sorted=FALSE}, whether the histogram should be centered on the mode.}
 
-\item{weight.fun}{A function, by default it is \code{sum}. Aggregate function to be applied to the weight with respect to variable and the moderator. See examples.}
+\item{weight.fun}{A function, by default it is \code{sum}. Aggregate function
+to be applied to the weight with respect to variable and the moderator. See examples.}
 
-\item{int.categorical}{Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).}
+\item{int.categorical}{Logical. Whether integers should be treated as categorical
+variables. By default they are treated as categorical only when their range is
+small (i.e. smaller than 1000).}
 
-\item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
+\item{dict}{A dictionnary to rename the variables names in the axes and legend.
+Should be a named vector. By default it s the value of \code{getFplot_dict()},
+which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
-\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
+\item{mod.title}{Character scalar. The title of the legend in case there is a
+moderator. You can set it to \code{TRUE} (the default) to display the moderator
+name. To display no title, set it to \code{NULL} or \code{FALSE}.}
 
 \item{labels.angle}{Only if the labels of the x-axis are tilted. The angle of the tilt.}
 
-\item{cex.axis}{Cex value to be passed to biased labels. By defaults, it finds automatically the right value.}
+\item{cex.axis}{Cex value to be passed to biased labels. By defaults, it finds
+automatically the right value.}
 
-\item{trunc}{If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.}
+\item{trunc}{If the main variable is a character, its values are truncaded to
+\code{trunc} characters. Default is 20. You can set the truncation method with
+the argument \code{trunc.method}.}
 
-\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".}
+\item{trunc.method}{If the elements of the x-axis need to be truncated, this
+is the truncation method. It can be "auto", "right" or "mid".}
 
 \item{...}{Other elements to be passed to plot.}
 }
+\value{
+This function returns \emph{invisibly} the output data.table containing the processed data
+used for plotting. With the argument \code{plot = FALSE}, only the data is returned.
+}
 \description{
-This function plots distributions of items (a bit like an histogram) which can be easily conditioned over.
+This function plots distributions of items (a bit like an histogram) which can
+be easily conditioned over.
 }
 \details{
 Most default values can be modified with the function \code{\link[fplot]{setFplot_distr}}.
@@ -177,7 +244,9 @@ plot_distr(~ Sepal.Length | Species, iris, mod.method = "stack")
 
 }
 \seealso{
-To plot temporal evolutions: \code{\link[fplot]{plot_lines}}. For boxplot: \code{\link[fplot]{plot_box}}. To export graphs: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, \code{\link[fplot]{fit.off}}.
+To plot temporal evolutions: \code{\link[fplot]{plot_lines}}. For boxplot: \code{\link[fplot]{plot_box}}.
+To export graphs: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}},
+\code{\link[fplot]{fit.off}}.
 }
 \author{
 Laurent Berge

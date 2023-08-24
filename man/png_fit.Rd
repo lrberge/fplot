@@ -97,7 +97,13 @@ argument \code{height} to its width.}
 \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or
 \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.}
 }
+\value{
+This function does not return anything. It connects the output of the R graphics
+engine to a file.
+}
 \description{
+(\emph{This function is deprecated: Please use the functions \code{\link[=export_graph_start]{export_graph_start()}}
+and \code{\link[=export_graph_end]{export_graph_end()}} instead.})
 This is an alternative to \code{\link[grDevices]{png}} and others. It makes it
 easy to export figures that should end up in documents. Instead of providing the
 height and width of the figure, you provide the fraction of the text-width the figure
@@ -125,7 +131,7 @@ guaranteed once the figure is inserted in the document.
 # text width. If so, the size of the text in the figures
 # will be exact.
 
-tmpFile = file.path(tempdir(), "png_examples.pdf")
+tmpFile = file.path(tempdir(), "png_examples.png")
 
 png_fit(tmpFile, pt = 8)
 plot(1, 1, type = "n", ann = FALSE)

@@ -11,7 +11,8 @@
 
 #' Sets the defaults of plot_distr
 #'
-#' The default values of most arguments of \code{\link[fplot]{plot_distr}} can be set with \code{setFplot_distr}.
+#' The default values of most arguments of \code{\link[fplot]{plot_distr}} can be 
+#' set with \code{setFplot_distr}.
 #'
 #' @inheritParams plot_distr
 #'
@@ -19,6 +20,13 @@
 #'
 #' @seealso
 #' \code{\link[fplot]{plot_distr}}, \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{fit.off}}.
+#' 
+#' @return 
+#' The function `setFplot_distr()` does not return anything, it only sets the default
+#' parameters for the function [plot_distr()].
+#' 
+#' The function `getFplot_distr()` returns a named list containing the arguments 
+#' that have been set with the function `setFplot_distr()`.
 #'
 #' @examples
 #'
@@ -107,42 +115,105 @@ getFplot_distr = function(){
 
 #' Plot distributions, possibly conditional
 #'
-#' This function plots distributions of items (a bit like an histogram) which can be easily conditioned over.
+#' This function plots distributions of items (a bit like an histogram) which can 
+#' be easily conditioned over.
 #'
-#' @param fml A formula or a vector. If a formula, it must be of the type: \code{weights ~ var | moderator}. If there are no moderator nor weights, you can use directly a vector, or use a one-sided formula \code{fml = ~var}. You can use multiple variables as weights, if so, you cannot use moderators at the same time. See examples.
+#' @param fml A formula or a vector. If a formula, it must be of the type: 
+#' \code{weights ~ var | moderator}. If there are no moderator nor weights, you 
+#' can use directly a vector, or use a one-sided formula \code{fml = ~var}. You 
+#' can use multiple variables as weights, if so, you cannot use moderators at the 
+#' same time. See examples.
 #' @param data A data.frame: data set containing the variables in the formula.
-#' @param moderator Optional, only if argument \code{fml} is a vector. A vector of moderators.
-#' @param weight Optional, only if argument \code{fml} is a vector. A vector of (positive) weights.
-#' @param sorted Logical: should the first elements displayed be the most frequent? By default this is the case except for numeric values put to log or to integers.
-#' @param log Logical, only used when the data is numeric. If \code{TRUE}, then the data is put to logarithm beforehand. By default numeric values are put to log if the log variation exceeds 3.
-#' @param col A vector of colors, default is close to paired. You can also use \dQuote{set1} or \dQuote{paired}.
-#' @param border Outer color of the bars. Defaults is \code{"black"}. Use \code{NA} to remove the borders.
-#' @param nbins Maximum number of items displayed. The default depends on the number of moderator cases. When there is no moderator, the default is 15, augmented to 20 if there are less than 20 cases.
-#' @param bin.size Only used for numeric values. If provided, it creates bins of observations of size \code{bin.size}. It creates bins by default for numeric non-integer data.
-#' @param legend_options A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.
+#' @param moderator Optional, only if argument \code{fml} is a vector. A vector 
+#' of moderators.
+#' @param weight Optional, only if argument \code{fml} is a vector. A vector of 
+#' (positive) weights.
+#' @param sorted Logical: should the first elements displayed be the most frequent? 
+#' By default this is the case except for numeric values put to log or to integers.
+#' @param log Logical, only used when the data is numeric. If \code{TRUE}, then 
+#' the data is put to logarithm beforehand. By default numeric values are put to 
+#' log if the log variation exceeds 3.
+#' @param col A vector of colors, default is close to paired. You can also use \dQuote{set1} 
+#' or \dQuote{paired}.
+#' @param border Outer color of the bars. Defaults is \code{"black"}. Use \code{NA} 
+#' to remove the borders.
+#' @param nbins Maximum number of items displayed. The default depends on the number 
+#' of moderator cases. When there is no moderator, the default is 15, augmented 
+#' to 20 if there are less than 20 cases.
+#' @param bin.size Only used for numeric values. If provided, it creates bins of 
+#' observations of size \code{bin.size}. It creates bins by default for numeric non-integer data.
+#' @param legend_options A list. Other options to be passed to \code{legend} which 
+#' concerns the legend for the moderator.
 #' @param yaxis.show Whether the y-axis should be displayed, default is \code{TRUE}.
-#' @param yaxis.num Whether the y-axis should display regular numbers instead of frequencies in percentage points. By default it shows numbers only when the data is weighted with a different function than the sum. For conditionnal distributions, a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the within distributions it does not make sense (because the data is rescaled for each moderator).
-#' @param mod.select Which moderators to select. By default the top 3 moderators in terms of frequency (or in terms of weight value if there's a weight) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 5. Alternatively, you can put an integer between 1 and 5. This argument also accepts regular expressions.
-#' @param mod.NA Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator contains \code{NA} values, all \code{NA} values from the moderator will be treated as a regular case: allows to display the distribution for missing values.
-#' @param mod.method A character scalar: either i) \dQuote{split}, the default for categorical data, ii) \dQuote{side}, the default for data in logarithmic form or numeric data, or iii) \dQuote{stack}. This is only used when there is more than one moderator. If \code{"split"}: there is one separate histogram for each moderator case. If \code{"side"}: moderators are represented side by side for each value of the variable. If \code{"stack"}: the bars of the moderators are stacked onto each other, the bar heights representing the distribution in the total population. You can use the other arguments \code{within} and \code{total} to say whether the distributions should be within each moderator or over the total distribution.
-#' @param within Logical, default is missing. Whether the distributions should be scaled to reflect the distribution within each moderator value. By default it is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.
-#' @param total Logical, default is missing. Whether the distributions should be scaled to reflect the total distribution (and not the distribution within each moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.
-#' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).
+#' @param yaxis.num Whether the y-axis should display regular numbers instead of 
+#' frequencies in percentage points. By default it shows numbers only when the data 
+#' is weighted with a different function than the sum. For conditionnal distributions, 
+#' a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, 
+#' \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the 
+#' within distributions it does not make sense (because the data is rescaled for each moderator).
+#' @param mod.select Which moderators to select. By default the top 3 moderators 
+#' in terms of frequency (or in terms of weight value if there's a weight) are displayed. 
+#' If provided, it must be a vector of moderator values whose length cannot be greater 
+#' than 5. Alternatively, you can put an integer between 1 and 5. This argument 
+#' also accepts regular expressions.
+#' @param mod.NA Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator 
+#' contains \code{NA} values, all \code{NA} values from the moderator will be treated 
+#' as a regular case: allows to display the distribution for missing values.
+#' @param mod.method A character scalar: either i) \dQuote{split}, the default for 
+#' categorical data, ii) \dQuote{side}, the default for data in logarithmic form 
+#' or numeric data, or iii) \dQuote{stack}. This is only used when there is more 
+#'ù than one moderator. If \code{"split"}: there is one separate histogram for each 
+#' moderator case. If \code{"side"}: moderators are represented side by side for 
+#' each value of the variable. If \code{"stack"}: the bars of the moderators are 
+#' stacked onto each other, the bar heights representing the distribution in the 
+#' total population. You can use the other arguments \code{within} and \code{total} 
+#' to say whether the distributions should be within each moderator or over the 
+#' total distribution.
+#' @param within Logical, default is missing. Whether the distributions should be 
+#' scaled to reflect the distribution within each moderator value. By default it 
+#' is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.
+#' @param total Logical, default is missing. Whether the distributions should be 
+#' scaled to reflect the total distribution (and not the distribution within each 
+#' moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.
+#' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} 
+#' except when the data is split by moderators (see \code{mod.method}).
 #' @param labels.angle Only if the labels of the x-axis are tilted. The angle of the tilt.
-#' @param other Logical. Should there be a last column counting for the observations not displayed? Default is \code{TRUE} except when the data is split.
-#' @param plot Logical, default is \code{TRUE}. If \code{FALSE} nothing is plotted, only the data is returned.
-#' @param sep Positive number. The separation space between the bars. The scale depends on the type of graph.
-#' @param centered Logical, default is \code{TRUE}. For numeric data only and when \code{sorted=FALSE}, whether the histogram should be centered on the mode.
-#' @param weight.fun A function, by default it is \code{sum}. Aggregate function to be applied to the weight with respect to variable and the moderator. See examples.
-#' @param at_5 Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting categorical variables, adds a small Roman number under every 5 bars (\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}). Helps to get the rank of the bars. The default depends on the type of data -- Not implemented when there is a moderator.
-#' @param dict A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.
-#' @param mod.title Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.
-#' @param cex.axis Cex value to be passed to biased labels. By defaults, it finds automatically the right value.
-#' @param int.categorical Logical. Whether integers should be treated as categorical variables. By default they are treated as categorical only when their range is small (i.e. smaller than 1000).
-#' @param trunc If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.
-#' @param trunc.method If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".
-#' @param cumul Logical, default is \code{FALSE}. If \code{TRUE}, then the cumulative distribution is plotted.
-#' @param top What to display on the top of the bars. Can be equal to "frac" (for shares), "nb" or "none". The default depends on the type of the plot. To disable it you can also set it to \code{FALSE} or the empty string.
+#' @param other Logical. Should there be a last column counting for the observations 
+#' not displayed? Default is \code{TRUE} except when the data is split.
+#' @param plot Logical, default is \code{TRUE}. If \code{FALSE} nothing is plotted, 
+#' only the data is returned.
+#' @param sep Positive number. The separation space between the bars. The scale 
+#' depends on the type of graph.
+#' @param centered Logical, default is \code{TRUE}. For numeric data only and when 
+#' \code{sorted=FALSE}, whether the histogram should be centered on the mode.
+#' @param weight.fun A function, by default it is \code{sum}. Aggregate function 
+#' to be applied to the weight with respect to variable and the moderator. See examples.
+#' @param at_5 Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting 
+#' categorical variables, adds a small Roman number under every 5 bars 
+#' (\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}). 
+#' Helps to get the rank of the bars. The default depends on the type of data -- 
+#' Not implemented when there is a moderator.
+#' @param dict A dictionnary to rename the variables names in the axes and legend. 
+#' Should be a named vector. By default it s the value of \code{getFplot_dict()}, 
+#' which you can set with the function \code{\link[fplot]{setFplot_dict}}.
+#' @param mod.title Character scalar. The title of the legend in case there is a 
+#' moderator. You can set it to \code{TRUE} (the default) to display the moderator 
+#' name. To display no title, set it to \code{NULL} or \code{FALSE}.
+#' @param cex.axis Cex value to be passed to biased labels. By defaults, it finds 
+#' automatically the right value.
+#' @param int.categorical Logical. Whether integers should be treated as categorical 
+#' variables. By default they are treated as categorical only when their range is 
+#' small (i.e. smaller than 1000).
+#' @param trunc If the main variable is a character, its values are truncaded to 
+#' \code{trunc} characters. Default is 20. You can set the truncation method with 
+#' the argument \code{trunc.method}.
+#' @param trunc.method If the elements of the x-axis need to be truncated, this 
+#' is the truncation method. It can be "auto", "right" or "mid".
+#' @param cumul Logical, default is \code{FALSE}. If \code{TRUE}, then the cumulative 
+#' distribution is plotted.
+#' @param top What to display on the top of the bars. Can be equal to "frac" (for 
+#' shares), "nb" or "none". The default depends on the type of the plot. To disable 
+#' it you can also set it to \code{FALSE} or the empty string.
 #' @param ... Other elements to be passed to plot.
 #'
 #' @details
@@ -151,8 +222,13 @@ getFplot_distr = function(){
 #' @author Laurent Berge
 #'
 #' @seealso
-#' To plot temporal evolutions: \code{\link[fplot]{plot_lines}}. For boxplot: \code{\link[fplot]{plot_box}}. To export graphs: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, \code{\link[fplot]{fit.off}}.
+#' To plot temporal evolutions: \code{\link[fplot]{plot_lines}}. For boxplot: \code{\link[fplot]{plot_box}}. 
+#' To export graphs: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, 
+#' \code{\link[fplot]{fit.off}}.
 #'
+#' @return 
+#' This function returns *invisibly* the output data.table containing the processed data
+#' used for plotting. With the argument `plot = FALSE`, only the data is returned.
 #'
 #' @examples
 #'
@@ -210,7 +286,13 @@ getFplot_distr = function(){
 #'
 #'
 #'
-plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size, legend_options=list(), top, yaxis.show=TRUE, yaxis.num, col, border = "black", mod.method, within, total, mod.select, mod.NA = FALSE, at_5, labels.tilted, other, cumul = FALSE, plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", ...){
+plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size, 
+                      legend_options=list(), top, yaxis.show = TRUE, yaxis.num, 
+                      col, border = "black", mod.method, within, total, mod.select, 
+                      mod.NA = FALSE, at_5, labels.tilted, other, cumul = FALSE, 
+                      plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, 
+                      dict = NULL, mod.title = TRUE, labels.angle, cex.axis, 
+                      trunc = 20, trunc.method = "auto", ...){
     # This function plots frequencies
 
     # DT VARS
@@ -2213,30 +2295,53 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
 #' Display means conditionnally on some other values
 #'
-#' The typical use of this function is to represents trends of average along some categorical variable.
+#' The typical use of this function is to represents trends of average along some 
+#' categorical variable.
 #'
 #' @inheritParams plot_distr
 #'
-#' @param fml A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{data}. You can use multiple variables. If so, you cannot use a moderator at the same time.
-#' @param data Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.
-#' @param time Only if argument \sQuote{fml} is a vector. It should be the vector of \sQuote{time} identifiers to average over.
-#' @param moderator Only if argument \sQuote{fml} is a vector. It should be a vector of conditional values to average over. This is an optional parameter.
-#' @param fun Function to apply when aggregating the values on the time variable. Default is \code{mean}.
-#' @param mod.select Which moderators to select. By default the top 5 moderators in terms of frequency (or in terms of the value of fun in case of identical frequencies) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 10. Alternatively, you can put an integer between 1 and 10.
-#' @param smoothing_window Default is 0. The number of time periods to average over. Note that if it is provided the new value for each period is the average of the current period and the \code{smoothing_window} time periods before and after.
-#' @param col The colors. Either a vector or a keyword (\dQuote{Set1} or \dQuote{paired}). By default those are the \dQuote{Set1} colors colorBrewer. This argument is used only if there is a moderator.
-#' @param lty The line types, in the case there are more than one moderator. By default it is equal to 1 (ie no difference between moderators).
-#' @param pch The form types of the points, in the case there are more than one moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.
+#' @param fml A formula of the type \code{variable ~ time | moderator}. Note that 
+#' the moderator is optional. Can also be a vector representing the elements of 
+#' the variable If a formula is provided, then you must add the argument \sQuote{data}. 
+#' You can use multiple variables. If so, you cannot use a moderator at the same time.
+#' @param data Data frame containing the variables of the formula. Used only if the
+#'  argument \sQuote{fml} is a formula.
+#' @param time Only if argument \sQuote{fml} is a vector. It should be the vector 
+#' of \sQuote{time} identifiers to average over.
+#' @param moderator Only if argument \sQuote{fml} is a vector. It should be a vector
+#'  of conditional values to average over. This is an optional parameter.
+#' @param fun Function to apply when aggregating the values on the time variable. 
+#' Default is \code{mean}.
+#' @param mod.select Which moderators to select. By default the top 5 moderators 
+#' in terms of frequency (or in terms of the value of fun in case of identical 
+#' frequencies) are displayed. If provided, it must be a vector of moderator values 
+#' whose length cannot be greater than 10. Alternatively, you can put an integer between 1 and 10.
+#' @param smoothing_window Default is 0. The number of time periods to average over. 
+#' Note that if it is provided the new value for each period is the average of 
+#' the current period and the \code{smoothing_window} time periods before and after.
+#' @param col The colors. Either a vector or a keyword (\dQuote{Set1} or \dQuote{paired}). 
+#' By default those are the \dQuote{Set1} colors colorBrewer. This argument is 
+#' used only if there is a moderator.
+#' @param lty The line types, in the case there are more than one moderator. 
+#' By default it is equal to 1 (ie no difference between moderators).
+#' @param pch The form types of the points, in the case there are more than one 
+#' moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.
 #' @param pt.cex Default to 2. The \code{cex} of the points.
 #' @param lwd Default to 2. The width of the lines.
-#' @param legend_options A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.
+#' @param legend_options A list containing additional parameters for the function 
+#' \code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can 
+#' set the additionnal arguments \code{trunc} and \code{trunc.method} which relates 
+#' to the number of characters to show and the truncation method. By default the 
+#' algorithm truncates automatically when needed.
 #' @param ... Other arguments to be passed to the function \code{plot}.
 #'
 #' @author Laurent Berge
-#'
+#' 
+#' @return 
+#' This function returns *invisibly* the output data.table containing the processed data
+#' used for plotting. 
 #'
 #' @examples
-#'
 #'
 #' data(airquality)
 #'
@@ -2247,7 +2352,10 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 #' plot_lines(Ozone ~ Month | cut(Day, 8), airquality)
 #'
 #'
-plot_lines = function(fml, data, time, moderator, mod.select, mod.NA = TRUE, smoothing_window = 0, fun, col = "set1", lty = 1, pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), pt.cex=2, lwd=2, dict = NULL, mod.title = TRUE, ...){
+plot_lines = function(fml, data, time, moderator, mod.select, mod.NA = TRUE, 
+                      smoothing_window = 0, fun, col = "set1", lty = 1, 
+                      pch = c(19, 17, 15, 8, 5, 4, 3, 1),  legend_options = list(), 
+                      pt.cex = 2, lwd = 2, dict = NULL, mod.title = TRUE, ...){
     # This functions plots the means of x wrt the id
     # we can also add a moderator
 

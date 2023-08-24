@@ -6,14 +6,23 @@
 \usage{
 fit.off()
 }
+\value{
+This function does not return anything in R. It closes the connection between the
+R graphics engine and a file that has been defined via one of the functions:
+pdf_fitpng_fit
+}
 \description{
+\emph{This function is deprecated: Please use the functions \code{\link[=export_graph_start]{export_graph_start()}}
+and \code{\link[=export_graph_end]{export_graph_end()}} instead.}
+}
+\details{
 To be used in combination with \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}
 when exporting images. It performs exactly the same thing as \code{dev.off()} but additionaly
 shows the resulting graph in the viewer pane provided you're using RStudio.
-}
-\details{
+
 To view the results of PDF exports, the function \code{pdf_convert} from package \code{pdftools}
-is used to convert the PDF files into images -- so you need to have installed \code{pdftools} to make it work.
+is used to convert the PDF files into images -- so you need to have installed
+\code{pdftools} to make it work.
 
 In PDFs, only the first page will be viewed.
 }

@@ -56,13 +56,16 @@ plot_box(
 
 \item{addLegend}{Default is \code{TRUE}. Should a legend be added at the top of the graph is there is more than one moderator?}
 
-\item{legend_options}{A list. Other options to be passed to \code{legend} which concerns the legend for the moderator.}
+\item{legend_options}{A list. Other options to be passed to \code{legend} which
+concerns the legend for the moderator.}
 
 \item{lwd}{The width of the lines making the boxes. Default is 2.}
 
 \item{outlier}{Default is \code{TRUE}. Should the outliers be displayed?}
 
-\item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
+\item{dict}{A dictionnary to rename the variables names in the axes and legend.
+Should be a named vector. By default it s the value of \code{getFplot_dict()},
+which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
 \item{dict_case}{A named character vector. If provided, it changes the values of the variable \sQuote{case} to the ones contained in the vector \code{dict_case}. Example: I want to change my variable named "a" to "Australia" and "b" to "Brazil", then I used \code{dict=c(a="Australia",b="Brazil")}.}
 
@@ -80,13 +83,19 @@ plot_box(
 
 \item{mean.cex}{The cex of the mean, default is 2.}
 
-\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
+\item{mod.title}{Character scalar. The title of the legend in case there is a
+moderator. You can set it to \code{TRUE} (the default) to display the moderator
+name. To display no title, set it to \code{NULL} or \code{FALSE}.}
 
-\item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE} except when the data is split by moderators (see \code{mod.method}).}
+\item{labels.tilted}{Whether there should be tilted labels. Default is \code{FALSE}
+except when the data is split by moderators (see \code{mod.method}).}
 
-\item{trunc}{If the main variable is a character, its values are truncaded to \code{trunc} characters. Default is 20. You can set the truncation method with the argument \code{trunc.method}.}
+\item{trunc}{If the main variable is a character, its values are truncaded to
+\code{trunc} characters. Default is 20. You can set the truncation method with
+the argument \code{trunc.method}.}
 
-\item{trunc.method}{If the elements of the x-axis need to be truncated, this is the truncation method. It can be "auto", "right" or "mid".}
+\item{trunc.method}{If the elements of the x-axis need to be truncated, this
+is the truncation method. It can be "auto", "right" or "mid".}
 
 \item{line.max}{Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.}
 

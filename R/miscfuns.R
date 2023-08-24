@@ -12,14 +12,31 @@
 
 #' Sets/gets the dictionary used in \code{fplot}
 #'
-#' Sets/gets the default dictionary used to rename the axes/moderator variables in the functions of the package \code{fplot}. The dictionaries are used to relabel variables (usually towards a fancier, more explicit formatting) that can be useful not to explicitly use the arguments xlab/ylab when exporting graphs. By setting the dictionary with \code{setFplot_dict}, you can avoid providing the argument \code{dict} in \code{fplot} functions.
+#' Sets/gets the default dictionary used to rename the axes/moderator variables 
+#' in the functions of the package \code{fplot}. The dictionaries are used to relabel 
+#' variables (usually towards a fancier, more explicit formatting) that can be useful 
+#' not to explicitly use the arguments xlab/ylab when exporting graphs. By setting 
+#' the dictionary with \code{setFplot_dict}, you can avoid providing the argument 
+#' \code{dict} in \code{fplot} functions.
 #'
 #'
-#' @param dict A named character vector. E.g. to change my variable named "us_md" and "state" to (resp.) "$ miilion" and "U.S. state", then use \code{dict = c(us_md="$ million", state = "U.S. state")}.
+#' @param dict A named character vector. E.g. to change my variable named "us_md" 
+#' and "state" to (resp.) "$ miilion" and "U.S. state", then use 
+#' \code{dict = c(us_md="$ million", state = "U.S. state")}.
 #'
 #' @author
 #' Laurent Berge
-#'
+#' 
+#' @details 
+#' This function stores a named vector in the option "fplot_dict".
+#' The dictionary is automatically accessed by all `fplot` functions.
+#' 
+#' @return 
+#' The function `setFplot_dict()` does not return anything, it only sets an option after checking 
+#' the format of the arguments.
+#' 
+#' The function `getFplot_dict()` returns a named vector representing the 
+#' dictionary set in `setFplot_dict()`.
 #'
 #' @examples
 #'
@@ -71,17 +88,53 @@ getFplot_dict = function(){
 
 #' Sets the target page size for figure exporting
 #'
-#' Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain the desired point size for the plotting text. The function \code{setFplot_page} sets the target page size (once and for all). This is important for the accuracy of the export, although the default values should be working well most of the time.
+#' Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} 
+#' or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain 
+#' the desired point size for the plotting text. The function \code{setFplot_page} 
+#' sets the target page size (once and for all). This is important for the accuracy 
+#' of the export, although the default values should be working well most of the time.
 #'
 #' @inheritParams pdf_fit
 #'
-#' @param page What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in **inches**. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.
-#' @param margins The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in **inches**. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.
-#' @param units The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.
-#' @param reset Logical, default is \code{FALSE}. Whether arguments should be reset to default before applying modifications.
+#' @param page What is the page size of the document? Can be equal to "us" (for 
+#' US letter, the default) or "a4". Can also be a numeric vector of length 2 giving 
+#' the width and the height of the page in **inches**. Or can be a character string 
+#' of the type: \code{"8.5in,11in"} where the width and height are separated with 
+#' a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted 
+#' as units--further: you can use the unit only once.
+#' @param margins The bottom/left/top/right margins of the page. This is used to 
+#' obtain the dimension of the body of the text. Can be equal to "normal" (default, 
+#' which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be 
+#' a numeric vector of length 1: then all margins are the same given size in **inches**. 
+#' 
+#' Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, 
+#' then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, 
+#' it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins 
+#' separated by a comma or a slash, and at least one unit appearing: either \code{cm}, 
+#' \code{in} or \code{px}.
+#' @param units The default units when using the functions \code{\link[fplot]{pdf_fit}}, 
+#' \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which 
+#' is a fraction of the size of the text. Alternatives can be \code{"pw"} (page 
+#' width), and \code{"in"}, \code{"cm"}, \code{"px"}.
+#' @param reset Logical, default is \code{FALSE}. Whether arguments should be reset 
+#' to default before applying modifications.
 #'
 #' @seealso
-#' Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}. The function closing the connection and showing the obtained graph in the viewer: \code{\link[fplot]{fit.off}}.
+#' Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}. 
+#' The function closing the connection and showing the obtained graph in the viewer: 
+#' \code{\link[fplot]{fit.off}}.
+#' 
+#' @details 
+#' This function sets the option "fplot_export_opts" after parsing the arguments. 
+#' This option is then automatically accessed by the functions used to export graphs
+#' [export_graph_start()]. 
+#' 
+#' @return 
+#' The function `setFplot_page()` does not return anything. It sets an 
+#' R option containing the page parameters.
+#' 
+#' The function `getFplot_page()` returns the named list of page parameters which has been set  
+#' in `setFplot_page()`.
 #'
 #'
 #' @examples
@@ -215,7 +268,9 @@ getFplot_page = function(){
 }
 
 #' PDF export with guaranteed text size
-#'
+#' 
+#' (*This function is deprecated: Please use the functions [export_graph_start()] 
+#' and [export_graph_end()] instead.*) 
 #' This function is an alternative to \code{\link[grDevices]{pdf}}, it makes it easy 
 #' to export figures of appropriate size that should end up in a document. Instead 
 #' of providing the height and width of the figure, you provide the fraction of the 
@@ -280,6 +335,10 @@ getFplot_page = function(){
 #' print(my_graph)
 #' fit.off()
 #' ```
+#' 
+#' @return 
+#' This function does not return anything. It connects the output of the R graphics
+#' engine to a file. 
 #'
 #' @section Setting the page size:
 #'
@@ -356,6 +415,8 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 
 #' PNG export with guaranteed text size
 #'
+#' (*This function is deprecated: Please use the functions [export_graph_start()] 
+#' and [export_graph_end()] instead.*)  
 #' This is an alternative to \code{\link[grDevices]{png}} and others. It makes it 
 #' easy to export figures that should end up in documents. Instead of providing the
 #'  height and width of the figure, you provide the fraction of the text-width the figure 
@@ -369,6 +430,10 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 #' @param ... Other arguments to be passed to \code{\link[grDevices:png]{bmp}}, 
 #' \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or 
 #' \code{\link[grDevices:png]{tiff}}. For example: \code{antialias}, \code{bg}, etc.
+#' 
+#' @return 
+#' This function does not return anything. It connects the output of the R graphics
+#' engine to a file. 
 #'
 #'
 #' @examples
@@ -380,7 +445,7 @@ pdf_fit = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, sideways =
 #' # text width. If so, the size of the text in the figures
 #' # will be exact.
 #'
-#' tmpFile = file.path(tempdir(), "png_examples.pdf")
+#' tmpFile = file.path(tempdir(), "png_examples.png")
 #'
 #' png_fit(tmpFile, pt = 8)
 #' plot(1, 1, type = "n", ann = FALSE)
@@ -552,13 +617,17 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 
 #' Closes the current plotting device and shows the result in the viewer
 #'
+#' *This function is deprecated: Please use the functions [export_graph_start()] 
+#' and [export_graph_end()] instead.*
+#' 
 #' To be used in combination with \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}} 
 #' when exporting images. It performs exactly the same thing as \code{dev.off()} but additionaly 
 #' shows the resulting graph in the viewer pane provided you're using RStudio.
 #'
 #' @details
 #' To view the results of PDF exports, the function \code{pdf_convert} from package \code{pdftools} 
-#' is used to convert the PDF files into images -- so you need to have installed \code{pdftools} to make it work.
+#' is used to convert the PDF files into images -- so you need to have installed 
+#' \code{pdftools} to make it work.
 #'
 #' In PDFs, only the first page will be viewed.
 #'
@@ -571,6 +640,11 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #' \code{\link[fplot:pdf_fit]{jpeg_fit}}.
 #' 
 #' The functions [export_graph_start()] and [export_graph_end()] provide similar features.
+#' 
+#' @return 
+#' This function does not return anything in R. It closes the connection between the 
+#' R graphics engine and a file that has been defined via one of the functions:
+#' pdf_fitpng_fit
 #'
 #' @examples
 #'
@@ -753,11 +827,10 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 
 #' Graph export with garanteed text size
 #' 
-#' Exporting graphs is often painful because, even though they may look nice in
-#' our screen, they may end up disorted and hard to read in the final document (which is where they should look nice!).
 #' This function facilitates graph exportation by taking into account the final 
-#' destination of the graph and allowing the user to use point size, an intuitive unit
-#' in written documents, as the graph scaler. Once in the final document, the text of the graph
+#' destination of the graph (typically a document) and allowing the user to use 
+#' point size, an intuitive unit
+#' in written documents, as the graph scaler. Once located in the final document, the text of the graph
 #' at the default size will be at the defined point size.
 #' 
 #' @inheritParams png_fit
@@ -769,6 +842,7 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' If `NULL`, the default, then the type of file is deduced from the extension.
 #' 
 #' @details 
+#' 
 #' To export a ggplot2 graph, remember that you need to **print** it!
 #' 
 #' ```
@@ -791,6 +865,15 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' print(my_graph)
 #' export_graph_end()
 #' ```
+#' 
+#' When the function `export_graph_end()` is called, the resulting exported graph 
+#' is displayed in the Viewer. The viewer function is found with 
+#' `getOption("viewer")` and should work on RStudio and VSCode (with the R extension). 
+#' 
+#' @return 
+#' These functions do not return anything in R. `export_graph_start` creates a
+#' file linked to the R graphics engine, in which subsequent plots are saved.  
+#' `export_graph_end` closes the connection and the file.
 #' 
 #' @inheritSection pdf_fit Setting the page size
 #' 

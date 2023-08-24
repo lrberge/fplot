@@ -53,7 +53,13 @@ argument \code{height} to its width.}
 
 \item{...}{Other arguments to be passed to \code{\link[grDevices]{pdf}}.}
 }
+\value{
+This function does not return anything. It connects the output of the R graphics
+engine to a file.
+}
 \description{
+(\emph{This function is deprecated: Please use the functions \code{\link[=export_graph_start]{export_graph_start()}}
+and \code{\link[=export_graph_end]{export_graph_end()}} instead.})
 This function is an alternative to \code{\link[grDevices]{pdf}}, it makes it easy
 to export figures of appropriate size that should end up in a document. Instead
 of providing the height and width of the figure, you provide the fraction of the

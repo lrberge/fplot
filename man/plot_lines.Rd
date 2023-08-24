@@ -25,45 +25,75 @@ plot_lines(
 )
 }
 \arguments{
-\item{fml}{A formula of the type \code{variable ~ time | moderator}. Note that the moderator is optional. Can also be a vector representing the elements of the variable If a formula is provided, then you must add the argument \sQuote{data}. You can use multiple variables. If so, you cannot use a moderator at the same time.}
+\item{fml}{A formula of the type \code{variable ~ time | moderator}. Note that
+the moderator is optional. Can also be a vector representing the elements of
+the variable If a formula is provided, then you must add the argument \sQuote{data}.
+You can use multiple variables. If so, you cannot use a moderator at the same time.}
 
-\item{data}{Data frame containing the variables of the formula. Used only if the argument \sQuote{fml} is a formula.}
+\item{data}{Data frame containing the variables of the formula. Used only if the
+argument \sQuote{fml} is a formula.}
 
-\item{time}{Only if argument \sQuote{fml} is a vector. It should be the vector of \sQuote{time} identifiers to average over.}
+\item{time}{Only if argument \sQuote{fml} is a vector. It should be the vector
+of \sQuote{time} identifiers to average over.}
 
-\item{moderator}{Only if argument \sQuote{fml} is a vector. It should be a vector of conditional values to average over. This is an optional parameter.}
+\item{moderator}{Only if argument \sQuote{fml} is a vector. It should be a vector
+of conditional values to average over. This is an optional parameter.}
 
-\item{mod.select}{Which moderators to select. By default the top 5 moderators in terms of frequency (or in terms of the value of fun in case of identical frequencies) are displayed. If provided, it must be a vector of moderator values whose length cannot be greater than 10. Alternatively, you can put an integer between 1 and 10.}
+\item{mod.select}{Which moderators to select. By default the top 5 moderators
+in terms of frequency (or in terms of the value of fun in case of identical
+frequencies) are displayed. If provided, it must be a vector of moderator values
+whose length cannot be greater than 10. Alternatively, you can put an integer between 1 and 10.}
 
-\item{mod.NA}{Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator contains \code{NA} values, all \code{NA} values from the moderator will be treated as a regular case: allows to display the distribution for missing values.}
+\item{mod.NA}{Logical, default is \code{FALSE}. If \code{TRUE}, and if the moderator
+contains \code{NA} values, all \code{NA} values from the moderator will be treated
+as a regular case: allows to display the distribution for missing values.}
 
-\item{smoothing_window}{Default is 0. The number of time periods to average over. Note that if it is provided the new value for each period is the average of the current period and the \code{smoothing_window} time periods before and after.}
+\item{smoothing_window}{Default is 0. The number of time periods to average over.
+Note that if it is provided the new value for each period is the average of
+the current period and the \code{smoothing_window} time periods before and after.}
 
-\item{fun}{Function to apply when aggregating the values on the time variable. Default is \code{mean}.}
+\item{fun}{Function to apply when aggregating the values on the time variable.
+Default is \code{mean}.}
 
-\item{col}{The colors. Either a vector or a keyword (\dQuote{Set1} or \dQuote{paired}). By default those are the \dQuote{Set1} colors colorBrewer. This argument is used only if there is a moderator.}
+\item{col}{The colors. Either a vector or a keyword (\dQuote{Set1} or \dQuote{paired}).
+By default those are the \dQuote{Set1} colors colorBrewer. This argument is
+used only if there is a moderator.}
 
-\item{lty}{The line types, in the case there are more than one moderator. By default it is equal to 1 (ie no difference between moderators).}
+\item{lty}{The line types, in the case there are more than one moderator.
+By default it is equal to 1 (ie no difference between moderators).}
 
-\item{pch}{The form types of the points, in the case there are more than one moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.}
+\item{pch}{The form types of the points, in the case there are more than one
+moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.}
 
-\item{legend_options}{A list containing additional parameters for the function \code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can set the additionnal arguments \code{trunc} and \code{trunc.method} which relates to the number of characters to show and the truncation method. By default the algorithm truncates automatically when needed.}
+\item{legend_options}{A list containing additional parameters for the function
+\code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can
+set the additionnal arguments \code{trunc} and \code{trunc.method} which relates
+to the number of characters to show and the truncation method. By default the
+algorithm truncates automatically when needed.}
 
 \item{pt.cex}{Default to 2. The \code{cex} of the points.}
 
 \item{lwd}{Default to 2. The width of the lines.}
 
-\item{dict}{A dictionnary to rename the variables names in the axes and legend. Should be a named vector. By default it s the value of \code{getFplot_dict()}, which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
+\item{dict}{A dictionnary to rename the variables names in the axes and legend.
+Should be a named vector. By default it s the value of \code{getFplot_dict()},
+which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
-\item{mod.title}{Character scalar. The title of the legend in case there is a moderator. You can set it to \code{TRUE} (the default) to display the moderator name. To display no title, set it to \code{NULL} or \code{FALSE}.}
+\item{mod.title}{Character scalar. The title of the legend in case there is a
+moderator. You can set it to \code{TRUE} (the default) to display the moderator
+name. To display no title, set it to \code{NULL} or \code{FALSE}.}
 
 \item{...}{Other arguments to be passed to the function \code{plot}.}
 }
+\value{
+This function returns \emph{invisibly} the output data.table containing the processed data
+used for plotting.
+}
 \description{
-The typical use of this function is to represents trends of average along some categorical variable.
+The typical use of this function is to represents trends of average along some
+categorical variable.
 }
 \examples{
-
 
 data(airquality)
 

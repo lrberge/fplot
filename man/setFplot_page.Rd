@@ -17,11 +17,28 @@ setFplot_page(
 getFplot_page()
 }
 \arguments{
-\item{page}{What is the page size of the document? Can be equal to "us" (for US letter, the default) or "a4". Can also be a numeric vector of length 2 giving the width and the height of the page in \strong{inches}. Or can be a character string of the type: \code{"8.5in,11in"} where the width and height are separated with a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted as units--further: you can use the unit only once.}
+\item{page}{What is the page size of the document? Can be equal to "us" (for
+US letter, the default) or "a4". Can also be a numeric vector of length 2 giving
+the width and the height of the page in \strong{inches}. Or can be a character string
+of the type: \code{"8.5in,11in"} where the width and height are separated with
+a comma, note that only centimeters (cm), inches (in) and pixels (px) are accepted
+as units--further: you can use the unit only once.}
 
-\item{margins}{The bottom/left/top/right margins of the page. This is used to obtain the dimension of the body of the text. Can be equal to "normal" (default, which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be a numeric vector of length 1: then all margins are the same given size in \strong{inches}. Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins, then left/right margins; 4 is bottom/left/top/right margins, in inches. Last, it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins separated by a comma or a slash, and at least one unit appearing: either \code{cm}, \code{in} or \code{px}.}
+\item{margins}{The bottom/left/top/right margins of the page. This is used to
+obtain the dimension of the body of the text. Can be equal to "normal" (default,
+which corresponds to 2cm/2.5cm/2cm/2.5cm), or to "thin" (1.5/1/1/1cm). Can be
+a numeric vector of length 1: then all margins are the same given size in \strong{inches}.
 
-\item{units}{The default units when using the functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which is a fraction of the size of the text. Alternatives can be \code{"pw"} (page width), and \code{"in"}, \code{"cm"}, \code{"px"}.}
+Can also be a numeric vector of length 2 or 4: 2 means first bottom/top margins,
+then left/right margins; 4 is bottom/left/top/right margins, in inches. Last,
+it can be a character vector of the type \code{"2,2.5,2,2.5cm"} with the margins
+separated by a comma or a slash, and at least one unit appearing: either \code{cm},
+\code{in} or \code{px}.}
+
+\item{units}{The default units when using the functions \code{\link[fplot]{pdf_fit}},
+\code{\link[fplot]{png_fit}}, etc. Defaults to \code{"tw"} (text width) which
+is a fraction of the size of the text. Alternatives can be \code{"pw"} (page
+width), and \code{"in"}, \code{"cm"}, \code{"px"}.}
 
 \item{pt}{The size of the text, in pt, once the figure is inserted in your final document.
 The default is 10. This means that all text appearing in the plot with \code{cex = 1}
@@ -32,10 +49,27 @@ the width. By default it is equal to \code{1.75} which means that the graph
 will be 1.75 larger than tall. Note that when argument \code{sideways = TRUE},
 the default for the height becomes \verb{90\%}.}
 
-\item{reset}{Logical, default is \code{FALSE}. Whether arguments should be reset to default before applying modifications.}
+\item{reset}{Logical, default is \code{FALSE}. Whether arguments should be reset
+to default before applying modifications.}
+}
+\value{
+The function \code{setFplot_page()} does not return anything. It sets an
+R option containing the page parameters.
+
+The function \code{getFplot_page()} returns the named list of page parameters which has been set
+in \code{setFplot_page()}.
 }
 \description{
-Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}} or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain the desired point size for the plotting text. The function \code{setFplot_page} sets the target page size (once and for all). This is important for the accuracy of the export, although the default values should be working well most of the time.
+Tha package \code{fplot} offers some functions (e.g. \code{\link[fplot]{pdf_fit}}
+or \code{\link[fplot]{png_fit}}) to export figures, with a guarantee to obtain
+the desired point size for the plotting text. The function \code{setFplot_page}
+sets the target page size (once and for all). This is important for the accuracy
+of the export, although the default values should be working well most of the time.
+}
+\details{
+This function sets the option "fplot_export_opts" after parsing the arguments.
+This option is then automatically accessed by the functions used to export graphs
+\code{\link[=export_graph_start]{export_graph_start()}}.
 }
 \examples{
 
@@ -58,5 +92,7 @@ setFplot_page(margins = c(2, 2.5, 2, 2.5) / 2.54)
 
 }
 \seealso{
-Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}. The function closing the connection and showing the obtained graph in the viewer: \code{\link[fplot]{fit.off}}.
+Exporting functions: \code{\link[fplot]{pdf_fit}}, \code{\link[fplot]{png_fit}}.
+The function closing the connection and showing the obtained graph in the viewer:
+\code{\link[fplot]{fit.off}}.
 }
