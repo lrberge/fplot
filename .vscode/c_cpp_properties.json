@@ -1,0 +1,18 @@
+
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/lrberge/APPS/R-4.2.2/include",
+                "C:/Users/lrberge/APPS/R-4.2.2/library/Rcpp/include",
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
+        }
+    ],
+    "version": 4
+}
+
