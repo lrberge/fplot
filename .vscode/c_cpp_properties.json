@@ -2,15 +2,14 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Windows",
             "includePath": [
                 "${workspaceFolder}/**",
+                "C:/Users/berge028/AppData/Local/Programs/R/R-4.3.1/include",
+                "C:/Users/berge028/AppData/Local/Programs/R/R-4.3.1/library/Rcpp/include",
                 "C:/Users/lrberge/APPS/R-4.2.2/include",
                 "C:/Users/lrberge/APPS/R-4.2.2/library/Rcpp/include",
             ],
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4

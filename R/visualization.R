@@ -151,6 +151,13 @@ getFplot_distr = function(){
 #' a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"}, 
 #' \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the 
 #' within distributions it does not make sense (because the data is rescaled for each moderator).
+#' @param yaxis.scale Either `NULL` (default) or equal to `"moderator"`, `"variable"`, or `"total"`.
+#' Defines how to scale the y-axis. If `"total"`, each value is scaled to reflect the
+#' share in the total population. This is the default for `mod.method = "stack"` or when
+#' there is no moderator. The values `"moderator"` and `"variable"` only apply in 
+#' the presence of moderators. If `"moderator"` the data is scaled to report the share
+#' within each moderator value. If `"variable"`, it is the share within each value taken by
+#' the main variable (does not work with `mod.method = "split"`).
 #' @param mod.select Which moderators to select. By default the top 3 moderators 
 #' in terms of frequency (or in terms of weight value if there's a weight) are displayed. 
 #' If provided, it must be a vector of moderator values whose length cannot be greater 
@@ -169,12 +176,6 @@ getFplot_distr = function(){
 #' total population. You can use the other arguments \code{within} and \code{total} 
 #' to say whether the distributions should be within each moderator or over the 
 #' total distribution.
-#' @param within Logical, default is missing. Whether the distributions should be 
-#' scaled to reflect the distribution within each moderator value. By default it 
-#' is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.
-#' @param total Logical, default is missing. Whether the distributions should be 
-#' scaled to reflect the total distribution (and not the distribution within each 
-#' moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.
 #' @param labels.tilted Whether there should be tilted labels. Default is \code{FALSE} 
 #' except when the data is split by moderators (see \code{mod.method}).
 #' @param labels.angle Only if the labels of the x-axis are tilted. The angle of the tilt.
@@ -288,7 +289,8 @@ getFplot_distr = function(){
 #'
 plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size, 
                       legend_options=list(), top, yaxis.show = TRUE, yaxis.num, 
-                      col, border = "black", mod.method, within, total, mod.select, 
+                      yaxis.scale = NULL,
+                      col, border = "black", mod.method, mod.select, 
                       mod.NA = FALSE, at_5, labels.tilted, other, cumul = FALSE, 
                       plot = TRUE, sep, centered = TRUE, weight.fun, int.categorical, 
                       dict = NULL, mod.title = TRUE, labels.angle, cex.axis, 
@@ -296,7 +298,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     # This function plots frequencies
 
     # DT VARS
-    total_moderator = x_nb = isOther = otherValue = nb_new = share = share_top = moderator_nb = xleft = xright = ybottom = xleft_real = xright_real = x_num = mid_point = NULL
+    total_variable = total_moderator = x_nb = isOther = otherValue = nb_new = share = share_top = moderator_nb = xleft = xright = ybottom = xleft_real = xright_real = x_num = mid_point = NULL
     ytop_new = ybottom_new = share_top_cum = value_cum = ytop_cum = value = NULL
 
     check_arg(fml, "formula | vector mbt")
@@ -327,6 +329,9 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     check_arg(labels.angle, "numeric scalar")
 
     check_arg("null logical scalar", sorted, log, labels.tilted, centered, other, within, total, int.categorical)
+
+    check_set_arg(yaxis.scale, "NULL match(moderator, variable, total)")
+    
     check_arg("logical scalar", yaxis.show, yaxis.num, cumul, mod.NA, plot)
 
     mc = match.call()
@@ -334,7 +339,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     # Argument whose names have changed
 
     dots = list(...)
-    args_deprec = c("maxBins", "addOther", "onTop", "maxFirst", "toLog")
+    args_deprec = c("maxBins", "addOther", "onTop", "maxFirst", "toLog", "within", "total")
     if(any(args_deprec %in% names(dots))){
         if("maxBins" %in% names(dots)){
             if(is.null(getOption("fplot_warn_maxBins"))){
@@ -370,6 +375,20 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
                 options(fplot_warn_toLog = TRUE)
             }
             log = dots$toLog
+        }
+        if("within" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_within"))){
+                warning("Argument 'within' is deprecated. Use the argument `yaxis.scale = \"moderator\"` instead.")
+                options(fplot_warn_within = TRUE)
+            }
+            yaxis.scale = "moderator"
+        }
+        if("total" %in% names(dots)){
+            if(is.null(getOption("fplot_warn_total"))){
+                warning("Argument 'within' is deprecated. Use the argument `yaxis.scale = \"total\"` instead.")
+                options(fplot_warn_total = TRUE)
+            }
+            yaxis.scale = "total"
         }
     }
 
@@ -935,17 +954,12 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
             mod.method = "split"
         }
     }
-
-    if(!missnull(total)){
-        if(!missnull(within)){
-            stop("You cannot provide the values of both arguments 'within' and 'total' at the same time.")
-        }
-        # we only use the variable 'within' in the code
-        within = !total
-    } else if(!missnull(within) && within && mod.method == "stack"){
-        stop("You cannot use within=TRUE when mod.method='stack'.")
-    } else if(missnull(within)){
-        within = TRUE
+    
+    is_yaxis_scale_default = is.null(yaxis.scale)
+    if(is.null(yaxis.scale)){
+        yaxis.scale = "moderator"
+    } else if(yaxis.scale == "variable" && mod.method == "split"){
+        stop("You cannot use `yaxis.scale = \"variable\"` when using `mod.method == \"split\"`.")
     }
 
     DO_STACK = FALSE
@@ -958,7 +972,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
         DO_STACK = TRUE
         mod.method = "side"
-        within = FALSE
+        yaxis.scale = "total"
     }
 
     DO_SPLIT = FALSE
@@ -984,13 +998,18 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
     # yaxis.num
     if(missnull(yaxis.num)){
-        if(USE_WEIGHT == FALSE || missing(weight.fun) || (moderator_cases > 1 && within)){
+        if(USE_WEIGHT == FALSE || missing(weight.fun) || (moderator_cases > 1 && yaxis.scale != "total")){
             yaxis.num = FALSE
         } else {
             yaxis.num = TRUE
         }
-    } else if(yaxis.num == TRUE && moderator_cases > 1 && within && !MOD_IS_WEIGHT){
-        stop("Argument yaxis.num: You cannot have a numeric y-axis when the 'within' distributions among moderators should be reported (because the data is rescaled as frequencies first). Use total=TRUE (or within=FALSE) to display a numeric y-axis.")
+    } else if(yaxis.num == TRUE){
+        if(is_yaxis_scale_default){
+            yaxis.scale = "total"
+        } else if(moderator_cases > 1 && (!is_yaxis_scale_default && yaxis.scale != "total") && !MOD_IS_WEIGHT){
+            stop("Argument yaxis.num: You cannot have a numeric y-axis when `yaxis.scale != \"", yaxis.scale, "\"`.",
+                 "(Because the data is rescaled as frequencies first.) Use `yaxis.scale = \"total\"` to display a numeric y-axis.")
+        }
     }
 
     checkForTilting = FALSE
@@ -1081,9 +1100,14 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
             data_freq = raw_data[, list(value = .N), keyby = list(x, moderator)]
         }
 
-        if(USE_MOD && mod.method == "side" && within){
-            data_freq[, "total_moderator" := list(sum(value)), by = moderator]
-            data_freq[, "share" := list(value/total_moderator*100)]
+        if(USE_MOD && mod.method == "side" && yaxis.scale %in% c("moderator", "variable")){
+            if(yaxis.scale == "variable"){
+                data_freq[, "total_variable" := list(sum(value)), by = x]
+                data_freq[, "share" := list(value/total_variable*100)]
+            } else {
+                data_freq[, "total_moderator" := list(sum(value)), by = moderator]
+                data_freq[, "share" := list(value/total_moderator*100)]
+            }
         } else {
             total = sum(data_freq$value)
             data_freq[, "share" := list(value/total*100)]
@@ -1330,9 +1354,15 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
             qui = moderator == moderator_unik[i]
 
             if(USE_WEIGHT){
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], sorted = sorted, nbins = nbins, log = FALSE, other = other, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], weight = weight[qui], 
+                                       sorted = sorted, nbins = nbins, log = FALSE, 
+                                       other = other, plot = FALSE, bin.size = bin.size, 
+                                       int.categorical = !numAxis)
             } else {
-                data_freq = plot_distr(x[qui], moderator = moderator[qui], sorted = sorted, nbins = nbins, log = FALSE, other = other, plot = FALSE, bin.size = bin.size, int.categorical = !numAxis)
+                data_freq = plot_distr(x[qui], moderator = moderator[qui], 
+                                       sorted = sorted, nbins = nbins, log = FALSE, 
+                                       other = other, plot = FALSE, bin.size = bin.size, 
+                                       int.categorical = !numAxis)
             }
 
             # updating the information
@@ -1367,7 +1397,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 
         info_all = rbindlist(info, use.names=TRUE)
 
-        if(mod.method == "split" && within == FALSE){
+        if(mod.method == "split" && yaxis.scale == "total"){
             # SPLIT TOTAL
             total = sum(weight)
             info_all[, share := value/total*100]
@@ -1592,11 +1622,12 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     if(moderator_cases > 1){
 
         if(nchar(moderator_name) == 0){
-            # text = switch(mod.method, sideWithin = paste0("% Within"), sideTotal = "% Total", splitWithin = paste0("% Within"), splitTotal = "% Total")
-            text = ifelse(within, "% Within", "% Total")
+            text = if(yaxis.scale == "total") "% Total" else "% Within"
         } else {
-            # text = switch(mod.method, sideWithin = paste0("% Within (", moderator_name, ")"), sideTotal = "% Total", splitWithin = paste0("% Within (", moderator_name, ")"), splitTotal = "% Total")
-            text = ifelse(within, paste0("% Within ", moderator_name, ""), "% Total")
+            text = switch(yaxis.scale, 
+                          total = "% Total",
+                          moderator = paste0("% Within ", moderator_name, ""),
+                          variable = paste0("% Within ", x_name, ""))
         }
 
 

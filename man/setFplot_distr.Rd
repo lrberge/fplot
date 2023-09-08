@@ -69,14 +69,6 @@ total population. You can use the other arguments \code{within} and \code{total}
 to say whether the distributions should be within each moderator or over the
 total distribution.}
 
-\item{within}{Logical, default is missing. Whether the distributions should be
-scaled to reflect the distribution within each moderator value. By default it
-is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.}
-
-\item{total}{Logical, default is missing. Whether the distributions should be
-scaled to reflect the total distribution (and not the distribution within each
-moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.}
-
 \item{at_5}{Equal to \code{FALSE}, \code{"roman"} or \code{"line"}. When plotting
 categorical variables, adds a small Roman number under every 5 bars
 (\code{at_5 = "roman"}), or draws a thick axis line every 5 bars (\code{at_5 = "line"}).

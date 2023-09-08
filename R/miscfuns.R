@@ -1667,7 +1667,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log =
     # personalized histogram
 
     if(doubleTable){
-        tx = ttable(x)
+        tx = table_collapse(x)
     } else {
         tx = round(x)
     }
@@ -1689,7 +1689,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log =
 
     tx[tx>maxValue] = maxValue
 
-    ttx = ttable(tx)
+    ttx = table_collapse(tx)
 
     if(overMax & !log) names(ttx)[length(ttx)] = paste0(maxValue,"+")
 
@@ -2680,7 +2680,7 @@ addCommas = function(x){
 }
 
 
-ttable = function(x, sorted = TRUE){
+table_collapse = function(x, sorted = TRUE){
     # DT VARS USED
     id = NULL
 

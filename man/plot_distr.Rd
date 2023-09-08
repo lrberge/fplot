@@ -17,11 +17,10 @@ plot_distr(
   top,
   yaxis.show = TRUE,
   yaxis.num,
+  yaxis.scale = NULL,
   col,
   border = "black",
   mod.method,
-  within,
-  total,
   mod.select,
   mod.NA = FALSE,
   at_5,
@@ -87,6 +86,14 @@ a numeric y-axis can be displayed only when \code{mod.method = "sideTotal"},
 \code{mod.method = "splitTotal"} or \code{mod.method = "stack"}, since for the
 within distributions it does not make sense (because the data is rescaled for each moderator).}
 
+\item{yaxis.scale}{Either \code{NULL} (default) or equal to \code{"moderator"}, \code{"variable"}, or \code{"total"}.
+Defines how to scale the y-axis. If \code{"total"}, each value is scaled to reflect the
+share in the total population. This is the default for \code{mod.method = "stack"} or when
+there is no moderator. The values \code{"moderator"} and \code{"variable"} only apply in
+the presence of moderators. If \code{"moderator"} the data is scaled to report the share
+within each moderator value. If \code{"variable"}, it is the share within each value taken by
+the main variable (does not work with \code{mod.method = "split"}).}
+
 \item{col}{A vector of colors, default is close to paired. You can also use \dQuote{set1}
 or \dQuote{paired}.}
 
@@ -103,14 +110,6 @@ stacked onto each other, the bar heights representing the distribution in the
 total population. You can use the other arguments \code{within} and \code{total}
 to say whether the distributions should be within each moderator or over the
 total distribution.}
-
-\item{within}{Logical, default is missing. Whether the distributions should be
-scaled to reflect the distribution within each moderator value. By default it
-is \code{TRUE} if \code{mod.method} is different from \code{"stack"}.}
-
-\item{total}{Logical, default is missing. Whether the distributions should be
-scaled to reflect the total distribution (and not the distribution within each
-moderator value). By default it is \code{TRUE} only if \code{mod.method="stack"}.}
 
 \item{mod.select}{Which moderators to select. By default the top 3 moderators
 in terms of frequency (or in terms of weight value if there's a weight) are displayed.

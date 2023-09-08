@@ -3,7 +3,7 @@ Type: Package
 Title: Automatic Distribution Graphs Using Formulas
 Version: 1.1.0
 Authors@R: person("Laurent", "Berge", email = "laurent.berge@u-bordeaux.fr", role = c("aut", "cre"))
-Imports: stats, graphics, utils, Formula, Rcpp, grDevices, dreamerr(>= 1.1.0)
+Imports: stats, graphics, utils, Formula, Rcpp, grDevices, dreamerr(>= 1.3.0)
 Suggests: knitr, rmarkdown, fixest, pdftools
 LinkingTo: Rcpp
 Depends: R(>= 3.5.0), data.table
