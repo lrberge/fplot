@@ -4,9 +4,6 @@
 # ~: user-visible visualization functions
 #----------------------------------------------#
 
-# load("data/us_pub_econ.RData")
-# roxygen2::roxygenise(roclets = "rd")
-
 
 
 #' Sets the defaults of plot_distr
@@ -385,7 +382,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         }
         if("total" %in% names(dots)){
             if(is.null(getOption("fplot_warn_total"))){
-                warning("Argument 'within' is deprecated. Use the argument `yaxis.scale = \"total\"` instead.")
+                warning("Argument 'total' is deprecated. Use the argument `yaxis.scale = \"total\"` instead.")
                 options(fplot_warn_total = TRUE)
             }
             yaxis.scale = "total"
@@ -868,14 +865,14 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
                 x_max = max(x)
                 bin.size = signif((x_max - x_min) / min(max(nbins - 1, 10), 15), 1)
                 x_tmp = (x %/% bin.size) * bin.size
-                tx = ttable(x_tmp)
+                tx = table(x_tmp)
                 if(sum(tx/sum(tx) > 0.03) < 6){
                     # Condition: nber of bins with more than 3% is lower than 6
 
                     if(delayLogChecking){
                         # Would it be better looking in logarithmic form?
                         x_ln = pmax(floor(base::log(x + 1e-6)), -1)
-                        tx_ln = ttable(x_ln)
+                        tx_ln = table(x_ln)
                         if(sum(tx_ln/sum(tx_ln) > 0.05) >= 5){
                             # nber of signif bins greater than 5
                             log = TRUE

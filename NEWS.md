@@ -1,4 +1,10 @@
 
+# fplot 1.1.1
+
+## Bug fixes
+
+- fix bug in `plot_distr` when it was applied to continuous data under certain conditions.
+
 # fplot 1.1.0
 
 ## New functions
