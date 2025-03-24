@@ -1747,7 +1747,7 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log =
         # xaxis_labels(at = info, labels = names(ttx), ...)
     }
 
-    text(info, ttx_share, label = addCommas(ttx), pos = 3, cex = cex.text)
+    text(info, ttx_share, labels = addCommas(ttx), pos = 3, cex = cex.text)
 
     invisible(list(log=log, all_names = names(ttx_share)))
 }
@@ -1874,9 +1874,9 @@ myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=F
 
     # The stuff to be displayed on top of the bars
     if(top == "nb"){
-        text(info, x_share, label = addCommas(x), pos = 3, cex = cex.text)
+        text(info, x_share, labels = addCommas(x), pos = 3, cex = cex.text)
     } else if(top == "frac"){
-        text(info, x_share, label = addCommas(x_share), pos = 3, cex = cex.text)
+        text(info, x_share, labels = addCommas(x_share), pos = 3, cex = cex.text)
     }
 
     if(doTrim){

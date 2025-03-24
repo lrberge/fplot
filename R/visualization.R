@@ -2304,12 +2304,12 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
         # }
 
         if(any(qui)){
-            # text(data_freq[, (xleft+xright)/2][qui], data_freq$ytop[qui], label = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
-            text(info_top$x_mid[qui], info_top$ytop[qui], label = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
+            # text(data_freq[, (xleft+xright)/2][qui], data_freq$ytop[qui], labels = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
+            text(info_top$x_mid[qui], info_top$ytop[qui], labels = top.value2display[qui], pos = 3, cex = top.cex, offset = 0.5 * top.cex * 0.9)
         }
 
         if(DO_STACK && nrow(info_top_other) > 0){
-            text(info_top_other$x_mid[qui], info_top_other$ytop[qui], label = top.value2display_other[qui], pos = 3, cex = top.cex_other, offset = 0.5 * top.cex_other * 0.9)
+            text(info_top_other$x_mid[qui], info_top_other$ytop[qui], labels = top.value2display_other[qui], pos = 3, cex = top.cex_other, offset = 0.5 * top.cex_other * 0.9)
         }
 
     }
