@@ -9,6 +9,7 @@
 #### User visible funs. ####
 ####
 
+FPLOT_DICT_SOURCE = "fixest_dict"
 
 #' Sets/gets the dictionary used in \code{fplot}
 #'
@@ -20,16 +21,26 @@
 #' \code{dict} in \code{fplot} functions.
 #'
 #'
-#' @param dict A named character vector. E.g. to change my variable named "us_md" 
-#' and "state" to (resp.) "$ miilion" and "U.S. state", then use 
-#' \code{dict = c(us_md="$ million", state = "U.S. state")}.
+#' @param dict A named character vector or a character scalar. E.g. to change my variable named "a" 
+#' and "b" to (resp.) "$log(a)$" and "$bonus^3$", then use 
+#' `dict = c(a="$log(a)$", b3="$bonus^3$")`. 
+#' @param ... You can add arguments of the form: `variable_name = "Definition"`. This is an 
+#' alternative to using a named vector in the argument `dict`.
+#' @param reset Logical, default is `FALSE`. If `TRUE`, then the dictionary is reset. Note that the 
+#' default dictionary always relabels the variable "(Intercept)" in to "Constant". To overwrite it, 
+#' you need to add "(Intercept)" explicitly in your dictionary.
+#'
+#' @details
+#' By default the dictionary only grows. This means that successive calls with not erase the 
+#' previous definitions unless the argument `reset` has been set to `TRUE`.
+#'
+#' The default dictionary is equivalent to having `setFplot_dict("(Intercept)" = "Constant")`. To 
+#' change this default, you need to provide a new definition to `"(Intercept)"` explicitly.
+#' 
+#' This dictionary is shared with the `fixest` package.
 #'
 #' @author
 #' Laurent Berge
-#' 
-#' @details 
-#' This function stores a named vector in the option "fplot_dict".
-#' The dictionary is automatically accessed by all `fplot` functions.
 #' 
 #' @return 
 #' The function `setFplot_dict()` does not return anything, it only sets an option after checking 
@@ -44,30 +55,33 @@
 #' setFplot_dict(c(Ozone = "Ozone (ppb)"))
 #' plot_distr(Ozone ~ Month, airquality, weight.fun = mean)
 #'
-setFplot_dict = function(dict){
+setFplot_dict = function(dict = NULL, ..., reset = FALSE){
+  
+  check_arg(dict, "NULL named character vector no na")
 
-  if(missing(dict) || is.null(dict)){
-    options("fplot_dict" = NULL)
-    return(invisible())
+  check_arg(..., "dotnames character scalar",
+            .message = sma("In '...', each argument must be named. ",
+                           "The argument name corresponds to the variable to be renamed while",
+                           " the value must be a character scalar ",
+                           "(how the variable should be renamed)."))
+
+  dots = list(...)
+  dict = as.list(dict)
+  dict[names(dots)] = dots
+
+  if(reset){
+    core_dict = list("(Intercept)" = "Constant")
+  } else {
+    core_dict = getOption(FPLOT_DICT_SOURCE)
+    if(is.null(core_dict)) core_dict = list()
   }
 
-  #
-  # Controls
-  #
+  core_dict[names(dict)] = dict
+  
+  new_opts = list()
+  new_opts[[FPLOT_DICT_SOURCE]] = unlist(core_dict)
 
-  check_arg(dict, "named character vector")
-
-  # Formatting the names
-  dict_names = names(dict)
-  dict_names = gsub(" +", "", dict_names)
-  td = table(dict_names)
-  if(any(td > 1)){
-    qui = which(dict_names %in% names(td)[td > 1])
-    name_dup = unique(names(dict)[qui])
-    stop("Argument 'dict' contains duplicated names: ", enumerate_items(name_dup))
-  }
-
-  options("fplot_dict" = dict)
+  options(new_opts)
 }
 
 #' @rdname setFplot_dict
@@ -75,7 +89,7 @@ setFplot_dict = function(dict){
 
 getFplot_dict = function(){
 
-  x = getOption("fplot_dict")
+  x = getOption("FPLOT_DICT_SOURCE")
   if(length(x) > 0){
     if(!is.character(x) || !checkVector(x) || anyNA(x)){
       stop("The value of getOption(\"fplot_dict\") is currently not legal. Please use function setFplot_dict to set it to an appropriate value. ")
