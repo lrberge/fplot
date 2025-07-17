@@ -6,15 +6,13 @@
 \title{Publication data sample}
 \format{
 \code{us_pub_econ} is a data table with 30,756 observations and 6 variables.
-
 \itemize{
-\item{paper_id: Numeric identifier of the publication.}
-\item{year: Year of publication.}
-\item{institution: Institution of the authors of the publication.}
-\item{journal: Journal/conference name.}
-\item{jnl_top_25p: 0/1 variable of whether the journal belongs to the top 25\% in terms of average cites.}
-\item{jnl_top_5p: 0/1 variable of whether the journal belongs to the top 5\% in terms of average cites.}
-
+\item paper_id: Numeric identifier of the publication.
+\item year: Year of publication.
+\item institution: Institution of the authors of the publication.
+\item journal: Journal/conference name.
+\item jnl_top_25p: 0/1 variable of whether the journal belongs to the top 25\% in terms of average cites.
+\item jnl_top_5p: 0/1 variable of whether the journal belongs to the top 5\% in terms of average cites.
 }
 }
 \source{

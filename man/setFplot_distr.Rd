@@ -13,8 +13,6 @@ setFplot_distr(
   col,
   border = "black",
   mod.method,
-  within,
-  total,
   at_5,
   labels.tilted,
   other,

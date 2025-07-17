@@ -63,7 +63,7 @@ used only if there is a moderator.}
 By default it is equal to 1 (ie no difference between moderators).}
 
 \item{pch}{The form types of the points, in the case there are more than one
-moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.}
+moderator. By default it is equal to \code{c(19, 17, 15, 8, 5, 4, 3, 1)}.}
 
 \item{legend_options}{A list containing additional parameters for the function
 \code{\link[graphics]{legend}} -- only concerns the moderator. Note that you can
