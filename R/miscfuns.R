@@ -672,6 +672,13 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #'
 fit.off = function(){
   path = getOption("fplot_export_path")
+  
+  # we reset the parameters
+  old_prms = getOption("fplot_export_par")
+  if(length(old_prms) > 0){
+    par(old_prms)
+  }
+  options(fplot_export_par = list())
 
   dev.off()
 
@@ -904,8 +911,8 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
                               margin.unit = "line",
                               # byt, bg, col
                               box = NULL, col.bg = NULL, col.default = NULL,
-                              # las
-                              ylab.horiz = NULL,
+                              # las, lwd
+                              ylab.horiz = NULL, lwd = NULL,
                               # oma
                               outermargin = NULL, 
                               outermargin.left = NULL, outermargin.right = NULL,
@@ -914,7 +921,15 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
                               # pty
                               square_plot = NULL,
                               # mfrow
-                              nrow = NULL, ncol = NULL, byrow = TRUE, ...){
+                              nrow = NULL, ncol = NULL, byrow = TRUE, 
+                              # colors and sizes
+                              title.size = NULL, title.col = NULL,
+                              title.bold = NULL, title.italic = NULL,
+                              axis.size = NULL, axis.col = NULL,
+                              axis.bold = NULL, axis.italic = NULL,
+                              label.size = NULL, label.col = NULL,
+                              label.bold = NULL, label.italic = NULL,
+                              ...){
 
   mc = match.call()
   
@@ -935,11 +950,22 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   check_arg(box, "NULL scalar(character, logical)", .message = msg_box)
   check_arg(ylab.horiz, square_plot, "NULL logical scalar")
   
+  check_arg(lwd, "NULL numeric scalar ge{0}")
+  
   check_color(col.bg, scalar = TRUE, null = TRUE)
   check_color(col.default, null = TRUE)
   
   check_arg(nrow, ncol, "NULL integer scalar ge{1}")
   check_arg(byrow, "logical scalar")
+  
+  # title/axis/label
+  check_arg(title.size, label.size, axis.size, "NULL numeric scalar ge{0}")
+  check_color(title.col, scalar = TRUE, null = TRUE)
+  check_color(axis.col, scalar = TRUE, null = TRUE)
+  check_color(label.col, scalar = TRUE, null = TRUE)
+  check_arg("NULL logical scalar", 
+            title.bold, axis.bold, label.bold,
+            title.italic, axis.italic, label.italic)
   
   # we may have failed calls to export => we need to reset the parameters
   old_prms = getOption("fplot_export_par")
@@ -964,7 +990,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   
   for(arg in all_args){
     
-    unit = sma("{arg}.{unit}", .post = get)
+    unit = get(sma("{arg}.unit"))
     is_cm = unit == "cm"
     is_line = unit == "line"
     
@@ -1003,7 +1029,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
           side_value = side_value / 2.56
         }
         
-        mar[all_pos[side]] = side_value
+        mar[side_pos[side]] = side_value
       }
     }
     
@@ -1022,6 +1048,45 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
         }
       }
     }
+  }
+  
+  #
+  # par: title/axis/label
+  #
+  
+  all_args = c("title", "axis", "label")
+  arg = "title"
+  
+  for(arg in all_args){
+    
+    size = get(sma("{arg}.size"))
+    col = get(sma("{arg}.col"))
+    bold = get(sma("{arg}.bold"))
+    italic = get(sma("{arg}.italic"))
+    
+    if(arg == "title") arg = c("main", "sub")
+    
+    if(!is.null(size)){
+      par_prms[[sma("cex.{arg}")]] = size
+    }
+    
+    if(!is.null(col)){
+      par_prms[[sma("col.{arg}")]] = col
+    }
+    
+    if(!is.null(bold) || !is.null(italic)){
+      font = 1
+      if(isTRUE(bold)){
+        font = font + 1
+      }
+      
+      if(isTRUE(italic)){
+        font = font + 2
+      }
+      
+      par_prms[[sma("font.{arg}")]] = font
+    }
+    
   }
   
   
@@ -1075,6 +1140,10 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
     par_prms[["las"]] = if(ylab.horiz) 1 else 0
   }
   
+  if(!is.null(lwd)){
+    par_prms[["lwd"]] = lwd
+  }
+  
   if(!is.null(square_plot)){
     par_prms[["pty"]] = if(square_plot) "s" else "m"
   }
@@ -1100,9 +1169,6 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
     
   }
   
-  if(length(par_prms) > 0){
-    old_prms = par()[names(par_prms)]
-  }
   
   #
   # opening the device
@@ -1145,6 +1211,9 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
       units = opts$units, pointsize = opts$pt, ...)
   }
   
+  if(length(par_prms) > 0){
+    old_prms = par(par_prms)
+  }
   
   options(fplot_export_par = old_prms)
   options(fplot_export_path = file)
