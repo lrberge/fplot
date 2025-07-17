@@ -2,6 +2,7 @@
 % Please edit documentation in R/miscfuns.R
 \name{export_graph_start}
 \alias{export_graph_start}
+\alias{export_graph_end}
 \title{Graph export with garanteed text size}
 \usage{
 export_graph_start(
@@ -49,6 +50,8 @@ export_graph_start(
   label.italic = NULL,
   ...
 )
+
+export_graph_end()
 }
 \arguments{
 \item{file}{Character scalar. The name of the file in which to save the graph.
@@ -238,6 +241,11 @@ When the function \code{export_graph_end()} is called, the resulting exported gr
 is displayed in the Viewer. The viewer function is found with
 \code{getOption("viewer")} and should work on RStudio and VSCode (with the R extension).
 }
+\section{Functions}{
+\itemize{
+\item \code{export_graph_end()}: Ends the connection to the current export and creates the file.
+
+}}
 \section{Setting the page size}{
 
 
@@ -264,6 +272,13 @@ text(1, 1, "This text will be displayed in 8pt.")
 # graph in the viewer pane if appropritate
 export_graph_end()
 
+}
+\seealso{
+The tool to set the page size and the exporting defaults: \code{\link[fplot]{setFplot_page}}.
+Exporting functions \code{\link[fplot]{pdf_fit}}, \code{\link[fplot:pdf_fit]{png_fit}},
+\code{\link[fplot:pdf_fit]{jpeg_fit}}.
+
+The functions \code{\link[=export_graph_start]{export_graph_start()}} and \code{\link[=export_graph_end]{export_graph_end()}} provide similar features.
 }
 \author{
 Laurent Berge
