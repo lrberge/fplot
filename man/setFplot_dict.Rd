@@ -9,14 +9,21 @@
 An object of class \code{function} of length 1.
 }
 \usage{
-setFplot_dict(dict)
+setFplot_dict(dict = NULL, ..., reset = FALSE)
 
 getFplot_dict
 }
 \arguments{
-\item{dict}{A named character vector. E.g. to change my variable named "us_md"
-and "state" to (resp.) "$ miilion" and "U.S. state", then use
-\code{dict = c(us_md="$ million", state = "U.S. state")}.}
+\item{dict}{A named character vector or a character scalar. E.g. to change my variable named "a"
+and "b" to (resp.) "$log(a)$" and "$bonus^3$", then use
+\code{dict = c(a="$log(a)$", b3="$bonus^3$")}.}
+
+\item{...}{You can add arguments of the form: \code{variable_name = "Definition"}. This is an
+alternative to using a named vector in the argument \code{dict}.}
+
+\item{reset}{Logical, default is \code{FALSE}. If \code{TRUE}, then the dictionary is reset. Note that the
+default dictionary always relabels the variable "(Intercept)" in to "Constant". To overwrite it,
+you need to add "(Intercept)" explicitly in your dictionary.}
 }
 \value{
 The function \code{setFplot_dict()} does not return anything, it only sets an option after checking
@@ -34,8 +41,13 @@ the dictionary with \code{setFplot_dict}, you can avoid providing the argument
 \code{dict} in \code{fplot} functions.
 }
 \details{
-This function stores a named vector in the option "fplot_dict".
-The dictionary is automatically accessed by all \code{fplot} functions.
+By default the dictionary only grows. This means that successive calls with not erase the
+previous definitions unless the argument \code{reset} has been set to \code{TRUE}.
+
+The default dictionary is equivalent to having \code{setFplot_dict("(Intercept)" = "Constant")}. To
+change this default, you need to provide a new definition to \code{"(Intercept)"} explicitly.
+
+This dictionary is shared with the \code{fixest} package.
 }
 \examples{
 

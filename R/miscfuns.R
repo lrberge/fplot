@@ -684,7 +684,7 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #' fit.off()
 #'
 #'
-export_graph_end = function(){
+fit.off = function(){
   path = getOption("fplot_export_path")
   
   # we reset the parameters
@@ -865,6 +865,74 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' argument `type`.
 #' @param type Character scalar, default is `NULL`. The type of file to be created.
 #' If `NULL`, the default, then the type of file is deduced from the extension.
+#' @param margin Numeric vector, default is `NULL`. Defines the size of the four 
+#' plotting margins. If of length 1 or 2, the content is recycled to fit 4 elements.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`.
+#' @param margin.left Numeric scalar, default is `NULL`. The size of the left margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`.
+#' @param margin.right Numeric scalar, default is `NULL`. The size of the right margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`.
+#' @param margin.top Numeric scalar, default is `NULL`. The size of the top margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`.
+#' @param margin.bottom Numeric scalar, default is `NULL`. The size of the bottom margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`.
+#' @param margin.unit Character scalar equal to either: i) "line" (default), ii) "inch", iii) "cm".
+#' @param box Can be equal to `NULL` (default), a logical scalar, or a character scalar.
+#' Defines how to draw the box around the plotting region. 
+#' If a logical, `TRUE` means that all borders are drawn, and `FALSE` means none.
+#' If a character scalar, it should contain the following letters: "b", "l", "t" and/or "r", 
+#' which stand for the bottom, left, top and right border.
+#' @param col.bg An R color, default is `NULL`. The background color of the plot.
+#' @param col.default A vector of R colors, default is `NULL`. 
+#' They represent the default colors used for plotting.
+#' @param lwd Numeric scalar, default is `NULL`. The default width of the lines.
+#' @param yaxis.horiz Logical, default is `NULL`. Whether to display the y-axis labels
+#' horizontally.
+#' @param outermargin Numeric vector, default is `NULL`. Defines the size of the four 
+#' outer margins. If of length 1 or 2, the content is recycled to fit 4 elements.
+#' By default the unit is the line but you can change it with the argument 
+#' `outermargin.unit`. 
+#' @param outermargin.left Numeric scalar, default is `NULL`. The size of the left margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`. 
+#' @param outermargin.right Numeric scalar, default is `NULL`. The size of the right margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`. 
+#' @param outermargin.top Numeric scalar, default is `NULL`. The size of the top margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`. 
+#' @param outermargin.bottom Numeric scalar, default is `NULL`. The size of the bottom margin.
+#' By default the unit is the line but you can change it with the argument 
+#' `margin.unit`. 
+#' @param outermargin.unit Character scalar equal to either: i) "line" (default), ii) "inch", iii) "cm".
+#' @param square_plot Logical, default is `NULL`. Whether the plotting region should fit 
+#' a square. If `FALSE` the plotting region is maximal.
+#' @param nrow Integer scalar, default is `NULL`. To display multiple graphs, the number of
+#' rows of the graphical matrix.
+#' @param ncol Integer scalar, default is `NULL`. To display multiple graphs, the number of
+#' columns of the graphical matrix. 
+#' @param byrow Logical, default is TRUE. When plotting multiple graphs on a graphical matrix,
+#' whether to plot the graphs by row.
+#' @param title.size Numeric scalar, default is `NULL`. Values greater than 1 increase 
+#' the size of the plot titles, values lower than 1 reduce them.
+#' @param title.col An R color, default is `NULL`. The color for the graph titles.
+#' @param title.bold Logical, default is `NULL`. Whether to display the title in bold font.
+#' @param title.italic Logical, default is `NULL`. Whether to display the title in italic font.
+#' @param axis.size Numeric scalar, default is `NULL`. Values greater than 1 increase 
+#' the size of the text in the plot axes, values lower than 1 reduce them.
+#' @param axis.col An R color, default is `NULL`. The color for the text in the graph axes.
+#' @param axis.bold Logical, default is `NULL`. Whether to display the axis's text in bold font.
+#' @param axis.italic Logical, default is `NULL`. Whether to display the axis's text in italic font.
+#' @param label.size Numeric scalar, default is `NULL`. Values greater than 1 increase 
+#' the size of the plot labels, values lower than 1 reduce them.
+#' @param label.col An R color, default is `NULL`. The color for the graph labels.
+#' @param label.bold Logical, default is `NULL`. Whether to display the labels in bold font.
+#' @param label.italic Logical, default is `NULL`. Whether to display the labels in italic font.
 #' 
 #' @details 
 #' 
@@ -930,7 +998,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
                               # byt, bg, col
                               box = NULL, col.bg = NULL, col.default = NULL,
                               # las, lwd
-                              ylab.horiz = NULL, lwd = NULL,
+                              yaxis.horiz = NULL, lwd = NULL,
                               # oma
                               outermargin = NULL, 
                               outermargin.left = NULL, outermargin.right = NULL,
@@ -966,7 +1034,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   
   msg_box = "The argument `box` must be either: i) TRUE/FALSE, ii) NULL, iii) a character scalar containing the following letters b, l, t, r (standing for bottom, left, top, right)."
   check_arg(box, "NULL scalar(character, logical)", .message = msg_box)
-  check_arg(ylab.horiz, square_plot, "NULL logical scalar")
+  check_arg(yaxis.horiz, square_plot, "NULL logical scalar")
   
   check_arg(lwd, "NULL numeric scalar ge{0}")
   
@@ -1154,8 +1222,8 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
     par_prms[["bty"]] = bty
   }
   
-  if(!is.null(ylab.horiz)){
-    par_prms[["las"]] = if(ylab.horiz) 1 else 0
+  if(!is.null(yaxis.horiz)){
+    par_prms[["las"]] = if(yaxis.horiz) 1 else 0
   }
   
   if(!is.null(lwd)){
@@ -1241,8 +1309,8 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
 }
 
 
-#' @describeIn fit.off Ends the connection to the current export and creates the file.
-fit.off = export_graph_end
+#' @describeIn export_graph_start Ends the connection to the current export and creates the file.
+export_graph_end = fit.off
 
 
 ####

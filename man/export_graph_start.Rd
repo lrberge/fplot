@@ -15,6 +15,39 @@ export_graph_start(
   sideways = FALSE,
   res = 300,
   type = NULL,
+  margin = NULL,
+  margin.left = NULL,
+  margin.right = NULL,
+  margin.top = NULL,
+  margin.bottom = NULL,
+  margin.unit = "line",
+  box = NULL,
+  col.bg = NULL,
+  col.default = NULL,
+  yaxis.horiz = NULL,
+  lwd = NULL,
+  outermargin = NULL,
+  outermargin.left = NULL,
+  outermargin.right = NULL,
+  outermargin.top = NULL,
+  outermargin.bottom = NULL,
+  outermargin.unit = "line",
+  square_plot = NULL,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  title.size = NULL,
+  title.col = NULL,
+  title.bold = NULL,
+  title.italic = NULL,
+  axis.size = NULL,
+  axis.col = NULL,
+  axis.bold = NULL,
+  axis.italic = NULL,
+  label.size = NULL,
+  label.col = NULL,
+  label.bold = NULL,
+  label.italic = NULL,
   ...
 )
 
@@ -63,6 +96,107 @@ argument \code{height} to its width.}
 
 \item{type}{Character scalar, default is \code{NULL}. The type of file to be created.
 If \code{NULL}, the default, then the type of file is deduced from the extension.}
+
+\item{margin}{Numeric vector, default is \code{NULL}. Defines the size of the four
+plotting margins. If of length 1 or 2, the content is recycled to fit 4 elements.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{margin.left}{Numeric scalar, default is \code{NULL}. The size of the left margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{margin.right}{Numeric scalar, default is \code{NULL}. The size of the right margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{margin.top}{Numeric scalar, default is \code{NULL}. The size of the top margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{margin.bottom}{Numeric scalar, default is \code{NULL}. The size of the bottom margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{margin.unit}{Character scalar equal to either: i) "line" (default), ii) "inch", iii) "cm".}
+
+\item{box}{Can be equal to \code{NULL} (default), a logical scalar, or a character scalar.
+Defines how to draw the box around the plotting region.
+If a logical, \code{TRUE} means that all borders are drawn, and \code{FALSE} means none.
+If a character scalar, it should contain the following letters: "b", "l", "t" and/or "r",
+which stand for the bottom, left, top and right border.}
+
+\item{col.bg}{An R color, default is \code{NULL}. The background color of the plot.}
+
+\item{col.default}{A vector of R colors, default is \code{NULL}.
+They represent the default colors used for plotting.}
+
+\item{yaxis.horiz}{Logical, default is \code{NULL}. Whether to display the y-axis labels
+horizontally.}
+
+\item{lwd}{Numeric scalar, default is \code{NULL}. The default width of the lines.}
+
+\item{outermargin}{Numeric vector, default is \code{NULL}. Defines the size of the four
+outer margins. If of length 1 or 2, the content is recycled to fit 4 elements.
+By default the unit is the line but you can change it with the argument
+\code{outermargin.unit}.}
+
+\item{outermargin.left}{Numeric scalar, default is \code{NULL}. The size of the left margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{outermargin.right}{Numeric scalar, default is \code{NULL}. The size of the right margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{outermargin.top}{Numeric scalar, default is \code{NULL}. The size of the top margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{outermargin.bottom}{Numeric scalar, default is \code{NULL}. The size of the bottom margin.
+By default the unit is the line but you can change it with the argument
+\code{margin.unit}.}
+
+\item{outermargin.unit}{Character scalar equal to either: i) "line" (default), ii) "inch", iii) "cm".}
+
+\item{square_plot}{Logical, default is \code{NULL}. Whether the plotting region should fit
+a square. If \code{FALSE} the plotting region is maximal.}
+
+\item{nrow}{Integer scalar, default is \code{NULL}. To display multiple graphs, the number of
+rows of the graphical matrix.}
+
+\item{ncol}{Integer scalar, default is \code{NULL}. To display multiple graphs, the number of
+columns of the graphical matrix.}
+
+\item{byrow}{Logical, default is TRUE. When plotting multiple graphs on a graphical matrix,
+whether to plot the graphs by row.}
+
+\item{title.size}{Numeric scalar, default is \code{NULL}. Values greater than 1 increase
+the size of the plot titles, values lower than 1 reduce them.}
+
+\item{title.col}{An R color, default is \code{NULL}. The color for the graph titles.}
+
+\item{title.bold}{Logical, default is \code{NULL}. Whether to display the title in bold font.}
+
+\item{title.italic}{Logical, default is \code{NULL}. Whether to display the title in italic font.}
+
+\item{axis.size}{Numeric scalar, default is \code{NULL}. Values greater than 1 increase
+the size of the text in the plot axes, values lower than 1 reduce them.}
+
+\item{axis.col}{An R color, default is \code{NULL}. The color for the text in the graph axes.}
+
+\item{axis.bold}{Logical, default is \code{NULL}. Whether to display the axis's text in bold font.}
+
+\item{axis.italic}{Logical, default is \code{NULL}. Whether to display the axis's text in italic font.}
+
+\item{label.size}{Numeric scalar, default is \code{NULL}. Values greater than 1 increase
+the size of the plot labels, values lower than 1 reduce them.}
+
+\item{label.col}{An R color, default is \code{NULL}. The color for the graph labels.}
+
+\item{label.bold}{Logical, default is \code{NULL}. Whether to display the labels in bold font.}
+
+\item{label.italic}{Logical, default is \code{NULL}. Whether to display the labels in italic font.}
 
 \item{...}{Other arguments to be passed to \code{\link[grDevices:png]{bmp}},
 \code{\link[grDevices]{png}}, \code{\link[grDevices:png]{jpeg}}, or
