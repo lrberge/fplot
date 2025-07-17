@@ -5,6 +5,12 @@
 
 - fix bug in `plot_distr` when it was applied to continuous data under certain conditions.
 
+- fix bug partial matching of the `label` argument in the `text` function
+
+## Other changes
+
+- remove `data.table` in depends
+
 # fplot 1.1.0
 
 ## New functions
