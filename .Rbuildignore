@@ -5,3 +5,4 @@ vignettes/fplot_walkthrough.Rmd
 ^\.Renviron$
 ^docs$
 ^\.vscode$
+

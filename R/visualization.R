@@ -41,7 +41,11 @@
 #'
 #'
 #'
-setFplot_distr = function(sorted, log, top, yaxis.num, col, border = "black", mod.method, within, total, at_5, labels.tilted, other, cumul = FALSE, centered = TRUE, weight.fun, int.categorical, dict = NULL, mod.title = TRUE, labels.angle, cex.axis, trunc = 20, trunc.method = "auto", reset = FALSE){
+setFplot_distr = function(sorted, log, top, yaxis.num, col, border = "black", 
+                          mod.method, at_5, labels.tilted, other, 
+                          cumul = FALSE, centered = TRUE, weight.fun, int.categorical, 
+                          dict = NULL, mod.title = TRUE, labels.angle, cex.axis, 
+                          trunc = 20, trunc.method = "auto", reset = FALSE){
     # Function to set the defaults of plot_distr
     fm_distr = formals(plot_distr)
     arg_list = names(fm_distr)
@@ -50,7 +54,7 @@ setFplot_distr = function(sorted, log, top, yaxis.num, col, border = "black", mo
     # cat(gsub(" = ,", ",", paste0(names(m), " = ", sapply(m, deparse), collapse = ", ")))
 
 
-    check_arg("logical scalar", sorted, log, yaxis.num, within, total, labels.tilted, other, cumul)
+    check_arg("logical scalar", sorted, log, yaxis.num, labels.tilted, other, cumul)
     check_arg("logical scalar", centered, int.categorical, reset)
 
     check_arg_plus(top, "match(frac, nb, none, FALSE)")
@@ -285,7 +289,7 @@ getFplot_distr = function(){
 #'
 #'
 plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size, 
-                      legend_options=list(), top, yaxis.show = TRUE, yaxis.num, 
+                      legend_options = list(), top, yaxis.show = TRUE, yaxis.num, 
                       yaxis.scale = NULL,
                       col, border = "black", mod.method, mod.select, 
                       mod.NA = FALSE, at_5, labels.tilted, other, cumul = FALSE, 
@@ -295,7 +299,9 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     # This function plots frequencies
 
     # DT VARS
-    total_variable = total_moderator = x_nb = isOther = otherValue = nb_new = share = share_top = moderator_nb = xleft = xright = ybottom = xleft_real = xright_real = x_num = mid_point = NULL
+    total_variable = total_moderator = x_nb = isOther = otherValue = NULL
+    nb_new = share = share_top = moderator_nb = xleft = xright = NULL
+    ybottom = xleft_real = xright_real = x_num = mid_point = NULL
     ytop_new = ybottom_new = share_top_cum = value_cum = ytop_cum = value = NULL
 
     check_arg(fml, "formula | vector mbt")
@@ -325,7 +331,8 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
     check_arg(dict, "null named character vector | logical scalar")
     check_arg(labels.angle, "numeric scalar")
 
-    check_arg("null logical scalar", sorted, log, labels.tilted, centered, other, within, total, int.categorical)
+    check_arg("null logical scalar", sorted, log, labels.tilted, centered, other, 
+              within, total, int.categorical)
 
     check_set_arg(yaxis.scale, "NULL match(moderator, variable, total)")
     
@@ -2353,7 +2360,7 @@ plot_distr = function(fml, data, moderator, weight, sorted, log, nbins, bin.size
 #' @param lty The line types, in the case there are more than one moderator. 
 #' By default it is equal to 1 (ie no difference between moderators).
 #' @param pch The form types of the points, in the case there are more than one 
-#' moderator. By default it is equal to \8code{c(19, 17, 15, 8, 5, 4, 3, 1)}.
+#' moderator. By default it is equal to \code{c(19, 17, 15, 8, 5, 4, 3, 1)}.
 #' @param pt.cex Default to 2. The \code{cex} of the points.
 #' @param lwd Default to 2. The width of the lines.
 #' @param legend_options A list containing additional parameters for the function 
