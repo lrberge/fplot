@@ -1289,10 +1289,10 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
       pdf(file, width = opts$export_width, height = opts$export_height, pointsize = opts$pt, ...)
     } else {
       fun = switch(type, 
-            "png"  = grDevices::png,
-            "jpeg" = grDevices::jpeg,
-            "tiff" = grDevices::tiff,
-            "bmp"  = grDevices::bmp)
+                   "png"  = grDevices::png,
+                   "jpeg" = grDevices::jpeg,
+                   "tiff" = grDevices::tiff,
+                   "bmp"  = grDevices::bmp)
       
       fun(file, width = opts$export_width, height = opts$export_height, res = res, 
         units = opts$units, pointsize = opts$pt, ...)
