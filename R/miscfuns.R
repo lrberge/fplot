@@ -897,12 +897,217 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' export_graph_end()
 #' 
 export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, 
-                sideways = FALSE, res = 300, type = NULL, ...){
+                              sideways = FALSE, res = 300, type = NULL, 
+                              # mar
+                              margin = NULL, margin.left = NULL, margin.right = NULL, 
+                              margin.top = NULL, margin.bottom = NULL, 
+                              margin.unit = "line",
+                              # byt, bg, col
+                              box = NULL, col.bg = NULL, col.default = NULL,
+                              # las
+                              ylab.horiz = NULL,
+                              # oma
+                              outermargin = NULL, 
+                              outermargin.left = NULL, outermargin.right = NULL,
+                              outermargin.top = NULL, outermargin.bottom = NULL,
+                              outermargin.unit = "line",
+                              # pty
+                              square_plot = NULL,
+                              # mfrow
+                              nrow = NULL, ncol = NULL, byrow = TRUE, ...){
 
   mc = match.call()
   
   check_arg(file, "path create mbt")
   check_arg(type, "NULL character scalar")
+  
+  #
+  # par
+  #
+  
+  check_arg(margin, outermargin, "NULL numeric vector no na ge{0} len(1, 4)")
+  check_arg("NULL numeric scalar ge{0}", 
+            margin.left, margin.right, margin.top, margin.bottom,
+            outermargin.left, outermargin.right, outermargin.top, outermargin.bottom)
+  check_set_arg(margin.unit, outermargin.unit, "match(line, cm, inch)")
+  
+  msg_box = "The argument `box` must be either: i) TRUE/FALSE, ii) NULL, iii) a character scalar containing the following letters b, l, t, r (standing for bottom, left, top, right)."
+  check_arg(box, "NULL scalar(character, logical)", .message = msg_box)
+  check_arg(ylab.horiz, square_plot, "NULL logical scalar")
+  
+  check_color(col.bg, scalar = TRUE, null = TRUE)
+  check_color(col.default, null = TRUE)
+  
+  check_arg(nrow, ncol, "NULL integer scalar ge{1}")
+  check_arg(byrow, "logical scalar")
+  
+  # we may have failed calls to export => we need to reset the parameters
+  old_prms = getOption("fplot_export_par")
+  if(length(old_prms) > 0){
+    if(is.list(old_prms)){
+      par(old_prms)
+      options(fplot_export_par = NULL)
+    }
+  }
+  old_prms = list()
+  
+  par_prms = list()
+  
+  
+  #
+  # ... par: margins
+  #
+  
+  all_args = c("margin", "outermargin")
+  all_sides = c("bottom", "left", "top", "right")
+  side_pos = setNames(1:4, all_sides)
+  
+  for(arg in all_args){
+    
+    unit = sma("{arg}.{unit}", .post = get)
+    is_cm = unit == "cm"
+    is_line = unit == "line"
+    
+    margin_value = get(arg)
+    mar = NULL
+    if(!is.null(margin_value)){
+      mar = margin_value
+      if(length(mar) == 1){
+        mar = rep(mar, 4)
+      } else if(length(mar) == 2){
+        mar = rep(mar, 2)
+      } else if(length(mar)){
+        stopi("The argument {bq ? arg} must be of lengt 1, 2 or 4. Problem: it is of length 3.")
+      }
+      
+      if(is_cm){
+        mar = mar / 2.56
+      }
+      
+    }
+    
+    for(side in all_sides){
+      side_arg = sma("{arg}.{side}")
+      side_value = get(side_arg)
+      
+      if(!is.null(side_value)){
+        if(is.null(mar)){
+          if(is_line){
+            mar = par("mar")
+          } else {
+            mar = par("mai")
+          }
+        }
+        
+        if(is_cm){
+          side_value = side_value / 2.56
+        }
+        
+        mar[all_pos[side]] = side_value
+      }
+    }
+    
+    if(!is.null(mar)){
+      if(arg == "margin"){
+        if(is_line){
+          par_prms[["mar"]] = mar
+        } else {
+          par_prms[["mai"]] = mar
+        }
+      } else {
+        if(is_line){
+          par_prms[["oma"]] = mar
+        } else {
+          par_prms[["omi"]] = mar
+        }
+      }
+    }
+  }
+  
+  
+  #
+  # par: other parameters
+  #
+  
+  if(!is.null(box)){
+    
+    bty = NULL
+    if(is.logical(box)){
+      bty = if(box) "o" else "n"
+      
+    } else {
+      
+      box_origin = box
+      box = gsub("\\s", "", tolower(box))
+      
+      valid = c("t", "b", "l", "r")
+      box = unique(strsplit(box, "")[[1]])
+      
+      pblm = setdiff(box, valid)
+      if(length(pblm) > 0){
+        stopi(msg_box, "\nProblem: in {q ? box_origin}, the character{$s, enum.bq, are ? pblm} invalid.")
+      }
+      
+      if(all(c("t", "b", "l", "r") %in% box)){
+        bty = "o"
+      } else if(all(c("b", "l", "t") %in% box)){
+        bty = "c"
+      } else if(all(c("b", "l", "r") %in% box)){
+        bty = "u"
+      } else if(all(c("b", "r", "t") %in% box)){
+        bty = "]"
+      } else if(length(box) == 3){
+        stopi("In argument `box`, sorry the combination {enum.bq ? box} cannot be drawn using the argument `bty` from `par()`. See ?par for the valid options.")
+      } else if(all(c("l", "b") %in% box)){
+        bty = "l"
+      } else if(all(c("t", "r") %in% box)){
+        bty = "7"
+      } else {
+        stopi("In argument `box`, sorry the combination {enum.bq ? box} cannot be drawn using the argument `bty` from `par()`. See ?par for the valid options.")
+      }
+      
+    }
+    
+    par_prms[["bty"]] = bty
+  }
+  
+  if(!is.null(ylab.horiz)){
+    par_prms[["las"]] = if(ylab.horiz) 1 else 0
+  }
+  
+  if(!is.null(square_plot)){
+    par_prms[["pty"]] = if(square_plot) "s" else "m"
+  }
+  
+  if(!is.null(col.bg)){
+    par_prms[["bg"]] = col.bg
+  }
+  
+  if(!is.null(col.default)){
+    par_prms[["col"]] = col.default
+  }
+  
+  if(!is.null(nrow) || !is.null(ncol)){
+    
+    if(is.null(nrow)) nrow = 1
+    if(is.null(ncol)) ncol = 1
+    
+    if(byrow){
+      par_prms[["mfrow"]] = c(nrow, ncol)
+    } else {
+      par_prms[["mfcol"]] = c(nrow, ncol)
+    }
+    
+  }
+  
+  if(length(par_prms) > 0){
+    old_prms = par()[names(par_prms)]
+  }
+  
+  #
+  # opening the device
+  #
+  
   
   if(is.null(type)){
     if(!grepl(".", file, fixed = TRUE)){
@@ -920,6 +1125,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   } else {
     check_arg_plus(type, "match(pdf, jpg, jpeg, png, tiff, bmp)")
   }
+  
   # here type is lowercase and an accepted extension
   if(type == "jpg") type = "jpeg"
 
@@ -939,6 +1145,8 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
       units = opts$units, pointsize = opts$pt, ...)
   }
   
+  
+  options(fplot_export_par = old_prms)
   options(fplot_export_path = file)
   options(fplot_export_type = type)    
 }
@@ -974,6 +1182,38 @@ extract_df = function(fml, df){
   for(v in vars) res[[v]] = eval(parse(text = v), df)
 
   res
+}
+
+check_color = function(x, scalar = FALSE, null = FALSE){
+  
+  arg_name = deparse(substitute(x))
+  
+  set_up(1)
+  
+  type = sma("{&null;NULL }{&scalar;scalar;vector}(integer, character)")
+  check_value(x, type, .arg_name = arg_name)
+  
+  col = try(col2rgb(x), silent = TRUE)
+  if(is_error(col)){
+    
+    if(length(x) > 1){
+      for(elem in x){
+        col = try(col2rgb(elem), silent = TRUE)
+        if(is_error(col)){
+          x = elem
+          break
+        }
+      }
+    }
+    
+    stop_up("The argument {bq ? arg_name} must be a {&scalar;valid R color;vector of valid R colors}.\nProblem: the color {bq ? x} is invalid.")
+  }
+  
+  
+}
+
+is_error = function(x){
+  inherits(x, "try-error")
 }
 
 
