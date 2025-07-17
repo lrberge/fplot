@@ -684,7 +684,7 @@ fit_page = function(pt = 10, width = 1, height, w2h = 1.75, h2w, sideways = FALS
 #' fit.off()
 #'
 #'
-fit.off = function(){
+export_graph_end = function(){
   path = getOption("fplot_export_path")
   
   # we reset the parameters
@@ -693,6 +693,10 @@ fit.off = function(){
     par(old_prms)
   }
   options(fplot_export_par = list())
+  
+  if(is.null(path)){
+    return(invisible(NULL))
+  }
 
   dev.off()
 
@@ -947,7 +951,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
 
   mc = match.call()
   
-  check_arg(file, "path create mbt")
+  check_arg(file, "NULL path create mbt")
   check_arg(type, "NULL character scalar")
   
   #
@@ -1078,7 +1082,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
     bold = get(sma("{arg}.bold"))
     italic = get(sma("{arg}.italic"))
     
-    if(arg == "title") arg = c("main", "sub")
+    if(arg == "title") arg = "main"
     
     if(!is.null(size)){
       par_prms[[sma("cex.{arg}")]] = size
@@ -1188,41 +1192,43 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   # opening the device
   #
   
-  
-  if(is.null(type)){
-    if(!grepl(".", file, fixed = TRUE)){
-      stop("If argument 'type = NULL', the export type is deduced from the file extension.",
-         "\nPROBLEM: the file name does not contain an extension.")
-    }
-    type_raw = gsub(".+\\.", "", file)
-    type = tolower(type_raw)
-    accepted_types = c("pdf", "jpg", "jpeg", "png", "tiff", "bmp")
-    if(!type %in% accepted_types){
-      stop("If argument 'type = NULL', the export type is deduced from the file extension.",
-         "\nPROBLEM: the extension found, `", type_raw, "` is not valid.",
-         "\nFYI: the accepted types are: ", enumerate_items(accepted_types), ".")
-    }
-  } else {
-    check_arg_plus(type, "match(pdf, jpg, jpeg, png, tiff, bmp)")
-  }
-  
-  # here type is lowercase and an accepted extension
-  if(type == "jpg") type = "jpeg"
-
-  opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, 
-          sideways = sideways, mc = mc, check_px = type != "pdf")
-  
-  if(type == "pdf"){
-    pdf(file, width = opts$export_width, height = opts$export_height, pointsize = opts$pt, ...)
-  } else {
-    fun = switch(type, 
-           "png"  = grDevices::png,
-           "jpeg" = grDevices::jpeg,
-           "tiff" = grDevices::tiff,
-           "bmp"  = grDevices::bmp)
+  if(!is.null(file)){
     
-    fun(file, width = opts$export_width, height = opts$export_height, res = res, 
-      units = opts$units, pointsize = opts$pt, ...)
+    if(is.null(type)){
+      if(!grepl(".", file, fixed = TRUE)){
+        stop("If argument 'type = NULL', the export type is deduced from the file extension.",
+          "\nPROBLEM: the file name does not contain an extension.")
+      }
+      type_raw = gsub(".+\\.", "", file)
+      type = tolower(type_raw)
+      accepted_types = c("pdf", "jpg", "jpeg", "png", "tiff", "bmp")
+      if(!type %in% accepted_types){
+        stop("If argument 'type = NULL', the export type is deduced from the file extension.",
+          "\nPROBLEM: the extension found, `", type_raw, "` is not valid.",
+          "\nFYI: the accepted types are: ", enumerate_items(accepted_types), ".")
+      }
+    } else {
+      check_set_arg(type, "match(pdf, jpg, jpeg, png, tiff, bmp)")
+    }
+    
+    # here type is lowercase and an accepted extension
+    if(type == "jpg") type = "jpeg"
+
+    opts = fit_page(pt = pt, width = width, height = height, w2h = w2h, h2w = h2w, 
+            sideways = sideways, mc = mc, check_px = type != "pdf")
+    
+    if(type == "pdf"){
+      pdf(file, width = opts$export_width, height = opts$export_height, pointsize = opts$pt, ...)
+    } else {
+      fun = switch(type, 
+            "png"  = grDevices::png,
+            "jpeg" = grDevices::jpeg,
+            "tiff" = grDevices::tiff,
+            "bmp"  = grDevices::bmp)
+      
+      fun(file, width = opts$export_width, height = opts$export_height, res = res, 
+        units = opts$units, pointsize = opts$pt, ...)
+    }
   }
   
   if(length(par_prms) > 0){
@@ -1231,12 +1237,12 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   
   options(fplot_export_par = old_prms)
   options(fplot_export_path = file)
-  options(fplot_export_type = type)    
+  options(fplot_export_type = type)
 }
 
 
-#' @describeIn export_graph_start Ends the connection to the current export and creates the file.
-export_graph_end = fit.off
+#' @describeIn fit.off Ends the connection to the current export and creates the file.
+fit.off = export_graph_end
 
 
 ####
