@@ -18,6 +18,7 @@ exportPattern("^(s|g)etFplot")
 import(data.table)
 import(Rcpp)
 import(dreamerr)
+import(stringmagic)
 
 importFrom("graphics", "abline", "axis", "barplot", "box", "grid",
              "legend", "lines", "par", "plot", "points", "polygon",
