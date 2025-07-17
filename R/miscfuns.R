@@ -901,7 +901,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
 
   mc = match.call()
   
-  check_arg(file, "character scalar mbt")
+  check_arg(file, "path create mbt")
   check_arg(type, "NULL character scalar")
   
   if(is.null(type)){

@@ -1,6 +1,10 @@
 
 # fplot 1.1.1
 
+## New features
+
+- `export_graph` now creates the folder receiving the exported file if it does not exist
+
 ## Bug fixes
 
 - fix bug in `plot_distr` when it was applied to continuous data under certain conditions.
