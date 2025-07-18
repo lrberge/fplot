@@ -6,13 +6,28 @@
 \alias{fplot-package}
 \title{Aggregate/conditional graphs and automatic layout using formulas}
 \description{
-\pkg{fplot} provides automatic plotting of common graphs (distributions, lines, bar plots and boxplots). The syntax uses formulas, allowing aggregate/conditional/weighted graphs with minimum efforts. The many arguments are automatically adjusted to the data in order to provide the nicest and most meaningful graphs.
+\pkg{fplot} provides automatic plotting of common graphs (distributions, lines,
+bar plots and boxplots). The syntax uses formulas, allowing
+aggregate/conditional/weighted graphs with minimum efforts. The many arguments
+are automatically adjusted to the data in order to provide the nicest and most meaningful graphs.
 }
 \details{
 The core functions is \code{\link[fplot]{plot_distr}} to draw distributions.
-Two other graphical functions are provided for convenience: \code{\link[fplot]{plot_lines}} to represent the (usually temporal) evolution of some variables, and \code{\link[fplot]{plot_box}} to easily represent conditional boxplots.
+Two other graphical functions are provided for convenience: \code{\link[fplot]{plot_lines}}
+to represent the (usually temporal) evolution of some variables,
+and \code{\link[fplot]{plot_box}} to easily represent conditional boxplots.
 
-It also integrates tools to easily export graphs: \code{\link[fplot]{pdf_fit}} and \code{\link[fplot]{png_fit}}. In these functions, instead of providing the size of the graphics, you instead give the point size that the text should have in the final document--because an exported graph usually ends up in a document. You can set the size of your document with the function \code{\link[fplot]{setFplot_page}}. If you use the function \code{\link[fplot]{fit.off}} to close the connection, you will also see how the export looks like in the Viewer pane.
+It also integrates tools to easily export graphs: \code{\link[fplot]{pdf_fit}} and
+\code{\link[fplot]{png_fit}}. In these functions, instead of providing the size of
+the graphics, you instead give the point size that the text should have in the final
+document--because an exported graph usually ends up in a document. You can set the
+size of your document with the function \code{\link[fplot]{setFplot_page}}.
+If you use the function \code{\link[fplot]{fit.off}} to close the connection,
+you will also see how the export looks like in the Viewer pane.
+
+It offers a handy tool, \code{\link{export_graph_start}}, to easily export graphs with the
+objective to fit into a document. Some common graphical parameters can be directly
+modified using this function.
 }
 \author{
 \strong{Maintainer}: Laurent Berge \email{laurent.berge@u-bordeaux.fr}

@@ -1432,7 +1432,8 @@ truncate_string = function(x, trunc = 20, method = "auto"){
 
 
 
-legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = "auto", plot = TRUE, title = NULL, title_out = FALSE, ...){
+legendFit = function(where = "top", legend, minCex = 0.7, trunc, trunc.method = "auto", 
+                     plot = TRUE, title = NULL, title_out = FALSE, ...){
   # units in inch to avoid the need of having a graph already plotted
   # (you cannot use par("usr) when there is no graph plotted)
   # title_out: veut dire que le titre peut aller au dela de la plotting box
@@ -1715,7 +1716,7 @@ myBox = function(id){
 
 }
 
-shade_area <- function(y1, y2, x, xmin, xmax, col="grey", ...){
+shade_area <- function(y1, y2, x, xmin, xmax, col = "grey", ...){
   # fonction plus pratique que polygon
   # elle permet de griser une partie d?limit?e par
   # y1 et y2 pour chacune des valeurs de x
@@ -1743,7 +1744,9 @@ shade_area <- function(y1, y2, x, xmin, xmax, col="grey", ...){
 
 
 
-abplot <- function(x, y, where="default", signifCode = c("***" = 0.001, "**" = 0.05, "*" = 0.10), log = FALSE, legend=TRUE, ...){
+abplot = function(x, y, where = "default", 
+                  signifCode = c("***" = 0.001, "**" = 0.05, "*" = 0.10), 
+                  log = FALSE, legend = TRUE, ...){
   #plot a graph with the linear fit
   #where: where to place the legend
 
@@ -1985,7 +1988,7 @@ rightLine = function(x, y, ylim = NULL, ylim_left = NULL, showAxis = TRUE, showP
 }
 
 
-drawRectangle = function(xbl, ybl, xtr, ytr, prop=1, coul=1:100, sep=0.02, ...){
+drawRectangle = function(xbl, ybl, xtr, ytr, prop = 1, coul = 1:100, sep = 0.02, ...){
   # on donne a la fonction:
   # - le (x,y) en bas a gauche du rectangle (bl: bottm left)
   # - le (x,y) en haut a droite du rectangle (tr: top right)
@@ -2007,7 +2010,8 @@ drawRectangle = function(xbl, ybl, xtr, ytr, prop=1, coul=1:100, sep=0.02, ...){
 }
 
 
-myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log = FALSE, use_xaxis, inCol = "#386CB0", outCol = "white",  ...){
+myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log = FALSE, 
+                  use_xaxis, inCol = "#386CB0", outCol = "white",  ...){
   # personalized histogram
 
   if(doubleTable){
@@ -2097,7 +2101,11 @@ myHist = function(x, maxValue = +Inf, cex.text = 0.7, doubleTable = FALSE, log =
 }
 
 
-myBarplot = function(x, order=FALSE, nbins=10, show0=TRUE, cex.text=0.7, isLog=FALSE, isDistribution = TRUE, yaxis.show = TRUE, niceLabels = FALSE, labels.tilted=FALSE, axis1Opts = list(), hgrid = TRUE, top = "nb", showOther = TRUE, inCol = "#386CB0", outCol = "white", trunc=20, trunc.method = "auto", line.max, ...){
+myBarplot = function(x, order = FALSE, nbins = 10, show0 = TRUE, cex.text = 0.7, 
+                     isLog = FALSE, isDistribution = TRUE, yaxis.show = TRUE, 
+                     niceLabels = FALSE, labels.tilted = FALSE, axis1Opts = list(), 
+                     hgrid = TRUE, top = "nb", showOther = TRUE, inCol = "#386CB0", 
+                     outCol = "white", trunc = 20, trunc.method = "auto", line.max, ...){
   # This function draws a nice barplot
 
   # We get whether the labels from x are numeric
@@ -2322,7 +2330,8 @@ plot_line = function(x, y, addFit = FALSE, add = FALSE, smoothing_window = 0, ..
 
 
 
-box_single = function(x, y_min, q1, med, q3, y_max, xRight, width, inCol = NA, outCol = "black", lwd = 2, lwd.med = lwd + 2, density = -1){
+box_single = function(x, y_min, q1, med, q3, y_max, xRight, width, inCol = NA, 
+                      outCol = "black", lwd = 2, lwd.med = lwd + 2, density = -1){
   # Optional: xRight/width: we need one of the two!
   # either it is x, xRight, meaning that the rect x-dimension will be xLeft and xRight
   # either it is x, width, meaning that the rect x-dimension will be x-width/2 and x+width/2
@@ -2393,12 +2402,14 @@ box_single = function(x, y_min, q1, med, q3, y_max, xRight, width, inCol = NA, o
 
 }
 
-abplot <- function(x, y, where="default", signifCode = c("***" = 0.001, "**" = 0.05, "*" = 0.10), log = FALSE, legend=TRUE, ...){
-  #plot a graph with the linear fit
-  #where: where to place the legend
+abplot = function(x, y, where="default", 
+                  signifCode = c("***" = 0.001, "**" = 0.05, "*" = 0.10), 
+                  log = FALSE, legend = TRUE, ...){
+  # plot a graph with the linear fit
+  # where: where to place the legend
 
   # we take care of xlabs
-  dots <- list(...)
+  dots = list(...)
   if(is.null(dots$xlab)){
     dots$xlab = deparse(substitute(x))
     if(log) dots$xlab = paste0("ln(", dots$xlab, ")")
@@ -2511,7 +2522,11 @@ find_margins_left = function(ylab, y_labels, ylab.resize){
   list(ylab = ylab, ylab.line = ylab.line, total_width = total_width)
 }
 
-find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAxis, nbins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, sorted, labels.tilted, delayLabelsTilted, checkForTilting, checkNotTilted, noSub, binned_data, line.max, trunc, trunc.method, cex.axis, labels.angle, at_5, xlim){
+find_margins_bottom = function(xlab, sub, data_freq, log, isNum, numLabel, numAxis, 
+                               nbins, DO_SPLIT, ADD_OTHER, ADD_OTHER_LEFT, sorted, 
+                               labels.tilted, delayLabelsTilted, checkForTilting, 
+                               checkNotTilted, noSub, binned_data, line.max, trunc, 
+                               trunc.method, cex.axis, labels.angle, at_5, xlim){
   # This function finds the size of the margin needed to display all the x-axis labels + xlab + sub
   # This is highly complex because the decision on how to show the x-axis labels
   # depend on many things in plot_distr.
@@ -3288,7 +3303,12 @@ isVector = function(x){
 ####
 
 
-plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FALSE, nbins=50, show0=TRUE, cex.text=0.7, isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, top = "nb", showOther = TRUE, inCol = "#386CB0", border = "white", xlab, ylab, ...){
+plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), 
+                    order = FALSE, nbins = 50, show0 = TRUE, cex.text = 0.7, 
+                    isDistribution = FALSE, yaxis.show = TRUE, labels.tilted, 
+                    trunc = 20, trunc.method = "auto", line.max, hgrid = TRUE, 
+                    top = "nb", showOther = TRUE, inCol = "#386CB0", 
+                    border = "white", xlab, ylab, ...){
   # this function formats a bit the data and sends it to myBarplot
 
   # Old params
@@ -3451,7 +3471,12 @@ plot_bar = function(fml, data, agg, fun = mean, dict = getFplot_dict(), order=FA
     ylab = x_name
   }
 
-  myBarplot(x = res, order=order, nbins=nbins, show0=show0, cex.text=cex.text, isLog=isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, niceLabels = TRUE, labels.tilted=labels.tilted, trunc = trunc, trunc.method = trunc.method, line.max=line.max, hgrid = hgrid, top = top, showOther = showOther, inCol = inCol, outCol = border, xlab = xlab, ylab = ylab, ...)
+  myBarplot(x = res, order = order, nbins = nbins, show0 = show0, cex.text = cex.text, 
+            isLog = isLog, isDistribution = isDistribution, yaxis.show = yaxis.show, 
+            niceLabels = TRUE, labels.tilted = labels.tilted, trunc = trunc, 
+            trunc.method = trunc.method, line.max = line.max, hgrid = hgrid, 
+            top = top, showOther = showOther, inCol = inCol, outCol = border, 
+            xlab = xlab, ylab = ylab, ...)
 
   invisible(base_agg)
 }

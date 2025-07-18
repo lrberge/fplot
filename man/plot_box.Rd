@@ -36,7 +36,12 @@ plot_box(
 )
 }
 \arguments{
-\item{fml}{A numeric vector or a formula of the type: \code{vars ~ moderator_1 | moderator_2}. Note that if a formula is provided then the argument \sQuote{data} must be provided. You can plot several variables, if you don't want a moderator, use 1 instead: e.g. \code{plot_box(Petal.Width +Petal.Length ~ 1, iris)}. You can plot all numeric variables from a data set using \code{"."}: \code{plot_box(. ~ 1, iris)}.}
+\item{fml}{A numeric vector or a formula of the type:
+\code{vars ~ moderator_1 | moderator_2}. Note that if a formula is provided then
+the argument \sQuote{data} must be provided. You can plot several variables,
+if you don't want a moderator, use 1 instead: e.g.
+\code{plot_box(Petal.Width +Petal.Length ~ 1, iris)}. You can plot all numeric
+variables from a data set using \code{"."}: \code{plot_box(. ~ 1, iris)}.}
 
 \item{data}{A data.frame/data.table containing the relevant information.}
 
@@ -48,13 +53,15 @@ plot_box(
 
 \item{outCol}{The color of the outer box. Default is black.}
 
-\item{density}{The density of lines within the boxes. By default it is equal to -1, which means the boxes are filled with color.}
+\item{density}{The density of lines within the boxes. By default it is equal to -1,
+which means the boxes are filled with color.}
 
 \item{lty}{The type of lines for the border of the boxes. Default is 1 (solid line).}
 
 \item{pch}{The patch of the outliers. Default is 18.}
 
-\item{addLegend}{Default is \code{TRUE}. Should a legend be added at the top of the graph is there is more than one moderator?}
+\item{addLegend}{Default is \code{TRUE}. Should a legend be added at the top
+of the graph is there is more than one moderator?}
 
 \item{legend_options}{A list. Other options to be passed to \code{legend} which
 concerns the legend for the moderator.}
@@ -67,13 +74,29 @@ concerns the legend for the moderator.}
 Should be a named vector. By default it s the value of \code{getFplot_dict()},
 which you can set with the function \code{\link[fplot]{setFplot_dict}}.}
 
-\item{dict_case}{A named character vector. If provided, it changes the values of the variable \sQuote{case} to the ones contained in the vector \code{dict_case}. Example: I want to change my variable named "a" to "Australia" and "b" to "Brazil", then I used \code{dict=c(a="Australia",b="Brazil")}.}
+\item{dict_case}{A named character vector. If provided, it changes the values
+of the variable \sQuote{case} to the ones contained in the vector \code{dict_case}.
+Example: to change the variable named "a" to "Australia" and "b" to "Brazil",
+use \code{dict=c(a="Australia",b="Brazil")}.}
 
-\item{dict_moderator}{A named character vector. If provided, it changes the values of the variable \sQuote{moderator} to the ones contained in the vector \code{dict_moderator}. Example: I want to change my variable named "a" to "Australia" and "b" to "Brazil", then I used \code{dict=c(a="Australia",b="Brazil")}.}
+\item{dict_moderator}{A named character vector. If provided, it changes
+the values of the variable \sQuote{moderator} to the ones contained in
+the vector \code{dict_moderator}. Example: to change the variable
+named "a" to "Australia" and "b" to "Brazil", use \code{dict=c(a="Australia",b="Brazil")}.}
 
-\item{order_case}{Character vector. This element is used if the user wants the \sQuote{case} values to be ordered in a certain way. This should be a regular expression (see \code{\link[base]{regex}} help for more info). There can be more than one regular expression. The variables satisfying the first regular expression will be placed first, then the order follows the sequence of regular expressions.}
+\item{order_case}{Character vector. This element is used if the user wants the
+\sQuote{case} values to be ordered in a certain way.
+This should be a regular expression (see \code{\link[base]{regex}} help for more info).
+There can be more than one regular expression. The variables satisfying
+the first regular expression will be placed first, then the order follows
+the sequence of regular expressions.}
 
-\item{order_moderator}{Character vector. This element is used if the user wants the \sQuote{moderator} values to be ordered in a certain way. This should be a regular expression (see \code{\link[base]{regex}} help for more info). There can be more than one regular expression. The variables satisfying the first regular expression will be placed first, then the order follows the sequence of regular expressions.}
+\item{order_moderator}{Character vector. This element is used if the user wants
+the \sQuote{moderator} values to be ordered in a certain way. This should be
+a regular expression (see \code{\link[base]{regex}} help for more info).
+There can be more than one regular expression. The variables satisfying the
+first regular expression will be placed first, then the order follows the
+sequence of regular expressions.}
 
 \item{addMean}{Whether to add the average for each boxplot. Default is true.}
 
@@ -97,7 +120,8 @@ the argument \code{trunc.method}.}
 \item{trunc.method}{If the elements of the x-axis need to be truncated, this
 is the truncation method. It can be "auto", "right" or "mid".}
 
-\item{line.max}{Option for the x-axis, how far should the labels go. Default is 1 for normal labels, 2 for tilted labels.}
+\item{line.max}{Option for the x-axis, how far should the labels go.
+Default is 1 for normal labels, 2 for tilted labels.}
 
 \item{...}{Other parameters to be passed to \code{plot}.}
 }
