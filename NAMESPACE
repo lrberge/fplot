@@ -24,10 +24,11 @@ importFrom("graphics", "abline", "axis", "barplot", "box", "grid",
              "legend", "lines", "par", "plot", "points", "polygon",
              "rect", "segments", "strheight", "strwidth", "text",
              "title")
-importFrom("stats", "lm", "median", "quantile", "sd", "formula", "na.omit", "var", "as.formula", "terms", "update")
+importFrom("stats", "lm", "median", "quantile", "sd", "formula", 
+             "na.omit", "var", "as.formula", "terms", "update", "setNames")
 importFrom("utils", "head", "tail")
 importFrom("Formula", "Formula")
-importFrom("grDevices", "pdf", "png", "jpeg", "bmp", "tiff", "dev.off")
+importFrom("grDevices", "pdf", "png", "jpeg", "bmp", "tiff", "dev.off", "col2rgb")
 
 
 

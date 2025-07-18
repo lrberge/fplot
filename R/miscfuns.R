@@ -859,27 +859,29 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' at the default size will be at the defined point size.
 #' 
 #' @inheritParams png_fit
-#' @param file Character scalar. The name of the file in which to save the graph.
-#' If the argument type is `NULL`, the type of file is deduced from the extension.
+#' @param file Character scalar or `NULL`. The name of the file in which to save the graph.
+#' If the argument `type` is `NULL`, the type of file is deduced from the extension.
 #' If your file extension is different from your file type, you need to use the 
-#' argument `type`.
+#' argument `type`. It `file = NULL`, no graph is exported but, if provided, 
+#' the graphical parameters are modified accordingly.
 #' @param type Character scalar, default is `NULL`. The type of file to be created.
 #' If `NULL`, the default, then the type of file is deduced from the extension.
 #' @param margin Numeric vector, default is `NULL`. Defines the size of the four 
-#' plotting margins. If of length 1 or 2, the content is recycled to fit 4 elements.
-#' By default the unit is the line but you can change it with the argument 
+#' plotting margins (in this order: bottom, left, top, right). 
+#' If of length 1 or 2, the content is recycled to fit 4 elements.
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`.
 #' @param margin.left Numeric scalar, default is `NULL`. The size of the left margin.
-#' By default the unit is the line but you can change it with the argument 
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`.
 #' @param margin.right Numeric scalar, default is `NULL`. The size of the right margin.
-#' By default the unit is the line but you can change it with the argument 
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`.
 #' @param margin.top Numeric scalar, default is `NULL`. The size of the top margin.
-#' By default the unit is the line but you can change it with the argument 
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`.
 #' @param margin.bottom Numeric scalar, default is `NULL`. The size of the bottom margin.
-#' By default the unit is the line but you can change it with the argument 
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`.
 #' @param margin.unit Character scalar equal to either: i) "line" (default), ii) "inch", iii) "cm".
 #' @param box Can be equal to `NULL` (default), a logical scalar, or a character scalar.
@@ -888,28 +890,30 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' If a character scalar, it should contain the following letters: "b", "l", "t" and/or "r", 
 #' which stand for the bottom, left, top and right border.
 #' @param col.bg An R color, default is `NULL`. The background color of the plot.
-#' @param col.default A vector of R colors, default is `NULL`. 
-#' They represent the default colors used for plotting.
+#' @param col.default An R colors, default is `NULL`. They represent the default color 
+#' used for plotting (the axes will be drawn with that color and it will be the default
+#' color when the argument `col` is not provided in plotting functions).
 #' @param lwd Numeric scalar, default is `NULL`. The default width of the lines.
 #' @param yaxis.horiz Logical, default is `NULL`. Whether to display the y-axis labels
 #' horizontally.
 #' @param outermargin Numeric vector, default is `NULL`. Defines the size of the four 
 #' outer margins. If of length 1 or 2, the content is recycled to fit 4 elements.
-#' By default the unit is the line but you can change it with the argument 
+#' By default the unit is the "line" but you can change it with the argument 
 #' `outermargin.unit`. 
-#' @param outermargin.left Numeric scalar, default is `NULL`. The size of the left margin.
-#' By default the unit is the line but you can change it with the argument 
+#' @param outermargin.left Numeric scalar, default is `NULL`. The size of the left outer margin.
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`. 
-#' @param outermargin.right Numeric scalar, default is `NULL`. The size of the right margin.
-#' By default the unit is the line but you can change it with the argument 
+#' @param outermargin.right Numeric scalar, default is `NULL`. The size of the right outer margin.
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`. 
-#' @param outermargin.top Numeric scalar, default is `NULL`. The size of the top margin.
-#' By default the unit is the line but you can change it with the argument 
+#' @param outermargin.top Numeric scalar, default is `NULL`. The size of the top outer margin.
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`. 
-#' @param outermargin.bottom Numeric scalar, default is `NULL`. The size of the bottom margin.
-#' By default the unit is the line but you can change it with the argument 
+#' @param outermargin.bottom Numeric scalar, default is `NULL`. The size of the bottom outer margin.
+#' By default the unit is the "line" but you can change it with the argument 
 #' `margin.unit`. 
-#' @param outermargin.unit Character scalar equal to either: i) "line" (default), ii) "inch", iii) "cm".
+#' @param outermargin.unit Character scalar equal to either: i) "line" (default), 
+#' ii) "inch", iii) "cm".
 #' @param square_plot Logical, default is `NULL`. Whether the plotting region should fit 
 #' a square. If `FALSE` the plotting region is maximal.
 #' @param nrow Integer scalar, default is `NULL`. To display multiple graphs, the number of
@@ -936,6 +940,16 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' 
 #' @details 
 #' 
+#' When the function `export_graph_end()` is called, the resulting exported graph 
+#' is displayed in the Viewer. The viewer function is found with 
+#' `getOption("viewer")` and should work on RStudio and VSCode (with the R extension). 
+#' 
+#' When the graphical parameters are modified in `export_graph_start`, they are reset
+#' once a call to `export_graph_end`, or new call to `export_graph_start`, is run.
+#' 
+#' When the argument `file = NULL` (default), the function `export_graph_start` can be
+#' used in lieu of `par`, possibly facilitating the reset of the graphical parameters.
+#' 
 #' To export a ggplot2 graph, remember that you need to **print** it!
 #' 
 #' ```
@@ -959,9 +973,7 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' export_graph_end()
 #' ```
 #' 
-#' When the function `export_graph_end()` is called, the resulting exported graph 
-#' is displayed in the Viewer. The viewer function is found with 
-#' `getOption("viewer")` and should work on RStudio and VSCode (with the R extension). 
+#' 
 #' 
 #' @return 
 #' These functions do not return anything in R. `export_graph_start` creates a
@@ -989,7 +1001,16 @@ get_dimensions = function(x, n_out, unit.default, page_dim, page_dim_net){
 #' # graph in the viewer pane if appropritate
 #' export_graph_end()
 #' 
-export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w, 
+#' # We create a 'normal' graph where we change a few graphical parameters
+#' export_graph_start(col.default = "deepskyblue1", title.col = "indianred1", 
+#'                    title.italic = TRUE, title.size = 2)
+#' with(iris, plot(Sepal.Length, Petal.Length, pch = 18, cex = 2))
+#' title("Iris data set")
+#' # we reset the graphical parameters:
+#' export_graph_end()
+#' 
+#' 
+export_graph_start = function(file = NULL, pt = 10, width = 1, height, w2h = 1.75, h2w, 
                               sideways = FALSE, res = 300, type = NULL, 
                               # mar
                               margin = NULL, margin.left = NULL, margin.right = NULL, 
@@ -1019,7 +1040,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
 
   mc = match.call()
   
-  check_arg(file, "NULL path create mbt")
+  check_arg(file, "NULL path create")
   check_arg(type, "NULL character scalar")
   
   #
@@ -1039,7 +1060,7 @@ export_graph_start = function(file, pt = 10, width = 1, height, w2h = 1.75, h2w,
   check_arg(lwd, "NULL numeric scalar ge{0}")
   
   check_color(col.bg, scalar = TRUE, null = TRUE)
-  check_color(col.default, null = TRUE)
+  check_color(col.default, scalar = TRUE, null = TRUE)
   
   check_arg(nrow, ncol, "NULL integer scalar ge{1}")
   check_arg(byrow, "logical scalar")
